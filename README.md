@@ -3,7 +3,7 @@
 
 Our CSA LATAM team has been facing the challenge of reviewing Openshift clusters, managed or not, during too many of our engagements and the current set of scripts to collect and transform data into a nice report not sparsely faces execution problems by the customers so I decided to repack them into a operator.
 
-This would come as a person exercise for understanding and using operators as much as getting to know [Go](https://go.dev/) better. 
+This would come as a personal exercise for understanding and using operators as much as getting to know [Go](https://go.dev/) better. 
 
 The general idea is to replicate all the action used to collect cluster data aggregating the result in its raw yaml form comprising of various files as a first stage result, transforms it using pre-configured jq and yq queries as needed into a secondary stage result also in the form of yaml files now with customized group of objects, lists and such which will be used as input data to a static site generator based on [Markdown](https://daringfireball.net/projects/markdown/) files. 
 

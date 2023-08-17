@@ -7,4 +7,14 @@ layout:
 - go.kubebuilder.io/v4
 projectName: operator
 repo: github.com/mauricioscastro/hcreport
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: csa.latam.redhat.com
+  group: hcreport
+  kind: Config
+  path: github.com/mauricioscastro/hcreport/api/v1
+  version: v1
 version: "3"

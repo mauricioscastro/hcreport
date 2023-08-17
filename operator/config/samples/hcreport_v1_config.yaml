@@ -1,0 +1,12 @@
+apiVersion: hcreport.csa.latam.redhat.com/v1
+kind: Config
+metadata:
+  labels:
+    app.kubernetes.io/name: config
+    app.kubernetes.io/instance: config-sample
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+    app.kubernetes.io/created-by: operator
+  name: config-sample
+spec:
+  configMap: example-config

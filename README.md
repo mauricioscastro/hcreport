@@ -1,4 +1,4 @@
-# hcreport
+# hcreport ![hcreport](img/hcreport.png)
 ## A collection of Openshift health checks bundled in a operator 
 
 Our CSA LATAM team has been facing the challenge of reviewing Openshift clusters, managed or not, during too many of our engangements and the current set of scripts to collect and transform data into a nice report not sparesely faces execution problems by the customers so I deciced to repack them into a operator.

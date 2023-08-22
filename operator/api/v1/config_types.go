@@ -36,6 +36,7 @@ type ConfigSpec struct {
 type ConfigStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+	Config string `json:"configMap,omitempty"`
 }
 
 //+kubebuilder:object:root=true

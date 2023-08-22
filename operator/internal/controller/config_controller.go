@@ -20,11 +20,12 @@ import (
 	"context"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	logger "sigs.k8s.io/controller-runtime/pkg/log"
 
-	hcreportv1 "github.com/mauricioscastro/hcreport/api/v1"
+	hcr "github.com/mauricioscastro/hcreport/api/v1"
 )
 
 // ConfigReconciler reconciles a Config object
@@ -49,7 +50,16 @@ type ConfigReconciler struct {
 func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := logger.FromContext(ctx)
 
-	log.Info("reconcile loop", "req", req)
+	cfg := &hcr.Config{}
+	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, cfg)
+
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	cfg.Status.Config = cfg.Spec.Config
+
+	log.Info("reconcile loop", "spec", cfg.Spec, "status", cfg.Status)
 
 	return ctrl.Result{}, nil
 }
@@ -57,6 +67,6 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 // SetupWithManager sets up the controller with the Manager.
 func (r *ConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&hcreportv1.Config{}).
+		For(&hcr.Config{}).
 		Complete(r)
 }

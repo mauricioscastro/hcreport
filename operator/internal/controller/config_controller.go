@@ -54,10 +54,11 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, cfg)
 
 	if err != nil {
+		log.Error(err, "returning")
 		return ctrl.Result{}, err
 	}
 
-	cfg.Status.Config = cfg.Spec.Config
+	cfg.Status = cfg.Spec
 
 	log.Info("reconcile loop", "spec", cfg.Spec, "status", cfg.Status)
 

@@ -9,4 +9,8 @@ metadata:
     app.kubernetes.io/created-by: operator
   name: config-sample
 spec:
-  configMap: example-config
+  another-object: Mauricio
+  config: 
+    version: 0.1
+    k8sType: openshift
+    subType: managed

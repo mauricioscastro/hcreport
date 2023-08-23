@@ -32,21 +32,11 @@ spec:
           metadata:
             type: object
           spec:
-            description: ConfigSpec defines the desired state of Config
-            properties:
-              configMap:
-                description: ConfigMap holding this health check configuration
-                type: string
-            type: object
+            description: free form yaml
+            x-kubernetes-preserve-unknown-fields: true
           status:
-            description: ConfigStatus defines the observed state of Config
-            properties:
-              configMap:
-                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
-                  of cluster Important: Run "make" to regenerate code after modifying
-                  this file'
-                type: string
-            type: object
+            description: free form yaml
+            x-kubernetes-preserve-unknown-fields: true
         type: object
     served: true
     storage: true

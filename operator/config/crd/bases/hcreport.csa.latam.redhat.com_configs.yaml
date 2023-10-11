@@ -12,7 +12,7 @@ spec:
     listKind: ConfigList
     plural: configs
     singular: config
-  scope: Cluster
+  scope: Namespaced
   versions:
   - name: v1
     schema:

@@ -33,9 +33,12 @@ import (
 
 	hcreportv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/internal/controller"
+	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	//+kubebuilder:scaffold:imports
 )
+
+const caBundle = "/tmp/k8s-webhook-server/serving-certs/ca"
 
 var (
 	scheme   = runtime.NewScheme()
@@ -78,37 +81,65 @@ func main() {
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
 		LeaderElectionID:       "803a3daa.csa.latam.redhat.com",
-		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
-		// when the Manager ends. This requires the binary to immediately end when the
-		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly
-		// speeds up voluntary leader transitions as the new leader don't have to wait
-		// LeaseDuration time first.
-		//
-		// In the default scaffold provided, the program ends immediately after
-		// the manager stops, so would be fine to enable this option. However,
-		// if you are doing or is intended to do any operation such as perform cleanups
-		// after the manager stops then its usage might be unsafe.
-		// LeaderElectionReleaseOnCancel: true,
 	})
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
 
-	if err = (&controller.ConfigReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
-	}).SetupWithManager(mgr); err != nil {
-		setupLog.Error(err, "unable to create controller", "controller", "Config")
-		os.Exit(1)
+	if env := util.GetEnv("HCR_WEBHOOK_ONLY", "false"); env == "false" {
+		if err = (&controller.ConfigReconciler{
+			Client: mgr.GetClient(),
+			Scheme: mgr.GetScheme(),
+		}).SetupWithManager(mgr); err != nil {
+			setupLog.Error(err, "unable to create controller", "controller", "Config")
+			os.Exit(1)
+		}
+	} else {
+		logger.Info("running in webhook mode only")
 	}
 
-	if env := os.Getenv("ENABLE_WEBHOOKS"); env == "true" {
+	if env := util.GetEnv("HCR_WEBHOOK_ENABLE", "true"); env == "true" {
 		if err = (&hcreportv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Config")
 			os.Exit(1)
 		}
+		// TODO: inject caBundle into webhook configs
+		// '.webhooks[].clientConfig += {"caBundle": load_str("/tmp/k8s-webhook-server/serving-certs/ca")}'
+		// if d, err := kc.Cmd().Run("get validatingwebhookconfigurations.admissionregistration.k8s.io operator-validating-webhook-configuration -o yaml"); err != nil {
+		// 	setupLog.Error(err, "problem getting hook info")
+		// 	os.Exit(1)
+		// } else {
+		// 	logger.Info("webhook", z.String("deployment", d))
+		// }
+
+	} else {
+		logger.Info("webhook is turned off")
 	}
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	// ca, err := os.ReadFile("/tmp/k8s-webhook-server/serving-certs/tls.crt")
+	// if err != nil {
+	// 	logger.Error("impossible to read caBundle from file")
+	// }
+	// logger.Debug("cert: " + string(ca))
+	// logger.Debug("caBundle: " + b64.StdEncoding.EncodeToString(ca))
+
+	// if d, err := kc.Cmd().RunYq(
+	// 	"get validatingwebhookconfigurations.admissionregistration.k8s.io hcr-validating-webhook-configuration -o yaml",
+	// 	"with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid))",
+	// 	`.webhooks[].clientConfig += {"caBundle": load_str("/tmp/k8s-webhook-server/serving-certs/ca")}`); err != nil {
+	// 	setupLog.Error(err, "problem getting hook info")
+	// 	// os.Exit(1)
+	// } else {
+	// 	logger.Info("webhook:\n" + d)
+	// }
+
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+	///////////////////////////////////////////////////////
+
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {

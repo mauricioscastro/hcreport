@@ -55,6 +55,7 @@ var _ webhook.Validator = &Config{}
 // ValidateCreate implements webhook.Validator so a webhook will be registered for the type
 func (r *Config) ValidateCreate() (admission.Warnings, error) {
 	logger.Info("validate create", zap.String("name", r.Name))
+	logger.Info("config", zap.String("spec", string(r.Spec)))
 	// TODO(user): fill in your validation logic upon object creation.
 	return nil, nil
 }
@@ -62,6 +63,7 @@ func (r *Config) ValidateCreate() (admission.Warnings, error) {
 // ValidateUpdate implements webhook.Validator so a webhook will be registered for the type
 func (r *Config) ValidateUpdate(old runtime.Object) (admission.Warnings, error) {
 	logger.Info("validate update", zap.String("name", r.Name))
+	logger.Info("config", zap.String("spec", string(r.Spec)))
 	// TODO(user): fill in your validation logic upon object update.
 	return nil, nil
 }
@@ -69,7 +71,7 @@ func (r *Config) ValidateUpdate(old runtime.Object) (admission.Warnings, error) 
 // ValidateDelete implements webhook.Validator so a webhook will be registered for the type
 func (r *Config) ValidateDelete() (admission.Warnings, error) {
 	logger.Info("validate delete", zap.String("name", r.Name))
-
+	logger.Info("config", zap.String("spec", string(r.Spec)))
 	// TODO(user): fill in your validation logic upon object deletion.
 	return nil, nil
 }

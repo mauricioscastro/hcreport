@@ -1,6 +1,7 @@
 package util
 
 import (
+	"os"
 	"strings"
 
 	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
@@ -33,4 +34,12 @@ func ValidateJson(yamlInput string, jsonSchemaAsYaml string) error {
 		return err
 	}
 	return err
+}
+
+func GetEnv(k string, d string) string {
+	if env := os.Getenv(k); env == "" {
+		return d
+	} else {
+		return env
+	}
 }

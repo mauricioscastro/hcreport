@@ -27,4 +27,4 @@ Dockerfile.cross
 .vscode/
 
 reports/**/site
-operator/tmp/
+**/tmp/

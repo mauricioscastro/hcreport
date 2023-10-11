@@ -27,8 +27,7 @@ spec:
             DNS:$SUBJECT_ALT_NAME.$NAMESPACE_NAME.svc.cluster.local,\
             DNS:$SUBJECT_ALT_NAME.$NAMESPACE_NAME.svc" \
             -addext "basicConstraints=critical,CA:TRUE,pathlen:1";
-            base64 -w0 $TARGET_DIR/tls.key > $TARGET_DIR/ca;
-            chmod 444 $TARGET_DIR/tls.crt $TARGET_DIR/tls.key $TARGET_DIR/ca
+            chmod 444 $TARGET_DIR/tls.crt $TARGET_DIR/tls.key
         volumeMounts:
         - mountPath: /tmp/k8s-webhook-server/serving-certs
           name: work

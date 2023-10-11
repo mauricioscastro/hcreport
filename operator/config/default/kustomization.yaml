@@ -43,6 +43,11 @@ replacements:
       name: hcr-controller-manager
     fieldPaths:
       - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_VALIDATE_CFG_NAME].value
+  - select: 
+      kind: ClusterRole
+      name: webhook-manager-role
+    fieldPaths:
+      - rules.0.resourceNames.0
 - source: 
     kind: MutatingWebhookConfiguration
   targets:
@@ -51,3 +56,8 @@ replacements:
       name: hcr-controller-manager
     fieldPaths:
       - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_MUTATE_CFG_NAME].value
+  - select: 
+      kind: ClusterRole
+      name: webhook-manager-role
+    fieldPaths:
+      - rules.0.resourceNames.1

@@ -38,8 +38,6 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
-const caBundle = "/tmp/k8s-webhook-server/serving-certs/ca"
-
 var (
 	scheme   = runtime.NewScheme()
 	setupLog = ctrl.Log.WithName("setup")
@@ -103,41 +101,23 @@ func main() {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Config")
 			os.Exit(1)
 		}
-		// TODO: inject caBundle into webhook configs
-		// '.webhooks[].clientConfig += {"caBundle": load_str("/tmp/k8s-webhook-server/serving-certs/ca")}'
-		// if d, err := kc.Cmd().Run("get validatingwebhookconfigurations.admissionregistration.k8s.io operator-validating-webhook-configuration -o yaml"); err != nil {
-		// 	setupLog.Error(err, "problem getting hook info")
-		// 	os.Exit(1)
-		// } else {
-		// 	logger.Info("webhook", z.String("deployment", d))
-		// }
+
+		valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
+		mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
+
+		if err = util.InjectWebHookCA(valWebHookName, util.KindValidateHook); err != nil {
+			logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
+			os.Exit(1)
+		}
+
+		if err = util.InjectWebHookCA(mutWebHookName, util.KindMutateHook); err != nil {
+			logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
+			os.Exit(1)
+		}
 
 	} else {
 		logger.Info("webhook is turned off")
 	}
-	///////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////
-	// ca, err := os.ReadFile("/tmp/k8s-webhook-server/serving-certs/tls.crt")
-	// if err != nil {
-	// 	logger.Error("impossible to read caBundle from file")
-	// }
-	// logger.Debug("cert: " + string(ca))
-	// logger.Debug("caBundle: " + b64.StdEncoding.EncodeToString(ca))
-
-	// if d, err := kc.Cmd().RunYq(
-	// 	"get validatingwebhookconfigurations.admissionregistration.k8s.io hcr-validating-webhook-configuration -o yaml",
-	// 	"with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid))",
-	// 	`.webhooks[].clientConfig += {"caBundle": load_str("/tmp/k8s-webhook-server/serving-certs/ca")}`); err != nil {
-	// 	setupLog.Error(err, "problem getting hook info")
-	// 	// os.Exit(1)
-	// } else {
-	// 	logger.Info("webhook:\n" + d)
-	// }
-
-	///////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////
-	///////////////////////////////////////////////////////
 
 	// +kubebuilder:scaffold:builder
 

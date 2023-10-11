@@ -1,0 +1,53 @@
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: mutating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /mutate-hcreport-csa-latam-redhat-com-v1-config
+  failurePolicy: Fail
+  name: mconfig.kb.io
+  rules:
+  - apiGroups:
+    - hcreport.csa.latam.redhat.com
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    resources:
+    - configs
+  sideEffects: None
+---
+apiVersion: admissionregistration.k8s.io/v1
+kind: ValidatingWebhookConfiguration
+metadata:
+  name: validating-webhook-configuration
+webhooks:
+- admissionReviewVersions:
+  - v1
+  clientConfig:
+    service:
+      name: webhook-service
+      namespace: system
+      path: /validate-hcreport-csa-latam-redhat-com-v1-config
+  failurePolicy: Fail
+  name: vconfig.kb.io
+  rules:
+  - apiGroups:
+    - hcreport.csa.latam.redhat.com
+    apiVersions:
+    - v1
+    operations:
+    - CREATE
+    - UPDATE
+    - DELETE
+    resources:
+    - configs
+  sideEffects: None

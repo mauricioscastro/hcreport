@@ -1,0 +1,11 @@
+apiVersion: hcreport.csa.latam.redhat.com/v1
+kind: Config
+metadata:
+  labels: {}
+  name: config-sample
+spec:
+  another-object: Mauricio
+  config:
+    version: 0.23
+    k8sType: openshift
+    subType: managed

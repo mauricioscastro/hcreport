@@ -2,13 +2,14 @@ package yqlib
 
 import (
 	"container/list"
+	"io"
 
 	yaml "gopkg.in/yaml.v3"
 )
 
 // A yaml expression evaluator that runs the expression once against all files/nodes in memory.
 type Evaluator interface {
-	EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder) error
+	EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder, extra_reader io.Reader) error
 
 	// EvaluateNodes takes an expression and one or more yaml nodes, returning a list of matching candidate nodes
 	EvaluateNodes(expression string, nodes ...*yaml.Node) (*list.List, error)
@@ -46,12 +47,12 @@ func (e *allAtOnceEvaluator) EvaluateCandidateNodes(expression string, inputCand
 	return context.MatchingNodes, nil
 }
 
-func (e *allAtOnceEvaluator) EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder) error {
+func (e *allAtOnceEvaluator) EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder, extra_reader io.Reader) error {
 	fileIndex := 0
 
 	var allDocuments = list.New()
 	for _, filename := range filenames {
-		reader, err := readStream(filename)
+		reader, err := readStream(filename, extra_reader)
 		if err != nil {
 			return err
 		}

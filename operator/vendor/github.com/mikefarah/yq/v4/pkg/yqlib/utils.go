@@ -9,10 +9,15 @@ import (
 	"os"
 )
 
-func readStream(filename string) (io.Reader, error) {
+func readStream(filename string, extra_reader ...io.Reader) (io.Reader, error) {
 	var reader *bufio.Reader
+
 	if filename == "-" {
-		reader = bufio.NewReader(os.Stdin)
+		if len(extra_reader) > 0 && extra_reader[0] != nil {
+			reader = bufio.NewReader(extra_reader[0])
+		} else {
+			reader = bufio.NewReader(os.Stdin)
+		}
 	} else {
 		// ignore CWE-22 gosec issue - that's more targeted for http based apps that run in a public directory,
 		// and ensuring that it's not possible to give a path to a file outside that directory.
@@ -21,6 +26,7 @@ func readStream(filename string) (io.Reader, error) {
 			return nil, err
 		}
 		reader = bufio.NewReader(file)
+
 	}
 	return reader, nil
 

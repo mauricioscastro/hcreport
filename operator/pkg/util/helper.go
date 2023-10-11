@@ -64,12 +64,18 @@ func InjectWebHookCA(webHookName string, webHookKind string) error {
 		eCert := b64.StdEncoding.EncodeToString(cert)
 		if d, err := kc.Cmd().RunYq(
 			"get "+webHookKind+" "+webHookName,
-			"with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid))",
+			`with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid) | del (."kubectl.kubernetes.io/last-applied-configuration"))`,
 			`.webhooks[].clientConfig += {"caBundle": "`+eCert+`"}`); err != nil {
 			logger.Error("", zap.Error(err))
 			return err
 		} else {
-			logger.Info("", zap.String("webhook config deployment", d))
+			logger.Debug("", zap.String("new webhook config deployment", d))
+			if d, err = kc.Apply(d); err != nil {
+				logger.Error("", zap.Error(err))
+				return err
+			} else {
+				logger.Info(d)
+			}
 		}
 	}
 	return nil

@@ -28,7 +28,7 @@ cat file2.yml | yq e '.a.b' file1.yml - file3.yml
 ## Note that editing an empty file does not work.
 yq e -n '.a.b.c = "cat"' 
 
-# Update a file in place
+# Update a file inplace
 yq e '.a.b = "cool"' -i file.yaml 
 `,
 		Long: `yq is a portable command-line YAML processor (https://github.com/mikefarah/yq/) 
@@ -135,7 +135,7 @@ func evaluateSequence(cmd *cobra.Command, args []string) (cmdError error) {
 			return nil
 		}
 	default:
-		err = streamEvaluator.EvaluateFiles(processExpression(expression), args, printer, decoder)
+		err = streamEvaluator.EvaluateFiles(processExpression(expression), args, printer, decoder, cmd.InOrStdin())
 	}
 	completedSuccessfully = err == nil
 

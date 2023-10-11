@@ -94,6 +94,12 @@ func (o *ClusterInfoOptions) Complete(restClientGetter genericclioptions.RESTCli
 
 func (o *ClusterInfoOptions) Run() error {
 	// TODO use generalized labels once they are implemented (#341)
+
+	// added from hcreport https://github.com/mauricioscastro/hcreport/operator/bkp
+	if o.Builder == nil {
+		return fmt.Errorf("impossible to run cluster-info")
+	}
+
 	b := o.Builder.
 		WithScheme(scheme.Scheme, scheme.Scheme.PrioritizedVersionsAllGroups()...).
 		NamespaceParam(o.Namespace).DefaultNamespace().

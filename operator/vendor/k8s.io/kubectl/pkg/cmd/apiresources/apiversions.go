@@ -81,6 +81,12 @@ func (o *APIVersionsOptions) Complete(restClientGetter genericclioptions.RESTCli
 // RunAPIVersions does the work
 func (o *APIVersionsOptions) RunAPIVersions() error {
 	// Always request fresh data from the server
+
+	// added from hcreport https://github.com/mauricioscastro/hcreport/operator/bkp
+	if o.discoveryClient == nil {
+		return fmt.Errorf("cannot request fresh data from the server")
+	}
+
 	o.discoveryClient.Invalidate()
 
 	groupList, err := o.discoveryClient.ServerGroups()

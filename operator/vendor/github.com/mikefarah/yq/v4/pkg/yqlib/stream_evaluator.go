@@ -15,7 +15,7 @@ import (
 // cross document expressions.
 type StreamEvaluator interface {
 	Evaluate(filename string, reader io.Reader, node *ExpressionNode, printer Printer, decoder Decoder) (uint, error)
-	EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder) error
+	EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder, extra_reader io.Reader) error
 	EvaluateNew(expression string, printer Printer) error
 }
 
@@ -49,7 +49,7 @@ func (s *streamEvaluator) EvaluateNew(expression string, printer Printer) error 
 	return printer.PrintResults(result.MatchingNodes)
 }
 
-func (s *streamEvaluator) EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder) error {
+func (s *streamEvaluator) EvaluateFiles(expression string, filenames []string, printer Printer, decoder Decoder, extra_reader io.Reader) error {
 	var totalProcessDocs uint
 	node, err := ExpressionParser.ParseExpression(expression)
 	if err != nil {
@@ -57,7 +57,7 @@ func (s *streamEvaluator) EvaluateFiles(expression string, filenames []string, p
 	}
 
 	for _, filename := range filenames {
-		reader, err := readStream(filename)
+		reader, err := readStream(filename, extra_reader)
 
 		if err != nil {
 			return err

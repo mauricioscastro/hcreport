@@ -159,6 +159,11 @@ func (o *APIResourceOptions) RunAPIResources() error {
 	w := printers.GetNewTabWriter(o.Out)
 	defer w.Flush()
 
+	// added from hcreport https://github.com/mauricioscastro/hcreport/operator/bkp
+	if o.discoveryClient == nil {
+		return fmt.Errorf("cannot request fresh data from the server")
+	}
+
 	if !o.Cached {
 		// Always request fresh data from the server
 		o.discoveryClient.Invalidate()

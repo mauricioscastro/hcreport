@@ -26,18 +26,21 @@ const kcDefaultArgs = "--insecure-skip-tls-verify"
 
 var (
 	stdioLock sync.Mutex
-	logger    = log.Logger().Named("kcw")
+	logger    = log.Logger().Named("hcr.kcw")
 )
 
 type KcWrapper interface {
-	Run(command string) (string, error)
+	Run(command string, stdin ...string) (string, error)
 	RunSed(command string, e ...string) (string, error)
 	RunYq(command string, e ...string) (string, error)
+	UnSynced() KcWrapper
+	Synced() KcWrapper
 }
 
 type kcWrapper struct {
 	out  bytes.Buffer
 	err  bytes.Buffer
+	in   bytes.Buffer
 	cmd  *cobra.Command
 	sync bool
 }
@@ -48,10 +51,11 @@ func NewKcWrapper() KcWrapper {
 		PluginHandler: nil,
 		Arguments:     nil,
 		ConfigFlags:   genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag().WithDiscoveryBurst(300).WithDiscoveryQPS(50.0),
-		IOStreams:     genericiooptions.IOStreams{In: nil, Out: &kcw.out, ErrOut: &kcw.err},
+		IOStreams:     genericiooptions.IOStreams{In: &kcw.in, Out: &kcw.out, ErrOut: &kcw.err},
 	})
 	kcw.cmd.SetErr(&kcw.err)
 	kcw.cmd.SetOut(&kcw.err)
+	kcw.cmd.SetIn(&kcw.in)
 	kcw.sync = true
 	cmdUtil.BehaviorOnFatal(func(msg string, code int) {
 		if len(msg) > 0 {
@@ -61,12 +65,16 @@ func NewKcWrapper() KcWrapper {
 	return &kcw
 }
 
-func (kcw *kcWrapper) Run(command string) (string, error) {
+func (kcw *kcWrapper) Run(command string, stdin ...string) (string, error) {
 	argString := kcDefaultArgs + " " + command
 	kcw.cmd.SetArgs(strings.Split(argString, " "))
 	kcw.out.Reset()
 	kcw.err.Reset()
+	kcw.in.Reset()
 	feedStdin() // in case auth is requested, provoke auth error
+	deployment := strings.Join(stdin, "\n---\n")
+	fmt.Fprint(&kcw.in, deployment)
+	logger.Debug("", zap.String("deployment", deployment))
 	var err error
 	if kcw.sync {
 		logger.Debug("run synced", zap.String("arg", argString))
@@ -147,4 +155,14 @@ func feedStdin() {
 		wi.Write([]byte("0\r0\r"))
 		wi.Close()
 	}
+}
+
+func (kcw *kcWrapper) UnSynced() KcWrapper {
+	kcw.sync = false
+	return kcw
+}
+
+func (kcw *kcWrapper) Synced() KcWrapper {
+	kcw.sync = true
+	return kcw
 }

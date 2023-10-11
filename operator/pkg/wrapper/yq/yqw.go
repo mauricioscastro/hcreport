@@ -13,7 +13,7 @@ import (
 
 const yqDefaultArgs = "-M"
 
-var logger = log.Logger().Named("yqw")
+var logger = log.Logger().Named("hcr.yqw")
 
 type YqWrapper interface {
 	EvalEach(expr string, yaml string, file ...string) (string, error)

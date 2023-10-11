@@ -3,6 +3,8 @@ package kc
 import (
 	"encoding/csv"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 const (
@@ -35,6 +37,15 @@ func GetNS() ([]string, error) {
 	initKubectl()
 	ns, err := kcw.Run(cmdNs)
 	return strings.Split(ns, "\n"), err
+}
+
+func Apply(deployment ...string) (string, error) {
+	initKubectl()
+	r, err := kcw.Run("apply -f -", deployment...)
+	if err != nil {
+		logger.Error("", zap.Error(err))
+	}
+	return r, err
 }
 
 func Cmd() KcWrapper {

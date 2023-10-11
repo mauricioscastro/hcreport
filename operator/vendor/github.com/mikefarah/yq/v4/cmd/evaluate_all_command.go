@@ -13,7 +13,7 @@ func createEvaluateAllCommand() *cobra.Command {
 		Aliases: []string{"ea"},
 		Short:   "Loads _all_ yaml documents of _all_ yaml files and runs expression once",
 		Example: `
-# Merge f2.yml into f1.yml (in place)
+# Merge f2.yml into f1.yml (inplace)
 yq eval-all --inplace 'select(fileIndex == 0) * select(fileIndex == 1)' f1.yml f2.yml
 ## the same command and expression using shortened names:
 yq ea -i 'select(fi == 0) * select(fi == 1)' f1.yml f2.yml
@@ -121,7 +121,7 @@ func evaluateAll(cmd *cobra.Command, args []string) (cmdError error) {
 			return nil
 		}
 	default:
-		err = allAtOnceEvaluator.EvaluateFiles(processExpression(expression), args, printer, decoder)
+		err = allAtOnceEvaluator.EvaluateFiles(processExpression(expression), args, printer, decoder, cmd.InOrStdin())
 	}
 
 	completedSuccessfully = err == nil

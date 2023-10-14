@@ -33,7 +33,7 @@ spec:
           name: work
           readOnly: false      
         securityContext:
-          runAsNonRoot: true
+          runAsUser: 1000723456
           allowPrivilegeEscalation: false
           capabilities:
             drop:

@@ -2,7 +2,6 @@ package util
 
 import (
 	b64 "encoding/base64"
-	"fmt"
 	"net"
 	"os"
 	"strings"
@@ -71,11 +70,6 @@ func GetEnv(k string, d string) string {
 }
 
 func InjectWebHookCA(webHookName string, webHookKind string) error {
-	// if cert, err := os.ReadFile(caBundle); err != nil {
-	// 	logger.Error("", zap.Error(err))
-	// 	return err
-	// } else {
-	// eCert := b64.StdEncoding.EncodeToString(cert)
 	eCert := b64.StdEncoding.EncodeToString(caPEM.Bytes())
 	if d, err := kc.Cmd().RunYq(
 		"get "+webHookKind+" "+webHookName,
@@ -92,7 +86,6 @@ func InjectWebHookCA(webHookName string, webHookKind string) error {
 			logger.Info(d)
 		}
 	}
-	// }
 	return nil
 }
 
@@ -125,8 +118,8 @@ func GenCert() error {
 		Type:  "CERTIFICATE",
 		Bytes: caBytes,
 	})
-	caPrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(caPrivKeyPEM, &pem.Block{
+	var caPrivKeyPEM bytes.Buffer
+	pem.Encode(&caPrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(caPrivKey),
 	})
@@ -153,13 +146,13 @@ func GenCert() error {
 		logger.Error("", zap.Error(err))
 		return err
 	}
-	certPEM := new(bytes.Buffer)
-	pem.Encode(certPEM, &pem.Block{
+	var certPEM bytes.Buffer
+	pem.Encode(&certPEM, &pem.Block{
 		Type:  "CERTIFICATE",
 		Bytes: certBytes,
 	})
-	certPrivKeyPEM := new(bytes.Buffer)
-	pem.Encode(certPrivKeyPEM, &pem.Block{
+	var certPrivKeyPEM bytes.Buffer
+	pem.Encode(&certPrivKeyPEM, &pem.Block{
 		Type:  "RSA PRIVATE KEY",
 		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
 	})
@@ -174,6 +167,5 @@ func GenCert() error {
 		logger.Error("", zap.Error(err))
 		return err
 	}
-	fmt.Println(caPEM.String())
 	return nil
 }

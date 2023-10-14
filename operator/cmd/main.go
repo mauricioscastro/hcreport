@@ -102,12 +102,13 @@ func main() {
 		logger.Info("running in webhook mode only")
 	}
 
-	if err = util.GenCert(); err != nil {
-		logger.Error("error creating certificate", zap.String("err", err.Error()))
-		os.Exit(1)
-	}
-
 	if envWhOnly == "true" || envWhEnable == "true" {
+
+		if err = util.GenCert(); err != nil {
+			logger.Error("error creating certificate", zap.String("err", err.Error()))
+			os.Exit(1)
+		}
+
 		if err = (&hcreportv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Config")
 			os.Exit(1)

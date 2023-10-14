@@ -6,37 +6,6 @@ metadata:
 spec:
   template:
     spec:
-      initContainers:
-      - name: cert-provider
-        image: docker.io/alpine/openssl
-        env:
-          - name: SUBJECT_ALT_NAME
-            value: ""
-          - name: NAMESPACE_NAME
-            value: ""
-          - name: TARGET_DIR
-            value: /tmp/k8s-webhook-server/serving-certs            
-        command: 
-          - sh
-          - -c
-          - |
-            openssl genrsa -out $TARGET_DIR/tls.key 2048;
-            openssl req -new -x509 -sha256 -key $TARGET_DIR/tls.key -out $TARGET_DIR/tls.crt \
-            -subj "/CN=hcreport" -days 3650 \
-            -addext "subjectAltName=\
-            DNS:$SUBJECT_ALT_NAME.$NAMESPACE_NAME.svc.cluster.local,\
-            DNS:$SUBJECT_ALT_NAME.$NAMESPACE_NAME.svc" \
-            -addext "basicConstraints=critical,CA:TRUE,pathlen:1";
-            chmod 444 $TARGET_DIR/tls.crt $TARGET_DIR/tls.key
-        volumeMounts:
-        - mountPath: /tmp/k8s-webhook-server/serving-certs
-          name: work
-          readOnly: false      
-        securityContext:
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-              - "ALL"
       containers:
       - name: manager
         ports:

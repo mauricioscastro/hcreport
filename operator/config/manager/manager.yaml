@@ -51,6 +51,10 @@ spec:
         args:
         - --leader-elect
         env:
+          - name: HCR_WEBHOOK_SERVICE_NAME
+            value: ""        
+          - name: HCR_WEBHOOK_SERVICE_NAMESPACE_NAME
+            value: ""          
           - name: HCR_WEBHOOK_VALIDATE_CFG_NAME
             value: ""        
           - name: HCR_WEBHOOK_MUTATE_CFG_NAME

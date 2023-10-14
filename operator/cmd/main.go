@@ -26,12 +26,13 @@ import (
 
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
-	"sigs.k8s.io/controller-runtime/pkg/log/zap"
+	z "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
 	hcreportv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/internal/controller"
@@ -62,7 +63,7 @@ func main() {
 	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
-	opts := zap.Options{
+	opts := z.Options{
 		Development: true,
 	}
 	if loggerEnv := os.Getenv("LOGGER_ENV"); loggerEnv == "prod" {
@@ -71,7 +72,7 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(zap.New(zap.UseFlagOptions(&opts)))
+	ctrl.SetLogger(z.New(z.UseFlagOptions(&opts)))
 
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:                 scheme,
@@ -99,6 +100,11 @@ func main() {
 		}
 	} else {
 		logger.Info("running in webhook mode only")
+	}
+
+	if err = util.GenCert(); err != nil {
+		logger.Error("error creating certificate", zap.String("err", err.Error()))
+		os.Exit(1)
 	}
 
 	if envWhOnly == "true" || envWhEnable == "true" {

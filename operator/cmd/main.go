@@ -20,6 +20,7 @@ import (
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
+
 	"flag"
 	"os"
 
@@ -84,8 +85,11 @@ func main() {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
 	}
-
-	if env := util.GetEnv("HCR_WEBHOOK_ONLY", "false"); env == "false" {
+	var (
+		envWhOnly   = util.GetEnv("HCR_WEBHOOK_ONLY", "false")
+		envWhEnable = util.GetEnv("HCR_WEBHOOK_ENABLE", "true")
+	)
+	if envWhOnly == "false" {
 		if err = (&controller.ConfigReconciler{
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),
@@ -97,7 +101,7 @@ func main() {
 		logger.Info("running in webhook mode only")
 	}
 
-	if env := util.GetEnv("HCR_WEBHOOK_ENABLE", "true"); env == "true" {
+	if envWhOnly == "true" || envWhEnable == "true" {
 		if err = (&hcreportv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
 			setupLog.Error(err, "unable to create webhook", "webhook", "Config")
 			os.Exit(1)

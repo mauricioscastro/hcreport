@@ -72,9 +72,10 @@ func (kcw *kcWrapper) Run(command string, stdin ...string) (string, error) {
 	kcw.err.Reset()
 	kcw.in.Reset()
 	feedStdin() // in case auth is requested, provoke auth error
-	deployment := strings.Join(stdin, "\n---\n")
-	fmt.Fprint(&kcw.in, deployment)
-	logger.Debug("", zap.String("deployment", deployment))
+	if len(stdin) > 0 {
+		kcw.in.WriteString(strings.Join(stdin, "\n---\n"))
+	}
+	fmt.Fprint(&kcw.in)
 	var err error
 	if kcw.sync {
 		logger.Debug("run synced", zap.String("arg", argString))

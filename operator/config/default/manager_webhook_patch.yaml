@@ -33,7 +33,11 @@ spec:
           name: work
           readOnly: false      
         securityContext:
-          runAsUser: 3
+          runAsNonRoot: true
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
       containers:
       - name: manager
         ports:

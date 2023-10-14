@@ -382,7 +382,7 @@ func (flags *ApplyFlags) ToOptions(f cmdutil.Factory, cmd *cobra.Command, baseNa
 func (o *ApplyOptions) Validate() error {
 
 	if o == nil {
-		return fmt.Errorf("impossible to apply. check cluster connectivity")
+		return fmt.Errorf("impossible to validate. check cluster connectivity")
 	}
 
 	if o.ForceConflicts && !o.ServerSideApply {

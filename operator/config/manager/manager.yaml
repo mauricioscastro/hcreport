@@ -9,6 +9,7 @@ metadata:
     app.kubernetes.io/created-by: operator
     app.kubernetes.io/part-of: operator
     app.kubernetes.io/managed-by: kustomize
+    security.openshift.io/scc.podSecurityLabelSync: true
   name: system
 ---
 apiVersion: apps/v1
@@ -38,6 +39,8 @@ spec:
     spec:
       securityContext:
         runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
       volumes:
       - name: work
         emptyDir:

@@ -58,7 +58,7 @@ func (yqw *yqWrapper) eval(mainArgs string, expr string, yaml string, file ...st
 	if len(expr) != 0 {
 		args = append(args, []string{"--expression", expr}...)
 	}
-	if len(yaml) != 0 {
+	if len(yaml) > 0 {
 		yqw.cmd.SetIn(strings.NewReader(yaml))
 		args = append(args, "-")
 	}

@@ -48,6 +48,9 @@ var (
 )
 
 func init() {
+	// yq.SetLoggerLevel(zapcore.InfoLevel)
+	// util.SetLoggerLevel(zapcore.InfoLevel)
+
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(hcreportv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
@@ -147,4 +150,5 @@ func main() {
 		setupLog.Error(err, "problem running manager")
 		os.Exit(1)
 	}
+
 }

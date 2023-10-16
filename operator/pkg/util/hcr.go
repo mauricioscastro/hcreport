@@ -4,13 +4,15 @@ import (
 	b64 "encoding/base64"
 	"net"
 	"os"
+	"path/filepath"
 	"strings"
 
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	"github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
 	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"gopkg.in/yaml.v3"
 
 	"bytes"
@@ -33,6 +35,10 @@ var (
 	caPEM  bytes.Buffer
 	logger = log.Logger().Named("hcr.util")
 )
+
+func SetLoggerLevel(level zapcore.Level) {
+	logger = log.ResetLoggerLevel(logger, level)
+}
 
 func ValidateJson(yamlInput string, jsonSchemaAsYaml string) error {
 	var (
@@ -71,22 +77,13 @@ func GetEnv(k string, d string) string {
 
 func InjectWebHookCA(webHookName string, webHookKind string) error {
 	eCert := b64.StdEncoding.EncodeToString(caPEM.Bytes())
-	if d, err := kc.Cmd().RunYq(
-		"get "+webHookKind+" "+webHookName,
-		`with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid) | del (."kubectl.kubernetes.io/last-applied-configuration"))`,
-		`.webhooks[].clientConfig += {"caBundle": "`+eCert+`"}`); err != nil {
-		logger.Error("", zap.Error(err))
-		return err
-	} else {
-		logger.Debug("", zap.String("new webhook config deployment", d))
-		if d, err = kc.Apply(d); err != nil {
-			logger.Error("", zap.Error(err))
-			return err
-		} else {
-			logger.Info(d)
-		}
-	}
-	return nil
+	r := runner.NewCmdRunner().
+		Kc("get " + webHookKind + " " + webHookName).
+		Yq(`with(.metadata; del(.annotations) | del(.creationTimestamp) | del(.generation) | del(.resourceVersion) | del (.uid) | del (."kubectl.kubernetes.io/last-applied-configuration"))`).
+		Yq(`.webhooks[].clientConfig += {"caBundle": "` + eCert + `"}`).
+		KcApply()
+	logger.Debug(r.Out())
+	return r.Err()
 }
 
 func GenCert() error {
@@ -157,6 +154,7 @@ func GenCert() error {
 		Bytes: x509.MarshalPKCS1PrivateKey(certPrivKey),
 	})
 	caPEM.WriteString(certPEM.String())
+	os.MkdirAll(filepath.Join(os.TempDir(), "k8s-webhook-server", "serving-certs"), os.ModePerm)
 	err = os.WriteFile(caBundle, certPEM.Bytes(), 0444)
 	if err != nil {
 		logger.Error("", zap.Error(err))

@@ -7,6 +7,7 @@ import (
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	yq "github.com/mikefarah/yq/v4/cmd"
+	"go.uber.org/zap/zapcore"
 
 	"github.com/spf13/cobra"
 )
@@ -14,6 +15,10 @@ import (
 const yqDefaultArgs = "-M"
 
 var logger = log.Logger().Named("hcr.yqw")
+
+func SetLoggerLevel(level zapcore.Level) {
+	logger = log.ResetLoggerLevel(logger, level)
+}
 
 type YqWrapper interface {
 	EvalEach(expr string, yaml string, file ...string) (string, error)

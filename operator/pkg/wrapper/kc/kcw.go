@@ -11,9 +11,10 @@ import (
 	"github.com/spf13/cobra"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
-	"github.com/rwtodd/Go.Sed/sed"
+	// "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
+	// "github.com/rwtodd/Go.Sed/sed"
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/component-base/cli"
@@ -29,10 +30,12 @@ var (
 	logger    = log.Logger().Named("hcr.kcw")
 )
 
+func SetLoggerLevel(level zapcore.Level) {
+	logger = log.ResetLoggerLevel(logger, level)
+}
+
 type KcWrapper interface {
-	Run(command string, stdin ...string) (string, error)
-	RunSed(command string, e ...string) (string, error)
-	RunYq(command string, e ...string) (string, error)
+	Run(args []string, stdin string) (string, error)
 	UnSynced() KcWrapper
 	Synced() KcWrapper
 }
@@ -65,63 +68,25 @@ func NewKcWrapper() KcWrapper {
 	return &kcw
 }
 
-func (kcw *kcWrapper) Run(command string, stdin ...string) (string, error) {
-	argString := kcDefaultArgs + " " + command
-	kcw.cmd.SetArgs(strings.Split(argString, " "))
+func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
+	kcw.cmd.SetArgs(append(args, kcDefaultArgs))
 	kcw.out.Reset()
 	kcw.err.Reset()
 	kcw.in.Reset()
 	feedStdin() // in case auth is requested, provoke auth error
-	if len(stdin) > 0 {
-		kcw.in.WriteString(strings.Join(stdin, "\n---\n"))
-	}
-	fmt.Fprint(&kcw.in)
+	kcw.in.WriteString(stdin)
 	var err error
 	if kcw.sync {
-		logger.Debug("run synced", zap.String("arg", argString))
+		logger.Debug("run synced", zap.String("arg", strings.Join(args, " ")))
 		err = kcw.runSynced()
 	} else {
-		logger.Debug("run", zap.String("arg", argString)) //"run: " + argString)
+		logger.Debug("run", zap.String("arg", strings.Join(args, " ")))
 		err = cli.RunNoErrOutput(kcw.cmd)
 	}
 	return strings.TrimSuffix(kcw.out.String(), "\n"), err
 }
 
-func (kcw *kcWrapper) RunSed(command string, expr ...string) (string, error) {
-	out, err := kcw.Run(command)
-	if err == nil {
-		var engine *sed.Engine
-		for _, e := range expr {
-			if engine, err = sed.New(strings.NewReader(e)); err != nil {
-				break
-			}
-			if out, err = engine.RunString(out); err != nil {
-				break
-			}
-		}
-	}
-	return out, err
-}
-
-func (kcw *kcWrapper) RunYq(command string, expr ...string) (string, error) {
-	out, err := kcw.Run(command + " -o yaml")
-	if err == nil {
-		yqw := yq.NewYqWrapper()
-		for _, e := range expr {
-			if out, err = yqw.EvalAll(e, out); err != nil {
-				break
-			}
-		}
-	}
-	return out, err
-}
-
 func (kcw *kcWrapper) runSynced() error {
-	// redirecting in cases where not connected to server
-	// for problems even before cmd runs
-	// cmd out and err should go to the buffers
-	// should not happen since this is supposed to be
-	// used from inside the cluster
 	oOut := os.Stdout
 	oErr := os.Stderr
 	rErr, wErr, err := os.Pipe()
@@ -129,6 +94,7 @@ func (kcw *kcWrapper) runSynced() error {
 		return err
 	} else {
 		stdioLock.Lock()
+		defer stdioLock.Unlock()
 		os.Stdout, err = os.Open(os.DevNull)
 		if err == nil {
 			os.Stderr = wErr
@@ -137,7 +103,6 @@ func (kcw *kcWrapper) runSynced() error {
 	}
 	os.Stdout = oOut
 	os.Stderr = oErr
-	stdioLock.Unlock()
 	wErr.Close()
 	io.Copy(&kcw.err, rErr)
 	if len(kcw.err.Bytes()) > 0 {

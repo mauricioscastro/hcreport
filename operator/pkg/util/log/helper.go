@@ -64,3 +64,17 @@ func SetLoggerLevelInfo() {
 func SetLoggerLevelDebug() {
 	loggerCfg.Level.SetLevel(zapcore.DebugLevel)
 }
+
+func ResetLoggerLevel(log *zap.Logger, level zapcore.Level) *zap.Logger {
+	return log.WithOptions(zap.WrapCore(
+		func(zapcore.Core) zapcore.Core {
+			sink, _, err := zap.Open(loggerCfg.OutputPaths...)
+			if err != nil {
+				logger.Error(err.Error())
+			}
+			return zapcore.NewCore(
+				zapcore.NewConsoleEncoder(loggerCfg.EncoderConfig),
+				sink,
+				level)
+		}))
+}

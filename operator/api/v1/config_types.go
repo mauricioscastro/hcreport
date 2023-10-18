@@ -24,7 +24,7 @@ import (
 
 //+kubebuilder:object:root=true
 //+kubebuilder:subresource:status
-//+kubebuilder:resource:scope=Namespaced
+//+kubebuilder:resource:scope=Cluster
 
 // Config is the Schema for the hcreport configs API
 type Config struct {

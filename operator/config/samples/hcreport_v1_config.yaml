@@ -4,8 +4,5 @@ metadata:
   labels: {}
   name: config-sample
 spec:
-  another-object: Mauricio
-  config:
-    version: 0.23
-    k8sType: openshift
-    subType: managed
+  logLevel: debug
+

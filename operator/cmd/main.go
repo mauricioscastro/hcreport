@@ -27,6 +27,7 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"go.uber.org/zap"
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
@@ -38,6 +39,7 @@ import (
 	"github.com/mauricioscastro/hcreport/internal/controller"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
+	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -48,8 +50,10 @@ var (
 )
 
 func init() {
-	// yq.SetLoggerLevel(zapcore.InfoLevel)
-	// util.SetLoggerLevel(zapcore.InfoLevel)
+	log.SilenceKcLogs()
+	log.SilenceYqLogs()
+	yq.SetLoggerLevel(zapcore.InfoLevel)
+	util.SetLoggerLevel(zapcore.InfoLevel)
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(hcreportv1.AddToScheme(scheme))

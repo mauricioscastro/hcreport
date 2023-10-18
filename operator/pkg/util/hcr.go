@@ -1,5 +1,12 @@
 package util
 
+// TODO: split to files example from Kind: List example
+// r := runner.NewCmdRunner().
+// Kc("get pods -A").
+// YqSplit(".items.[] | with(.metadata; del(.creationTimestamp) | del(.resourceVersion) | del(.uid) | del(.generateName) | del(.labels.pod-template-hash))",
+// 	".metadata.name",
+// 	"/tmp/yq")
+
 import (
 	b64 "encoding/base64"
 	"net"
@@ -50,8 +57,7 @@ func ValidateJson(yamlInput string, jsonSchemaAsYaml string) error {
 	if err = yaml.Unmarshal([]byte(yamlInput), &input); err != nil {
 		return err
 	}
-	yqw := yq.NewYqWrapper()
-	if schemaString, err = yqw.ToJson(jsonSchemaAsYaml); err != nil {
+	if schemaString, err = yq.NewYqWrapper().ToJson(jsonSchemaAsYaml); err != nil {
 		return err
 	}
 	compiler := jsonschema.NewCompiler()
@@ -167,3 +173,5 @@ func GenCert() error {
 	}
 	return nil
 }
+
+func GetConf()

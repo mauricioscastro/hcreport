@@ -59,7 +59,7 @@ spec:
             value: ""        
           - name: HCR_WEBHOOK_MUTATE_CFG_NAME
             value: ""              
-        image: quay.io/hcreport/controller:latest
+        image: controller
         name: manager
         securityContext:
           allowPrivilegeEscalation: false

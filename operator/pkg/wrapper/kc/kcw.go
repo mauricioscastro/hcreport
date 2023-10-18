@@ -69,7 +69,7 @@ func NewKcWrapper() KcWrapper {
 }
 
 func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
-	kcw.cmd.SetArgs(append(args, kcDefaultArgs))
+	kcw.cmd.SetArgs(append(args, strings.Split(kcDefaultArgs, " ")...))
 	kcw.out.Reset()
 	kcw.err.Reset()
 	kcw.in.Reset()

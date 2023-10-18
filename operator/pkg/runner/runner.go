@@ -3,6 +3,8 @@ package runner
 import (
 	"bytes"
 	"encoding/csv"
+	"io/fs"
+	"os"
 	"strings"
 
 	"github.com/drone/envsubst"
@@ -24,9 +26,11 @@ type CmdRunner interface {
 	Append() CmdRunner
 	EnvSubst(arg string) CmdRunner
 	Echo(arg string) CmdRunner
+	ChDir(arg string) CmdRunner
 	Kc(cmdArgs string) CmdRunner
 	Jq(expr string) CmdRunner
 	Yq(expr string) CmdRunner
+	YqSplit(expr string, fileNameExpr string, path string) CmdRunner
 	KcApply() CmdRunner
 	KcCmd(cmdArgs []string) CmdRunner
 	JqCmd(cmdArgs []string) CmdRunner
@@ -36,8 +40,6 @@ type CmdRunner interface {
 	Table() [][]string
 	Out() string
 	Err() error
-	write(data string)
-	error(e error)
 }
 
 type runner struct {
@@ -81,6 +83,20 @@ func (r *runner) Echo(arg string) CmdRunner {
 	return r
 }
 
+func (r *runner) ChDir(arg string) CmdRunner {
+	if r.err == nil {
+		r.err = os.Chdir(arg)
+	}
+	return r
+}
+
+func (r *runner) MkDir(arg string, perm fs.FileMode) CmdRunner {
+	if r.err == nil {
+		r.err = os.Mkdir(arg, perm)
+	}
+	return r
+}
+
 func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 	if r.err == nil {
 		ret, err := r.kcw.Run(cmdArgs, r.out.String())
@@ -95,7 +111,7 @@ func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 
 func (r *runner) YqEach(expr string) CmdRunner {
 	if r.err == nil {
-		ret, err := yqw.NewYqWrapper().EvalEach(expr, r.out.String())
+		ret, err := r.yqw.EvalEach(expr, r.out.String())
 		if err != nil {
 			r.error(err)
 		} else {
@@ -107,12 +123,19 @@ func (r *runner) YqEach(expr string) CmdRunner {
 
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
-		ret, err := yqw.NewYqWrapper().EvalAll(expr, r.out.String())
+		ret, err := r.yqw.EvalAll(expr, r.out.String())
 		if err != nil {
 			r.error(err)
 		} else {
 			r.write(ret)
 		}
+	}
+	return r
+}
+
+func (r *runner) YqSplit(expr string, fileNameExpr string, path string) CmdRunner {
+	if r.err == nil {
+		r.err = r.yqw.Split(expr, fileNameExpr, r.Out(), path)
 	}
 	return r
 }
@@ -147,7 +170,9 @@ func (r *runner) Sed(expr string) CmdRunner {
 		if err == nil {
 			res, err := s.RunString(r.out.String())
 			if err == nil {
-				r.write(res)
+				// looks like sed pkg adds an extra
+				// new line? I did not care to check
+				r.write(strings.TrimSuffix(res, "\n"))
 			} else {
 				r.error(err)
 			}
@@ -181,7 +206,7 @@ func (r *runner) write(data string) {
 }
 
 func (r *runner) error(e error) {
-	logger.Error(e.Error())
+	logger.Warn(e.Error())
 	r.err = e
 }
 

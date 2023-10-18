@@ -17,47 +17,48 @@ patches:
 - path: manager_webhook_patch.yaml
 
 replacements:
-- source: 
-    name: hcr-webhook-service
+- source:
     kind: Service
+    name: hcr-webhook-service
     version: v1
   targets:
-  - select: 
+  - fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_SERVICE_NAME].value
+    select:
       kind: Deployment
       name: hcr-controller-manager
-    fieldPaths:
-      - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_SERVICE_NAME].value
-- source: 
+- source:
     kind: Namespace
   targets:
-  - select: 
+  - fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_SERVICE_NAMESPACE_NAME].value
+    select:
       kind: Deployment
       name: hcr-controller-manager
-    fieldPaths:
-      - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_SERVICE_NAMESPACE_NAME].value
-- source: 
+- source:
     kind: ValidatingWebhookConfiguration
   targets:
-  - select: 
+  - fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_VALIDATE_CFG_NAME].value
+    select:
       kind: Deployment
       name: hcr-controller-manager
-    fieldPaths:
-      - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_VALIDATE_CFG_NAME].value
-  - select: 
+  - fieldPaths:
+    - rules.0.resourceNames.0
+    select:
       kind: ClusterRole
       name: webhook-manager-role
-    fieldPaths:
-      - rules.0.resourceNames.0
-- source: 
+- source:
     kind: MutatingWebhookConfiguration
   targets:
-  - select: 
+  - fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_MUTATE_CFG_NAME].value
+    select:
       kind: Deployment
       name: hcr-controller-manager
-    fieldPaths:
-      - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_MUTATE_CFG_NAME].value
-  - select: 
+  - fieldPaths:
+    - rules.0.resourceNames.1
+    select:
       kind: ClusterRole
       name: webhook-manager-role
-    fieldPaths:
-      - rules.0.resourceNames.1
+

@@ -19,11 +19,13 @@ package controller
 import (
 	"context"
 
+	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	hcr "github.com/mauricioscastro/hcreport/api/v1"
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -36,6 +38,10 @@ var logger = log.Logger().Named("hcr.cfg.cntlr")
 type ConfigReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
+}
+
+func SetLoggerLevel(level zapcore.Level) {
+	logger = log.ResetLoggerLevel(logger, level)
 }
 
 //+kubebuilder:rbac:groups=hcreport.csa.latam.redhat.com,resources=configs,verbs=get;list;watch;create;update;patch;delete
@@ -57,6 +63,13 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		log.Error(err, "can not go past this error. returning")
 		return ctrl.Result{}, err
 	}
+
+	spec := string(cfg.Spec)
+	logLevel := runner.NewCmdRunner().Echo(spec).Yq(".logLevel").Out()
+	zLevel, _ := zapcore.ParseLevel(logLevel)
+	logger.Info("setting log level to " + logLevel)
+	SetLoggerLevel(zLevel)
+	logger.Debug("log level set")
 
 	cfg.Status = cfg.Spec
 

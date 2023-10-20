@@ -37,7 +37,6 @@ def strings: select(type == "string");
 def nulls: select(. == null);
 def values: select(. != null);
 def scalars: select(type | . != "array" and . != "object");
-def leaf_paths: paths(scalars);
 
 def inside(xs): . as $x | xs | contains($x);
 def combinations:
@@ -52,7 +51,7 @@ def walk(f):
     if type == "array" then
       map(_walk)
     elif type == "object" then
-      map_values(last(_walk))
+      map_values(_walk)
     end | f;
   _walk;
 
@@ -159,6 +158,7 @@ def sub($re; str; $flags):
 def gsub($re; str): sub($re; str; "g");
 def gsub($re; str; $flags): sub($re; str; $flags + "g");
 
+def debug(f): (f | debug | empty), .;
 def inputs:
   try
     repeat(input)

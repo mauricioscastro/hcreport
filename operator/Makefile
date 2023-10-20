@@ -69,7 +69,6 @@ test: manifests generate fmt vet envtest ## Run tests.
 vendor:
 	go mod tidy
 	go mod vendor
-	@cd bkp; cp -r vendor/ ..; cd ..
 
 .PHONY: build
 build: vendor manifests generate fmt vet ## Build manager binary.

@@ -8,7 +8,6 @@ import (
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	yq "github.com/mikefarah/yq/v4/cmd"
-	"go.uber.org/zap/zapcore"
 
 	"github.com/spf13/cobra"
 )
@@ -17,7 +16,7 @@ const yqDefaultArgs = "-M"
 
 var logger = log.Logger().Named("hcr.yqw")
 
-func SetLoggerLevel(level zapcore.Level) {
+func SetLoggerLevel(level string) {
 	logger = log.ResetLoggerLevel(logger, level)
 }
 
@@ -28,10 +27,12 @@ type YqWrapper interface {
 	EvalEachInplace(expr string, file ...string) (string, error)
 	EvalAllInplace(expr string, file ...string) (string, error)
 	Split(expr string, fileNameExpr string, yaml string, path string) error
+	Create(expr string) (string, error)
 	ToJson(yaml string) (string, error)
 }
 
 type yqWrapper struct {
+	in  bytes.Buffer
 	out bytes.Buffer
 	err bytes.Buffer
 	cmd *cobra.Command
@@ -40,6 +41,7 @@ type yqWrapper struct {
 func NewYqWrapper() YqWrapper {
 	yqw := yqWrapper{}
 	yqw.cmd = yq.New()
+	yqw.cmd.SetIn(&yqw.in)
 	yqw.cmd.SetOut(&yqw.out)
 	yqw.cmd.SetErr(&yqw.err)
 	return &yqw
@@ -61,21 +63,28 @@ func (yqw *yqWrapper) EvalAllInplace(expr string, file ...string) (string, error
 	return yqw.Eval([]string{"eval-all", "-i"}, expr, "", file...)
 }
 
+func (yqw *yqWrapper) Create(expr string) (string, error) {
+	defer yqw.cmd.PersistentFlags().Lookup("null-input").Value.Set("false")
+	return yqw.Eval([]string{"eval", "--null-input"}, expr, "")
+}
+
 func (yqw *yqWrapper) Eval(args []string, expr string, yaml string, file ...string) (string, error) {
+	yqw.in.Reset()
+	yqw.out.Reset()
+	yqw.err.Reset()
 	if len(expr) != 0 {
 		args = append(args, []string{"--expression", expr}...)
 	}
 	args = append(args, strings.Split(yqDefaultArgs, " ")...)
 	if len(yaml) > 0 {
-		yqw.cmd.SetIn(strings.NewReader(yaml))
+		yqw.in.WriteString(yaml)
 		args = append(args, "-")
 	}
 	args = append(args, file...)
+	yqw.cmd.SetArgs(args)
 	yqw.cmd.SetOut(&yqw.out)
 	yqw.cmd.SetErr(&yqw.err)
-	yqw.cmd.SetArgs(args)
-	yqw.err.Reset()
-	yqw.out.Reset()
+	logger.Debug("in: " + yqw.in.String())
 	logger.Debug("run: " + strings.Join(args, " "))
 	err := yqw.cmd.Execute()
 	stderr := yqw.err.String()

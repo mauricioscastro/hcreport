@@ -19,28 +19,30 @@ package controller
 import (
 	"context"
 
-	"go.uber.org/zap/zapcore"
+	"go.uber.org/zap"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/event"
+	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
-	hcr "github.com/mauricioscastro/hcreport/api/v1"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
+	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
+
+	// hcr "github.com/mauricioscastro/hcreport/internal/controller/util"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
-	k8slogger "sigs.k8s.io/controller-runtime/pkg/log"
 	//+kubebuilder:scaffold:imports
 )
-
-var logger = log.Logger().Named("hcr.cfg.cntlr")
 
 type ConfigReconciler struct {
 	client.Client
 	Scheme *runtime.Scheme
 }
 
-func SetLoggerLevel(level zapcore.Level) {
+var logger = log.Logger().Named("hcr.cfg.cntlr")
+
+func SetLoggerLevel(level string) {
 	logger = log.ResetLoggerLevel(logger, level)
 }
 
@@ -50,39 +52,31 @@ func SetLoggerLevel(level zapcore.Level) {
 
 func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	logger.Info("reconcile...")
-	log := k8slogger.FromContext(ctx)
-
-	cfg := &hcr.Config{}
-	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, cfg)
-
+	var cfg hcrv1.Config
+	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, &cfg)
 	if err != nil {
 		if apierr.IsNotFound(err) {
-			log.Info("hcreport config resource not found. error ignored")
+			logger.Info("hcreport config resource not found")
 			return ctrl.Result{}, nil
 		}
-		log.Error(err, "can not go past this error. returning")
+		logger.Error("can not go past this error. returning", zap.Error(err))
 		return ctrl.Result{}, err
 	}
-
-	spec := string(cfg.Spec)
-	logLevel := runner.NewCmdRunner().Echo(spec).Yq(".logLevel").Out()
-	zLevel, _ := zapcore.ParseLevel(logLevel)
-	logger.Info("setting log level to " + logLevel)
-	SetLoggerLevel(zLevel)
-	logger.Debug("log level set")
-
-	cfg.Status = cfg.Spec
-
-	r.Status().Update(ctx, cfg)
-
-	log.Info("reconcile loop", "spec", cfg.Spec, "status", cfg.Status)
-
-	return ctrl.Result{}, nil
+	return ExtractReportData(r, ctx, &cfg)
 }
 
 // SetupWithManager sets up the controller with the Manager.
 func (r *ConfigReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&hcr.Config{}).
+		For(&hcrv1.Config{}).
+		WithEventFilter(filterUpdate()).
 		Complete(r)
+}
+
+func filterUpdate() predicate.Predicate {
+	return predicate.Funcs{
+		UpdateFunc: func(e event.UpdateEvent) bool {
+			return e.ObjectNew.GetGeneration() != e.ObjectOld.GetGeneration()
+		},
+	}
 }

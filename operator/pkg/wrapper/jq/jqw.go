@@ -24,7 +24,6 @@ func NewJqWrapper() JqWrapper {
 }
 
 func (jqw *jqWrapper) Run(args []string, stdin string) (string, error) {
-	args = append(args, []string{"--yaml-input", "--yaml-output"}...)
 	jqw.out.Reset()
 	jqw.err.Reset()
 	jqw.in.Reset()

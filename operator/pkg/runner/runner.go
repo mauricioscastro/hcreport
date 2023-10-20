@@ -3,8 +3,12 @@ package runner
 import (
 	"bytes"
 	"encoding/csv"
+	"encoding/json"
+	"errors"
 	"io/fs"
 	"os"
+	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/drone/envsubst"
@@ -13,31 +17,37 @@ import (
 	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
 	yqw "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"github.com/rwtodd/Go.Sed/sed"
-	"go.uber.org/zap/zapcore"
 )
 
 var logger = log.Logger().Named("hcr.runner")
 
-func SetLoggerLevel(level zapcore.Level) {
+func SetLoggerLevel(level string) {
 	logger = log.ResetLoggerLevel(logger, level)
 }
 
 type CmdRunner interface {
 	Append() CmdRunner
 	EnvSubst(arg string) CmdRunner
-	Echo(arg string) CmdRunner
+	Echo(arg any) CmdRunner
+	Match(expr string) CmdRunner
 	ChDir(arg string) CmdRunner
 	Kc(cmdArgs string) CmdRunner
 	Jq(expr string) CmdRunner
 	Yq(expr string) CmdRunner
 	YqSplit(expr string, fileNameExpr string, path string) CmdRunner
+	YqCreate(expr string) CmdRunner
+	ToYaml() CmdRunner
+	ToJson() CmdRunner
+	ToJsonPretty() CmdRunner
 	KcApply() CmdRunner
 	KcCmd(cmdArgs []string) CmdRunner
 	JqCmd(cmdArgs []string) CmdRunner
 	YqEach(expr string) CmdRunner
 	Sed(expr string) CmdRunner
+	Empty() bool
 	List() []string
 	Table() [][]string
+	BytesOut() []byte
 	Out() string
 	Err() error
 }
@@ -67,18 +77,25 @@ func (r *runner) Append() CmdRunner {
 func (r *runner) EnvSubst(arg string) CmdRunner {
 	if r.err == nil {
 		o, e := envsubst.EvalEnv(arg)
-		if e != nil {
-			r.error(e)
-		} else {
+		if e == nil {
 			r.write(o)
 		}
+		r.error(e)
 	}
 	return r
 }
 
-func (r *runner) Echo(arg string) CmdRunner {
+// arg accepts string or json.RawMessage
+func (r *runner) Echo(arg any) CmdRunner {
 	if r.err == nil {
-		r.write(arg)
+		switch {
+		case reflect.TypeOf(arg).Kind() == reflect.String:
+			r.write(reflect.ValueOf(arg).Interface().(string))
+		case reflect.TypeOf(arg).String() == "json.RawMessage":
+			r.write(string(reflect.ValueOf(arg).Interface().(json.RawMessage)))
+		default:
+			r.error(errors.New("unknown type passed to echo"))
+		}
 	}
 	return r
 }
@@ -86,6 +103,22 @@ func (r *runner) Echo(arg string) CmdRunner {
 func (r *runner) ChDir(arg string) CmdRunner {
 	if r.err == nil {
 		r.err = os.Chdir(arg)
+	}
+	return r
+}
+
+func (r *runner) Match(pattern string) CmdRunner {
+	if r.err == nil {
+		var ml bytes.Buffer
+		for _, l := range r.List() {
+			if m, e := regexp.MatchString(pattern, l); e != nil {
+				r.error(e)
+				break
+			} else if m {
+				ml.WriteString(l)
+			}
+		}
+		r.write(ml.String())
 	}
 	return r
 }
@@ -99,36 +132,33 @@ func (r *runner) MkDir(arg string, perm fs.FileMode) CmdRunner {
 
 func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 	if r.err == nil {
-		ret, err := r.kcw.Run(cmdArgs, r.out.String())
-		if err != nil {
-			r.error(err)
-		} else {
-			r.write(ret)
+		o, e := r.kcw.Run(cmdArgs, r.out.String())
+		if e == nil {
+			r.write(o)
 		}
+		r.error(e)
 	}
 	return r
 }
 
 func (r *runner) YqEach(expr string) CmdRunner {
 	if r.err == nil {
-		ret, err := r.yqw.EvalEach(expr, r.out.String())
-		if err != nil {
-			r.error(err)
-		} else {
-			r.write(ret)
+		o, e := r.yqw.EvalEach(expr, r.out.String())
+		if e == nil {
+			r.write(o)
 		}
+		r.error(e)
 	}
 	return r
 }
 
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
-		ret, err := r.yqw.EvalAll(expr, r.out.String())
-		if err != nil {
-			r.error(err)
-		} else {
-			r.write(ret)
+		o, e := r.yqw.EvalAll(expr, r.out.String())
+		if e == nil {
+			r.write(o)
 		}
+		r.error(e)
 	}
 	return r
 }
@@ -140,14 +170,35 @@ func (r *runner) YqSplit(expr string, fileNameExpr string, path string) CmdRunne
 	return r
 }
 
-func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
+func (r *runner) YqCreate(expr string) CmdRunner {
 	if r.err == nil {
-		o, err := r.jqw.Run(cmdArgs, r.out.String())
-		if err != nil {
-			r.error(err)
-		} else {
+		o, e := r.yqw.Create(expr)
+		if e == nil {
 			r.write(o)
 		}
+		r.error(e)
+	}
+	return r
+}
+func (r *runner) ToYaml() CmdRunner {
+	return r.JqCmd([]string{"--yaml-output"})
+}
+
+func (r *runner) ToJson() CmdRunner {
+	return r.json(true)
+}
+
+func (r *runner) ToJsonPretty() CmdRunner {
+	return r.json(false)
+}
+
+func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
+	if r.err == nil {
+		o, e := r.jqw.Run(append(cmdArgs, "-M"), r.out.String())
+		if e == nil {
+			r.write(o)
+		}
+		r.error(e)
 	}
 	return r
 }
@@ -161,24 +212,21 @@ func (r *runner) KcApply() CmdRunner {
 }
 
 func (r *runner) Jq(expr string) CmdRunner {
-	return r.JqCmd([]string{expr})
+	return r.JqCmd([]string{"-c", expr})
 }
 
 func (r *runner) Sed(expr string) CmdRunner {
 	if r.err == nil {
-		s, err := sed.New(strings.NewReader(expr))
-		if err == nil {
-			res, err := s.RunString(r.out.String())
-			if err == nil {
+		s, e := sed.New(strings.NewReader(expr))
+		if e == nil {
+			o, e := s.RunString(r.out.String())
+			if e == nil {
 				// looks like sed pkg adds an extra
 				// new line? I did not care to check
-				r.write(strings.TrimSuffix(res, "\n"))
-			} else {
-				r.error(err)
+				r.write(strings.TrimSuffix(o, "\n"))
 			}
-		} else {
-			r.error(err)
 		}
+		r.error(e)
 	}
 	return r
 }
@@ -197,6 +245,22 @@ func (r *runner) Table() [][]string {
 	return table
 }
 
+func (r *runner) Empty() bool {
+	return r.out.Len() == 0
+}
+
+func (r *runner) BytesOut() []byte {
+	return r.out.Bytes()
+}
+
+func (r *runner) Out() string {
+	return r.out.String()
+}
+
+func (r *runner) Err() error {
+	return r.err
+}
+
 func (r *runner) write(data string) {
 	if !r.append {
 		r.out.Reset()
@@ -206,14 +270,22 @@ func (r *runner) write(data string) {
 }
 
 func (r *runner) error(e error) {
-	logger.Warn(e.Error())
+	if e != nil {
+		logger.Error(e.Error())
+	}
 	r.err = e
 }
 
-func (r *runner) Out() string {
-	return r.out.String()
-}
-
-func (r *runner) Err() error {
-	return r.err
+func (r *runner) json(compact bool) CmdRunner {
+	if r.err == nil {
+		o, e := r.yqw.ToJson(r.out.String())
+		if e == nil {
+			r.write(o)
+			if compact {
+				return r.JqCmd([]string{"-c"})
+			}
+		}
+		r.error(e)
+	}
+	return r
 }

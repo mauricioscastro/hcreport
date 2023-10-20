@@ -1151,6 +1151,28 @@
     {"foo":2}
     {"foo":3}
 
+- name: abs function
+  args:
+    - 'abs'
+  input: |
+    0
+    42
+    -42
+    0.0
+    3.14
+    -3.14
+    4722366482869645213696
+    -4722366482869645213696
+  expected: |
+    0
+    42
+    42
+    0
+    3.14
+    3.14
+    4722366482869645213696
+    4722366482869645213696
+
 - name: length function
   args:
     - 'length'
@@ -1517,17 +1539,6 @@
     [null]
     [true,false,0,1,"","foo",[],[2,[]],{},{"foo":[]},4722366482869645213696]
     [null,true,false,0,1,"","foo",4722366482869645213696]
-
-- name: leaf_paths function
-  args:
-    - -c
-    - 'leaf_paths'
-  input: '[null,[],{},{"a":[1,[],{},true]},[3,[],1]]'
-  expected: |
-    [3,"a",0]
-    [3,"a",3]
-    [4,0]
-    [4,2]
 
 - name: recurse/0 function
   args:
@@ -2035,19 +2046,17 @@
     "１２３４５"
     "\n\t"
 
+- name: implode function replacement character
+  args:
+    - 'implode'
+  input: '[-1,0,1114111,1114112]'
+  expected: "\"\ufffd\\u0000\U0010ffff\ufffd\"\n"
+
 - name: implode function error
   args:
     - 'try implode catch .'
-  input: |
-    [0]
-    [-1]
-    [1114112]
-    [[]]
-    [{}]
+  input: '[[]] [{}]'
   expected: |
-    "\u0000"
-    "implode cannot be applied to: array ([-1])"
-    "implode cannot be applied to: array ([1114112])"
     "implode cannot be applied to: array ([[]])"
     "implode cannot be applied to: array ([{}])"
 
@@ -2157,7 +2166,7 @@
   expected: |
     [1,0,2,0,3,0]
     0
-    {"x":0,"y":0,"z":0}
+    {"x":1,"y":2,"z":3}
     0
 
 - name: transpose function
@@ -2578,33 +2587,42 @@
 
 - name: zero division
   args:
-    - '.[] / .[]'
+    - -c
+    - '.[] as $x | .[] as $y | [$x, $y, try ($x / $y) catch .]'
   input: '[1, 0]'
   expected: |
-    1
-    0
-  error: |
-    cannot divide number (1) by: number (0)
+    [1,1,1]
+    [1,0,"cannot divide number (1) by: number (0)"]
+    [0,1,0]
+    [0,0,"cannot divide number (0) by: number (0)"]
 
 - name: zero modulo
   args:
-    - '.[] % .[]'
+    - -c
+    - '.[] as $x | .[] as $y | [$x, $y, try ($x % $y) catch .]'
   input: '[1, 0]'
   expected: |
-    0
-    0
-  error: |
-    cannot modulo number (1) by: number (0)
+    [1,1,0]
+    [1,0,"cannot modulo number (1) by: number (0)"]
+    [0,1,0]
+    [0,0,"cannot modulo number (0) by: number (0)"]
 
 - name: modulo with near 0.0
   args:
-    - '.[] % .[]'
-  input: '[1, 0.9]'
-  expected: |
-    0
-    0
+    - '1 % 0.9'
+  input: 'null'
   error: |
     cannot modulo number (1) by: number (0.9)
+
+- name: modulo with nan
+  args:
+    - '(1, nan) % (1, nan) | isnan'
+  input: 'null'
+  expected: |
+    false
+    true
+    true
+    true
 
 - name: zero division and modulo for large number
   args:
@@ -2647,8 +2665,8 @@
   expected: |
     null
     null
-    null
-    "abc"
+    ""
+    ""
     "abc"
     "abc"
     "abcabcabc"
@@ -2668,7 +2686,7 @@
   expected: |
     null
     null
-    null
+    ""
     ""
     ""
     ""
@@ -3893,7 +3911,7 @@
 - name: significand function
   args:
     - -c
-    - '(range(10)|tan),0/0 | significand | . * 100000 | floor / 100000'
+    - '(range(10)|tan),nan | significand | . * 100000 | floor / 100000'
   input: '0'
   expected: |
     0
@@ -4081,11 +4099,9 @@
 - name: nan and isnan functions
   args:
     - -c
-    - 'nan, 0/0, 0/0, infinite-infinite, infinite/infinite, 0, null | [., .+1, isnan]'
+    - 'nan, infinite-infinite, infinite/infinite, 0, null | [., .+1, isnan]'
   input: 'null'
   expected: |
-    [null,null,true]
-    [null,null,true]
     [null,null,true]
     [null,null,true]
     [null,null,true]
@@ -5219,68 +5235,81 @@
   expected: |
     "number"
 
-- name: debug function
+- name: debug/0 function
   args:
+    - -c
     - 'recurse(debug|.[]?)'
   input: |
     [{}]
-    [1,{"a":2}]
+    [1,{"a":[2,"b"]}]
   expected: |
-    [
-      {}
-    ]
+    [{}]
     {}
-    [
-      1,
-      {
-        "a": 2
-      }
-    ]
+    [1,{"a":[2,"b"]}]
     1
-    {
-      "a": 2
-    }
+    {"a":[2,"b"]}
+    [2,"b"]
     2
+    "b"
   error: |
     ["DEBUG:",[{}]]
     ["DEBUG:",{}]
-    ["DEBUG:",[1,{"a":2}]]
+    ["DEBUG:",[1,{"a":[2,"b"]}]]
     ["DEBUG:",1]
-    ["DEBUG:",{"a":2}]
+    ["DEBUG:",{"a":[2,"b"]}]
+    ["DEBUG:",[2,"b"]]
     ["DEBUG:",2]
+    ["DEBUG:","b"]
+
+- name: debug/1 function
+  args:
+    - 'debug("value: \(.)", [.,.])'
+  input: 'null false "test" [] {}'
+  expected: |
+    null
+    false
+    "test"
+    []
+    {}
+  error: |
+    ["DEBUG:","value: null"]
+    ["DEBUG:",[null,null]]
+    ["DEBUG:","value: false"]
+    ["DEBUG:",[false,false]]
+    ["DEBUG:","value: test"]
+    ["DEBUG:",["test","test"]]
+    ["DEBUG:","value: []"]
+    ["DEBUG:",[[],[]]]
+    ["DEBUG:","value: {}"]
+    ["DEBUG:",[{},{}]]
 
 - name: stderr function
   args:
+    - -c
     - 'recurse(stderr|.[]?)'
   input: |
     [{}]
-    [1,{"a":2}]
+    [1,{"a":[2,"b"]}]
     "DEBUG:"
   expected: |
-    [
-      {}
-    ]
+    [{}]
     {}
-    [
-      1,
-      {
-        "a": 2
-      }
-    ]
+    [1,{"a":[2,"b"]}]
     1
-    {
-      "a": 2
-    }
+    {"a":[2,"b"]}
+    [2,"b"]
     2
+    "b"
     "DEBUG:"
-  error: '[{}]{}[1,{"a":2}]1{"a":2}2"DEBUG:"'
+  error: '[{}]{}[1,{"a":[2,"b"]}]1{"a":[2,"b"]}[2,"b"]2bDEBUG:'
 
 - name: debug and stderr in builtins
   args:
-    - 'builtins[] | select(test("debug|stderr"))'
+    - 'builtins | sort[] | select(test("debug|stderr"))'
   input: 'null'
   expected: |
     "debug/0"
+    "debug/1"
     "stderr/0"
 
 - name: input_filename function with stdin input
@@ -5433,7 +5462,7 @@
 
 - name: halt_error/0 function on nan
   args:
-    - '0/0 | halt_error'
+    - 'nan | halt_error'
   input: 'null'
   error: |
     null
@@ -6193,7 +6222,7 @@
     boolean flag `--compact-output' cannot have an argument
   exit_code: 2
 
-- name: raw string output option
+- name: raw string output short option
   args:
     - -r
     - '.foo[]'
@@ -6225,6 +6254,38 @@
       "foo": "multiple\nline"
     }
 
+- name: raw string output with nul delimiter option
+  args:
+    - --raw-output0
+    - '.[]'
+  input: '["foo",[{},{}],1,[2,3]]'
+  expected: "foo\x00[\n  {},\n  {}\n]\x001\x00[\n  2,\n  3\n]\x00"
+
+- name: raw string output with nul delimiter option error with string containing nul character
+  args:
+    - --raw-output0
+    - '"foo","bar","b\u0000a\u0000z","qux"'
+  input: 'null'
+  expected: "foo\x00bar\x00"
+  error: |
+    cannot output a string containing NUL character: "b\x00a\x00z"
+
+- name: raw string output without and with nul delimiter options
+  args:
+    - --raw-output
+    - --raw-output0
+    - '.[]'
+  input: '["foo",1,2,3]'
+  expected: "foo\x001\x002\x003\x00"
+
+- name: raw string output with nul delimiter option with compact output option
+  args:
+    - --raw-output0
+    - --compact-output
+    - '.[]'
+  input: '["foo",[{},{}],1,[2,3]]'
+  expected: "foo\x00[{},{}]\x001\x00[2,3]\x00"
+
 - name: join output option
   args:
     - -j
@@ -6239,24 +6300,11 @@
   input: '["foo",[{},{}],1,[2,3]]'
   expected: "foo[\n  {},\n  {}\n]1[\n  2,\n  3\n]"
 
-- name: nul output option
+- name: join output option with raw string output with nul delimiter option
   args:
-    - '-0'
+    - --raw-output0
+    - --join-output
     - '.[]'
-  input: '["foo",1,2,3]'
-  expected: "foo\x001\x002\x003\x00"
-
-- name: nul output long option
-  args:
-    - --nul-output
-    - '.[]'
-  input: '["foo",[{},{}],1,[2,3]]'
-  expected: "foo\x00[\n  {},\n  {}\n]\x001\x00[\n  2,\n  3\n]\x00"
-
-- name: nul output option at the last argument
-  args:
-    - '.[]'
-    - '-0'
   input: '["foo",1,2,3]'
   expected: "foo\x001\x002\x003\x00"
 
@@ -6347,7 +6395,7 @@
     \  \e[34;1m\"foo\"\e[0m: \e[36m42\e[0m\n\
     }\n"
 
-- name: color output with compact option
+- name: color output with compact output option
   args:
     - -C
     - -c
@@ -6584,7 +6632,7 @@
       null
     ]
 
-- name: null input value option with compact option
+- name: null input value option with compact output option
   args:
     - -n
     - -c
@@ -7585,14 +7633,14 @@
     - -c
     - -L
     - 'testdata'
-    - 'tostring | modulemeta'
+    - 'tostring | modulemeta | .defs |= sort'
   input: '4 5 6 8 9'
   expected: |
-    {"deps":[{"is_data":false,"relpath":"5"},{"as":"bar","is_data":false,"relpath":"6"}]}
-    {"deps":[{"as":"foo","is_data":false,"relpath":"6","test":"foo"}]}
-    {"deps":[{"as":"x","is_data":true,"relpath":"7"}]}
-    {"deps":[]}
-    {"deps":[],"description":"This is a description","name":"sample-module","x":[[],{},{"y":10,"z":20}],"y":{"z":[128,"",false,true,null,[[]]]}}
+    {"defs":["f/0","g/0"],"deps":[{"is_data":false,"relpath":"5"},{"as":"bar","is_data":false,"relpath":"6"}]}
+    {"defs":["h/0"],"deps":[{"as":"foo","is_data":false,"relpath":"6","test":"foo"}]}
+    {"defs":["g/0","i/0"],"deps":[{"as":"x","is_data":true,"relpath":"7"}]}
+    {"defs":[],"deps":[]}
+    {"defs":["f/1"],"deps":[],"description":"This is a description","name":"sample-module","x":[[],{},{"y":10,"z":20}],"y":{"z":[128,"",false,true,null,[[]]]}}
 
 - name: modulemeta function error
   args:
@@ -8050,6 +8098,15 @@
   expected: |
     -1
 
+- name: query with leading hyphen
+  args:
+    - '-j0'
+  input: '0 1 2'
+  expected: |
+    -1
+    -0.7651976865579666
+    -0.22389077914123567
+
 - name: query with leading hyphen after a flag
   args:
     - -r
@@ -8057,31 +8114,6 @@
   input: '1'
   expected: |
     -1
-
-- name: query with leading -0 and spaces
-  args:
-    - '-0 + .'
-  input: '1'
-  expected: |
-    1
-
-- name: query with leading -0 but no spaces
-  args:
-    - '-0.1'
-  input: '1'
-  expected: |
-    -0.1
-
-- name: query with leading -0 before json files
-  args:
-    - -c
-    - '-0 * 1'
-    - 'testdata/1.json'
-    - 'testdata/2.json'
-  input: '1'
-  expected: |
-    0
-    0
 
 - name: double dash
   args:
@@ -8094,26 +8126,11 @@
 - name: double dash with query with leading hyphen
   args:
     - '--'
-    - '-.'
-  input: '1'
-  expected: |
-    -1
-
-- name: double dash with query with leading -0
-  args:
-    - '--'
-    - '-0'
-  input: '1'
-  expected: |
-    0
-
-- name: double dash with nul output option
-  args:
-    - '-0'
-    - '--'
-    - '-0'
-  input: '1'
-  expected: "0\x00"
+    - '-j'
+  input: 'null'
+  error: |
+    compile error: function not defined: j/0
+  exit_code: 3
 
 - name: double double dash
   args:

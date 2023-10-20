@@ -14,7 +14,6 @@ import (
 	// "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	// "github.com/rwtodd/Go.Sed/sed"
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"k8s.io/cli-runtime/pkg/genericclioptions"
 	"k8s.io/cli-runtime/pkg/genericiooptions"
 	"k8s.io/component-base/cli"
@@ -30,7 +29,7 @@ var (
 	logger    = log.Logger().Named("hcr.kcw")
 )
 
-func SetLoggerLevel(level zapcore.Level) {
+func SetLoggerLevel(level string) {
 	logger = log.ResetLoggerLevel(logger, level)
 }
 
@@ -71,7 +70,9 @@ func NewKcWrapper() KcWrapper {
 func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
 	kcw.cmd.SetArgs(append(args, strings.Split(kcDefaultArgs, " ")...))
 	kcw.out.Reset()
+	kcw.cmd.SetOut(&kcw.out)
 	kcw.err.Reset()
+	kcw.cmd.SetErr(&kcw.err)
 	kcw.in.Reset()
 	feedStdin() // in case auth is requested, provoke auth error
 	kcw.in.WriteString(stdin)

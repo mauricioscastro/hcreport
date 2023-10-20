@@ -17,46 +17,42 @@ limitations under the License.
 package main
 
 import (
-
-	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-	// to ensure that exec-entrypoint and run can make use of them.
-
 	"flag"
 	"os"
 
+	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
+	// to ensure that exec-entrypoint and run can make use of them.
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 	"k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
-	ctrl "sigs.k8s.io/controller-runtime"
+	ctrlRuntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	z "sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	hcreportv1 "github.com/mauricioscastro/hcreport/api/v1"
-	"github.com/mauricioscastro/hcreport/internal/controller"
+	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
+	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
 	"github.com/mauricioscastro/hcreport/pkg/util"
+
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	//+kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
-	logger   = log.Logger().Named("hcr")
+	scheme = runtime.NewScheme()
+	logger = log.Logger().Named("hcr")
 )
 
 func init() {
 	log.SilenceKcLogs()
 	log.SilenceYqLogs()
-	yq.SetLoggerLevel(zapcore.InfoLevel)
-	util.SetLoggerLevel(zapcore.InfoLevel)
+	// yq.SetLoggerLevel("info")
+	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
-	utilruntime.Must(hcreportv1.AddToScheme(scheme))
+	utilruntime.Must(hcrv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -67,7 +63,8 @@ func main() {
 	var probeAddr string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection, "leader-elect", false,
+	flag.BoolVar(&enableLeaderElection,
+		"leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
 	opts := z.Options{
@@ -79,9 +76,9 @@ func main() {
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
-	ctrl.SetLogger(z.New(z.UseFlagOptions(&opts)))
+	ctrlRuntime.SetLogger(z.New(z.UseFlagOptions(&opts)))
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	mgr, err := ctrlRuntime.NewManager(ctrlRuntime.GetConfigOrDie(), ctrlRuntime.Options{
 		Scheme:                 scheme,
 		MetricsBindAddress:     metricsAddr,
 		Port:                   9443,
@@ -90,7 +87,7 @@ func main() {
 		LeaderElectionID:       "803a3daa.csa.latam.redhat.com",
 	})
 	if err != nil {
-		setupLog.Error(err, "unable to start manager")
+		logger.Error("unable to start manager", zap.Error(err))
 		os.Exit(1)
 	}
 	var (
@@ -98,11 +95,11 @@ func main() {
 		envWhEnable = util.GetEnv("HCR_WEBHOOK_ENABLE", "true")
 	)
 	if envWhOnly == "false" {
-		if err = (&controller.ConfigReconciler{
+		if err = (&ctrl.ConfigReconciler{
 			Client: mgr.GetClient(),
 			Scheme: mgr.GetScheme(),
 		}).SetupWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create controller", "controller", "Config")
+			logger.Error("unable to create controller", zap.Error(err))
 			os.Exit(1)
 		}
 	} else {
@@ -111,25 +108,25 @@ func main() {
 
 	if envWhOnly == "true" || envWhEnable == "true" {
 
-		if err = util.GenCert(); err != nil {
-			logger.Error("error creating certificate", zap.String("err", err.Error()))
+		if err = ctrl.GenCert(); err != nil {
+			logger.Error("error creating certificate", zap.Error(err))
 			os.Exit(1)
 		}
 
-		if err = (&hcreportv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
-			setupLog.Error(err, "unable to create webhook", "webhook", "Config")
+		if err = (&hcrv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.Error(err))
 			os.Exit(1)
 		}
 
 		valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
 		mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
 
-		if err = util.InjectWebHookCA(valWebHookName, util.KindValidateHook); err != nil {
+		if err = ctrl.InjectWebHookCA(valWebHookName, ctrl.KindValidateHook); err != nil {
 			logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
 			os.Exit(1)
 		}
 
-		if err = util.InjectWebHookCA(mutWebHookName, util.KindMutateHook); err != nil {
+		if err = ctrl.InjectWebHookCA(mutWebHookName, ctrl.KindMutateHook); err != nil {
 			logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
 			os.Exit(1)
 		}
@@ -141,17 +138,17 @@ func main() {
 	// +kubebuilder:scaffold:builder
 
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up health check")
+		logger.Error("unable to set up health check", zap.Error(err))
 		os.Exit(1)
 	}
 	if err := mgr.AddReadyzCheck("readyz", healthz.Ping); err != nil {
-		setupLog.Error(err, "unable to set up ready check")
+		logger.Error("unable to set up ready check", zap.Error(err))
 		os.Exit(1)
 	}
 
-	setupLog.Info("starting manager")
-	if err := mgr.Start(ctrl.SetupSignalHandler()); err != nil {
-		setupLog.Error(err, "problem running manager")
+	logger.Info("starting manager")
+	if err := mgr.Start(ctrlRuntime.SetupSignalHandler()); err != nil {
+		logger.Error("problem running manager", zap.Error(err))
 		os.Exit(1)
 	}
 

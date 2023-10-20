@@ -31,7 +31,6 @@ func readStream(filename string, extra_reader ...io.Reader) (io.Reader, error) {
 	return reader, nil
 
 }
-
 func writeString(writer io.Writer, txt string) error {
 	_, errorWriting := writer.Write([]byte(txt))
 	return errorWriting
@@ -57,9 +56,9 @@ func readDocuments(reader io.Reader, filename string, fileIndex int, decoder Dec
 		} else if errorReading != nil {
 			return nil, fmt.Errorf("bad file '%v': %w", filename, errorReading)
 		}
-		candidateNode.Document = currentIndex
-		candidateNode.Filename = filename
-		candidateNode.FileIndex = fileIndex
+		candidateNode.document = currentIndex
+		candidateNode.filename = filename
+		candidateNode.fileIndex = fileIndex
 		candidateNode.EvaluateTogether = true
 
 		inputList.PushBack(candidateNode)

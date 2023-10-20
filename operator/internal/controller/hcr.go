@@ -25,7 +25,7 @@ import (
 	"time"
 )
 
-type hcrReconciler struct {
+type reconciler struct {
 	r   *ConfigReconciler
 	ctx context.Context
 	cfg *hcrv1.Config
@@ -41,30 +41,29 @@ const (
 var (
 	caPEM bytes.Buffer
 	cmdr  runner.CmdRunner
-	hcr   hcrReconciler
 )
 
 func init() {
 	cmdr = runner.NewCmdRunner()
 }
 
-func ExtractReportData(r *ConfigReconciler, ctx context.Context, cfg *hcrv1.Config) (ctrl.Result, error) {
+func RunReport(r *ConfigReconciler, ctx context.Context, cfg *hcrv1.Config) (ctrl.Result, error) {
 	logger.Info("ExtractReportData...")
-	hcr = hcrReconciler{r, ctx, cfg}
-	statusCheck()
-	if err := statusAdd("extracting"); err != nil {
+	rec := reconciler{r, ctx, cfg}
+	statusCheck(rec)
+	if err := statusAdd("extracting", rec); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
 }
 
-func statusCheck() {
+func statusCheck(hcr reconciler) {
 	if len(hcr.cfg.Status) == 0 {
 		hcr.cfg.Status = cmdr.Echo(statusTemplate).ToJson().BytesOut()
 	}
 }
 
-func statusAdd(phase string) error {
+func statusAdd(phase string, hcr reconciler) error {
 	ts := time.Now().Format(time.RFC3339)
 	jq := fmt.Sprintf(`.phase = "%s" | .transitions.last = "%s" | .transitions.next = "unscheduled"`, phase, ts)
 	if cmdr.Echo(hcr.cfg.Status).Jq(jq).Err() == nil {

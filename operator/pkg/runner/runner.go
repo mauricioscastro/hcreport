@@ -53,7 +53,7 @@ type CmdRunner interface {
 }
 
 type runner struct {
-	out    bytes.Buffer
+	pipe   bytes.Buffer
 	err    error
 	append bool
 	jqw    jqw.JqWrapper
@@ -135,7 +135,7 @@ func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 		if r.kcw == nil {
 			r.kcw = kcw.NewKcWrapper()
 		}
-		o, e := r.kcw.Run(cmdArgs, r.out.String())
+		o, e := r.kcw.Run(cmdArgs, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -147,7 +147,7 @@ func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 func (r *runner) YqEach(expr string) CmdRunner {
 	if r.err == nil {
 		r.yqInit()
-		o, e := r.yqw.EvalEach(expr, r.out.String())
+		o, e := r.yqw.EvalEach(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -159,7 +159,7 @@ func (r *runner) YqEach(expr string) CmdRunner {
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
 		r.yqInit()
-		o, e := r.yqw.EvalAll(expr, r.out.String())
+		o, e := r.yqw.EvalAll(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -204,7 +204,7 @@ func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
 		if r.jqw == nil {
 			r.jqw = jqw.NewJqWrapper()
 		}
-		o, e := r.jqw.Run(append(cmdArgs, "-M"), r.out.String())
+		o, e := r.jqw.Run(append(cmdArgs, "-M"), r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -229,7 +229,7 @@ func (r *runner) Sed(expr string) CmdRunner {
 	if r.err == nil {
 		s, e := sed.New(strings.NewReader(expr))
 		if e == nil {
-			o, e := s.RunString(r.out.String())
+			o, e := s.RunString(r.pipe.String())
 			if e == nil {
 				// looks like sed pkg adds an extra
 				// new line? I did not care to check
@@ -242,11 +242,11 @@ func (r *runner) Sed(expr string) CmdRunner {
 }
 
 func (r *runner) List() []string {
-	return strings.Split(r.out.String(), "\n")
+	return strings.Split(r.pipe.String(), "\n")
 }
 
 func (r *runner) Table() [][]string {
-	csv := csv.NewReader(strings.NewReader(r.out.String()))
+	csv := csv.NewReader(bytes.NewReader(r.pipe.Bytes()))
 	table, err := csv.ReadAll()
 	if err != nil {
 		r.error(err)
@@ -256,15 +256,15 @@ func (r *runner) Table() [][]string {
 }
 
 func (r *runner) Empty() bool {
-	return r.out.Len() == 0
+	return r.pipe.Len() == 0
 }
 
 func (r *runner) BytesOut() []byte {
-	return r.out.Bytes()
+	return r.pipe.Bytes()
 }
 
 func (r *runner) Out() string {
-	return r.out.String()
+	return r.pipe.String()
 }
 
 func (r *runner) Err() error {
@@ -273,9 +273,9 @@ func (r *runner) Err() error {
 
 func (r *runner) write(data string) {
 	if !r.append {
-		r.out.Reset()
+		r.pipe.Reset()
 	}
-	r.out.WriteString(data)
+	r.pipe.WriteString(data)
 	r.append = false
 }
 
@@ -289,7 +289,7 @@ func (r *runner) error(e error) {
 func (r *runner) json(compact bool) CmdRunner {
 	if r.err == nil {
 		r.yqInit()
-		o, e := r.yqw.ToJson(r.out.String())
+		o, e := r.yqw.ToJson(r.pipe.String())
 		if e == nil {
 			r.write(o)
 			if compact {

@@ -29,7 +29,6 @@ import (
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 
-	// hcr "github.com/mauricioscastro/hcreport/internal/controller/util"
 	apierr "k8s.io/apimachinery/pkg/api/errors"
 	ctrl "sigs.k8s.io/controller-runtime"
 	//+kubebuilder:scaffold:imports
@@ -62,7 +61,7 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		logger.Error("can not go past this error. returning", zap.Error(err))
 		return ctrl.Result{}, err
 	}
-	return ExtractReportData(r, ctx, &cfg)
+	return RunReport(r, ctx, &cfg)
 }
 
 // SetupWithManager sets up the controller with the Manager.

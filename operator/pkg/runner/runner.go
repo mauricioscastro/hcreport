@@ -85,14 +85,18 @@ func (r *runner) EnvSubst(arg string) CmdRunner {
 	return r
 }
 
-// arg accepts string or json.RawMessage
+// arg accepts string, json.RawMessage, []byte
 func (r *runner) Echo(arg any) CmdRunner {
+	t := reflect.TypeOf(arg)
+	v := reflect.ValueOf(arg)
 	if r.err == nil {
 		switch {
-		case reflect.TypeOf(arg).Kind() == reflect.String:
-			r.write(reflect.ValueOf(arg).Interface().(string))
-		case reflect.TypeOf(arg).String() == "json.RawMessage":
-			r.write(string(reflect.ValueOf(arg).Interface().(json.RawMessage)))
+		case t.Kind() == reflect.String:
+			r.write(v.Interface().(string))
+		case t.String() == "json.RawMessage":
+			r.write(string(v.Interface().(json.RawMessage)))
+		case t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8:
+			r.write(string(v.Interface().([]uint8)))
 		default:
 			r.error(errors.New("unknown type passed to echo"))
 		}

@@ -87,9 +87,9 @@ func (r *runner) EnvSubst(arg string) CmdRunner {
 
 // arg accepts string, json.RawMessage, []byte
 func (r *runner) Echo(arg any) CmdRunner {
-	t := reflect.TypeOf(arg)
-	v := reflect.ValueOf(arg)
 	if r.err == nil {
+		t := reflect.TypeOf(arg)
+		v := reflect.ValueOf(arg)
 		switch {
 		case t.Kind() == reflect.String:
 			r.write(v.Interface().(string))
@@ -129,7 +129,7 @@ func (r *runner) Match(pattern string) CmdRunner {
 
 func (r *runner) MkDir(arg string, perm fs.FileMode) CmdRunner {
 	if r.err == nil {
-		r.err = os.Mkdir(arg, perm)
+		r.err = os.MkdirAll(arg, perm)
 	}
 	return r
 }

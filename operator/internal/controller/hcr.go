@@ -48,7 +48,6 @@ func init() {
 }
 
 func RunReport(r *ConfigReconciler, ctx context.Context, cfg *hcrv1.Config) (ctrl.Result, error) {
-	logger.Info("ExtractReportData...")
 	rec := reconciler{r, ctx, cfg}
 	statusCheck(rec)
 	if err := statusAdd("extracting", rec); err != nil {

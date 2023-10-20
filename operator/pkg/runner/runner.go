@@ -62,11 +62,7 @@ type runner struct {
 }
 
 func NewCmdRunner() CmdRunner {
-	r := runner{}
-	r.jqw = jqw.NewJqWrapper()
-	r.kcw = kcw.NewKcWrapper()
-	r.yqw = yqw.NewYqWrapper()
-	return &r
+	return &runner{}
 }
 
 func (r *runner) Append() CmdRunner {
@@ -136,6 +132,9 @@ func (r *runner) MkDir(arg string, perm fs.FileMode) CmdRunner {
 
 func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 	if r.err == nil {
+		if r.kcw == nil {
+			r.kcw = kcw.NewKcWrapper()
+		}
 		o, e := r.kcw.Run(cmdArgs, r.out.String())
 		if e == nil {
 			r.write(o)
@@ -147,6 +146,7 @@ func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 
 func (r *runner) YqEach(expr string) CmdRunner {
 	if r.err == nil {
+		r.yqInit()
 		o, e := r.yqw.EvalEach(expr, r.out.String())
 		if e == nil {
 			r.write(o)
@@ -158,6 +158,7 @@ func (r *runner) YqEach(expr string) CmdRunner {
 
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
+		r.yqInit()
 		o, e := r.yqw.EvalAll(expr, r.out.String())
 		if e == nil {
 			r.write(o)
@@ -169,6 +170,7 @@ func (r *runner) Yq(expr string) CmdRunner {
 
 func (r *runner) YqSplit(expr string, fileNameExpr string, path string) CmdRunner {
 	if r.err == nil {
+		r.yqInit()
 		r.err = r.yqw.Split(expr, fileNameExpr, r.Out(), path)
 	}
 	return r
@@ -176,6 +178,7 @@ func (r *runner) YqSplit(expr string, fileNameExpr string, path string) CmdRunne
 
 func (r *runner) YqCreate(expr string) CmdRunner {
 	if r.err == nil {
+		r.yqInit()
 		o, e := r.yqw.Create(expr)
 		if e == nil {
 			r.write(o)
@@ -198,6 +201,9 @@ func (r *runner) ToJsonPretty() CmdRunner {
 
 func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
 	if r.err == nil {
+		if r.jqw == nil {
+			r.jqw = jqw.NewJqWrapper()
+		}
 		o, e := r.jqw.Run(append(cmdArgs, "-M"), r.out.String())
 		if e == nil {
 			r.write(o)
@@ -282,6 +288,7 @@ func (r *runner) error(e error) {
 
 func (r *runner) json(compact bool) CmdRunner {
 	if r.err == nil {
+		r.yqInit()
 		o, e := r.yqw.ToJson(r.out.String())
 		if e == nil {
 			r.write(o)
@@ -292,4 +299,10 @@ func (r *runner) json(compact bool) CmdRunner {
 		r.error(e)
 	}
 	return r
+}
+
+func (r *runner) yqInit() {
+	if r.yqw == nil {
+		r.yqw = yqw.NewYqWrapper()
+	}
 }

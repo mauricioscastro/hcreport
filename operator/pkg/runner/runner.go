@@ -47,7 +47,7 @@ type CmdRunner interface {
 	Empty() bool
 	List() []string
 	Table() [][]string
-	BytesOut() []byte
+	Bytes() []byte
 	Out() string
 	Err() error
 }
@@ -259,7 +259,7 @@ func (r *runner) Empty() bool {
 	return r.pipe.Len() == 0
 }
 
-func (r *runner) BytesOut() []byte {
+func (r *runner) Bytes() []byte {
 	return r.pipe.Bytes()
 }
 

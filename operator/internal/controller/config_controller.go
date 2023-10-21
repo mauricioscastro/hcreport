@@ -27,6 +27,7 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/predicate"
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
+	"github.com/mauricioscastro/hcreport/pkg/hcr"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 
 	apierr "k8s.io/apimachinery/pkg/api/errors"
@@ -61,7 +62,7 @@ func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctr
 		logger.Error("can not go past this error. returning", zap.Error(err))
 		return ctrl.Result{}, err
 	}
-	return RunReport(r, ctx, &cfg)
+	return hcr.NewReconciler(r.Status(), ctx, &cfg).Run()
 }
 
 // SetupWithManager sets up the controller with the Manager.

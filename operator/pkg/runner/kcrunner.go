@@ -1,9 +1,7 @@
-package util
+package runner
 
 import (
 	"strings"
-
-	"github.com/mauricioscastro/hcreport/pkg/runner"
 )
 
 const (
@@ -11,7 +9,17 @@ const (
 	cmdNs           = "get ns -o custom-columns=NAME:.metadata.name --sort-by=.metadata.name --no-headers=true"
 )
 
-func GetApiResources(r runner.CmdRunner) ([][]string, error) {
+type KcCmdRunner interface {
+	CmdRunner
+	GetApiResources() ([][]string, error)
+	GetNS() ([]string, error)
+}
+
+func NewKcCmdRunner() KcCmdRunner {
+	return &runner{}
+}
+
+func (r *runner) GetApiResources() ([][]string, error) {
 	r.KcCmd(strings.Split(cmdApiResources, " ")).
 		Sed("s/\\s+/ /g").
 		Sed("s/,/;/g").
@@ -21,7 +29,7 @@ func GetApiResources(r runner.CmdRunner) ([][]string, error) {
 	return r.Table(), r.Err()
 }
 
-func GetNS(r runner.CmdRunner) ([]string, error) {
+func (r *runner) GetNS() ([]string, error) {
 	r.KcCmd(strings.Split(cmdNs, " "))
 	return r.List(), r.Err()
 }

@@ -1,7 +1,7 @@
-package controller
+package template
 
 const (
-	statusTemplate = `
+	Status = `
   phase: ""
   transitions:
     last: ""

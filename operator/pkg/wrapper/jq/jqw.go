@@ -19,8 +19,7 @@ type jqWrapper struct {
 }
 
 func NewJqWrapper() JqWrapper {
-	jqw := jqWrapper{}
-	return &jqw
+	return &jqWrapper{}
 }
 
 func (jqw *jqWrapper) Run(args []string, stdin string) (string, error) {

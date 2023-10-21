@@ -1,4 +1,4 @@
-package controller
+package hcr
 
 import (
 	"context"
@@ -10,10 +10,13 @@ import (
 	"strings"
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
+	"github.com/mauricioscastro/hcreport/pkg/hcr/template"
+	kcr "github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
+	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"bytes"
 	"crypto/rand"
@@ -25,12 +28,6 @@ import (
 	"time"
 )
 
-type reconciler struct {
-	r   *ConfigReconciler
-	ctx context.Context
-	cfg *hcrv1.Config
-}
-
 const (
 	reportPath       = "/_data"
 	crtFile          = "/tmp/k8s-webhook-server/serving-certs/tls.crt"
@@ -38,36 +35,54 @@ const (
 	KindMutateHook   = "mutatingwebhookconfigurations.admissionregistration.k8s.io"
 )
 
+type reconciler struct {
+	srw client.SubResourceWriter
+	ctx context.Context
+	cfg *hcrv1.Config
+}
+
+type Reconciler interface {
+	Run() (ctrl.Result, error)
+}
+
 var (
-	caPEM bytes.Buffer
-	cmdr  runner.CmdRunner
+	caPEM  bytes.Buffer
+	cmdr   kcr.KcCmdRunner
+	logger = log.Logger().Named("hcr.reconciler")
 )
 
 func init() {
-	cmdr = runner.NewCmdRunner()
+	cmdr = kcr.NewKcCmdRunner()
 }
 
-func RunReport(r *ConfigReconciler, ctx context.Context, cfg *hcrv1.Config) (ctrl.Result, error) {
-	rec := reconciler{r, ctx, cfg}
-	statusCheck(rec)
-	if err := statusAdd("extracting", rec); err != nil {
+func SetLoggerLevel(level string) {
+	logger = log.ResetLoggerLevel(logger, level)
+}
+
+func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
+	return &reconciler{srw, ctx, cfg}
+}
+
+func (rec *reconciler) Run() (ctrl.Result, error) {
+	rec.statusCheck()
+	if err := rec.statusAdd("extracting"); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
 }
 
-func statusCheck(hcr reconciler) {
-	if len(hcr.cfg.Status) == 0 {
-		hcr.cfg.Status = cmdr.Echo(statusTemplate).ToJson().BytesOut()
+func (rec *reconciler) statusCheck() {
+	if len(rec.cfg.Status) == 0 {
+		rec.cfg.Status = cmdr.Echo(template.Status).ToJson().Bytes()
 	}
 }
 
-func statusAdd(phase string, hcr reconciler) error {
+func (rec *reconciler) statusAdd(phase string) error {
 	ts := time.Now().Format(time.RFC3339)
 	jq := fmt.Sprintf(`.phase = "%s" | .transitions.last = "%s" | .transitions.next = "unscheduled"`, phase, ts)
-	if cmdr.Echo(hcr.cfg.Status).Jq(jq).Err() == nil {
-		hcr.cfg.Status = cmdr.BytesOut()
-		if err := hcr.r.Status().Update(hcr.ctx, hcr.cfg); err != nil {
+	if cmdr.Echo(rec.cfg.Status).Jq(jq).Err() == nil {
+		rec.cfg.Status = cmdr.Bytes()
+		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil {
 			logger.Error("unable to update status", zap.Error(err))
 			return err
 		}

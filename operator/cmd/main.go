@@ -34,6 +34,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
+	"github.com/mauricioscastro/hcreport/pkg/hcr"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
@@ -108,7 +109,7 @@ func main() {
 
 	if envWhOnly == "true" || envWhEnable == "true" {
 
-		if err = ctrl.GenCert(); err != nil {
+		if err = hcr.GenCert(); err != nil {
 			logger.Error("error creating certificate", zap.Error(err))
 			os.Exit(1)
 		}
@@ -121,12 +122,12 @@ func main() {
 		valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
 		mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
 
-		if err = ctrl.InjectWebHookCA(valWebHookName, ctrl.KindValidateHook); err != nil {
+		if err = hcr.InjectWebHookCA(valWebHookName, hcr.KindValidateHook); err != nil {
 			logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
 			os.Exit(1)
 		}
 
-		if err = ctrl.InjectWebHookCA(mutWebHookName, ctrl.KindMutateHook); err != nil {
+		if err = hcr.InjectWebHookCA(mutWebHookName, hcr.KindMutateHook); err != nil {
 			logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
 			os.Exit(1)
 		}

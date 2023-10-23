@@ -13,6 +13,7 @@ type PipeCmdRunner interface {
 	Append() CmdRunner
 	Echo(arg any) CmdRunner
 	Empty() bool
+	Trim() CmdRunner
 	List() []string
 	Table() [][]string
 	Bytes() []byte
@@ -64,6 +65,13 @@ func (r *runner) Table() [][]string {
 
 func (r *runner) Empty() bool {
 	return r.pipe.Len() == 0
+}
+
+func (r *runner) Trim() CmdRunner {
+	if r.err == nil {
+		r.write(strings.Trim(r.pipe.String(), " "))
+	}
+	return r
 }
 
 func (r *runner) Bytes() []byte {

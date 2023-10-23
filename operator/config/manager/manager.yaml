@@ -51,6 +51,8 @@ spec:
         args:
         - --leader-elect
         env:
+          - name: HCR_WEBHOOK_ONLY
+            value: "false"         
           - name: HCR_WEBHOOK_SERVICE_NAME
             value: ""        
           - name: HCR_WEBHOOK_SERVICE_NAMESPACE_NAME
@@ -59,6 +61,8 @@ spec:
             value: ""        
           - name: HCR_WEBHOOK_MUTATE_CFG_NAME
             value: ""              
+          - name: "HCR_WEBHOOK_CERT_SECRET_NAME"
+            value: ""
         image: controller
         name: manager
         securityContext:

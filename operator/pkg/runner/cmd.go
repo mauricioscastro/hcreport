@@ -36,6 +36,7 @@ type CmdRunner interface {
 	EnvSubst(arg string) CmdRunner
 	Match(expr string) CmdRunner
 	ChDir(arg string) CmdRunner
+	MkDir(arg string, perm fs.FileMode) CmdRunner
 	Sed(expr string) CmdRunner
 }
 

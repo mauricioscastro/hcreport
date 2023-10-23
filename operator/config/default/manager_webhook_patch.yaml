@@ -6,12 +6,20 @@ metadata:
 spec:
   template:
     spec:
+      volumes:
+        - name: webhook-cert
+          secret:
+            secretName: webhook-cert    
       containers:
       - name: manager
         ports:
         - containerPort: 9443
           name: webhook-server
           protocol: TCP
+        volumeMounts:
+          - name: webhook-cert
+            readOnly: true
+            mountPath: /tmp/k8s-webhook-server/serving-certs
    
 
        

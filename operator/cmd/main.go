@@ -135,27 +135,31 @@ func main() {
 
 func webHookSetup(mgr manager.Manager) {
 
-	if err := hcr.GenCert(); err != nil {
+	certCreated, err := hcr.GenCert()
+
+	if err != nil {
 		logger.Error("error creating certificate", zap.Error(err))
 		os.Exit(1)
 	}
 
-	if err := (&hcrv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
+	if err = (&hcrv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
 		logger.Error("unable to create webhook", zap.Error(err))
 		os.Exit(1)
 	}
 
-	valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
-	mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
+	if certCreated { // assumes come other replica has already done this
+		valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
+		mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
 
-	if err := hcr.InjectWebHookCA(valWebHookName, hcr.KindValidateHook); err != nil {
-		logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
-		os.Exit(1)
-	}
+		if err = hcr.InjectWebHookCA(valWebHookName, hcr.KindValidateHook); err != nil {
+			logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
+			os.Exit(1)
+		}
 
-	if err := hcr.InjectWebHookCA(mutWebHookName, hcr.KindMutateHook); err != nil {
-		logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
-		os.Exit(1)
+		if err = hcr.InjectWebHookCA(mutWebHookName, hcr.KindMutateHook); err != nil {
+			logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
+			os.Exit(1)
+		}
 	}
 
 }

@@ -61,4 +61,12 @@ replacements:
     select:
       kind: ClusterRole
       name: webhook-manager-role
-
+- source:
+    kind: Secret
+  targets:
+  - fieldPaths:
+    - spec.template.spec.containers.[name=manager].env.[name=HCR_WEBHOOK_CERT_SECRET_NAME].value
+    select:
+      kind: Deployment
+      name: hcr-controller-manager
+   

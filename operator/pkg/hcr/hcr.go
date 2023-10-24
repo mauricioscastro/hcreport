@@ -6,7 +6,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/hcr/template"
-	kcr "github.com/mauricioscastro/hcreport/pkg/runner"
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -20,7 +20,7 @@ const (
 )
 
 var (
-	cmdr   kcr.CmdRunner
+	cmdr   runner.CmdRunner
 	logger = log.Logger().Named("hcr.reconciler")
 )
 
@@ -35,7 +35,7 @@ type Reconciler interface {
 }
 
 func init() {
-	cmdr = kcr.NewCmdRunner()
+	cmdr = runner.NewCmdRunner()
 }
 
 func SetLoggerLevel(level string) {

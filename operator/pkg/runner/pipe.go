@@ -5,6 +5,7 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"reflect"
 	"strings"
 )
@@ -18,6 +19,7 @@ type PipeCmdRunner interface {
 	Table() [][]string
 	Bytes() []byte
 	Out() string
+	String() string
 	Err() error
 }
 
@@ -30,7 +32,7 @@ func (r *runner) Append() CmdRunner {
 	return r
 }
 
-// accepts string, json.RawMessage, []byte
+// accepts string, json.RawMessage, []byte, Stringer
 func (r *runner) Echo(arg any) CmdRunner {
 	if r.err == nil {
 		t := reflect.TypeOf(arg)
@@ -43,6 +45,9 @@ func (r *runner) Echo(arg any) CmdRunner {
 		case t.Kind() == reflect.Slice && t.Elem().Kind() == reflect.Uint8:
 			r.write(string(v.Interface().([]uint8)))
 		default:
+			if _, ok := t.Elem().(fmt.Stringer); ok {
+				r.write(v.Interface().(fmt.Stringer).String())
+			}
 			r.error(errors.New("unknown type passed to echo"))
 		}
 	}
@@ -79,6 +84,10 @@ func (r *runner) Bytes() []byte {
 }
 
 func (r *runner) Out() string {
+	return r.pipe.String()
+}
+
+func (r *runner) String() string {
 	return r.pipe.String()
 }
 

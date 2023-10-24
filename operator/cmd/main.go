@@ -31,11 +31,9 @@ import (
 	ctrlRuntime "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	z "sigs.k8s.io/controller-runtime/pkg/log/zap"
-	"sigs.k8s.io/controller-runtime/pkg/manager"
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
-	"github.com/mauricioscastro/hcreport/pkg/hcr"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
@@ -107,9 +105,11 @@ func main() {
 	} else {
 		logger.Info("running in webhook mode only")
 	}
-
 	if envWhOnly == "true" || envWhEnable == "true" {
-		webHookSetup(mgr)
+		if err = (&hcrv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
+			logger.Error("unable to create webhook", zap.Error(err))
+			os.Exit(1)
+		}
 	} else {
 		logger.Info("webhook is turned off")
 	}
@@ -129,37 +129,6 @@ func main() {
 	if err := mgr.Start(ctrlRuntime.SetupSignalHandler()); err != nil {
 		logger.Error("problem running manager", zap.Error(err))
 		os.Exit(1)
-	}
-
-}
-
-func webHookSetup(mgr manager.Manager) {
-
-	certCreated, err := hcr.GenCert()
-
-	if err != nil {
-		logger.Error("error creating certificate", zap.Error(err))
-		os.Exit(1)
-	}
-
-	if err = (&hcrv1.Config{}).SetupWebhookWithManager(mgr); err != nil {
-		logger.Error("unable to create webhook", zap.Error(err))
-		os.Exit(1)
-	}
-
-	if certCreated { // assumes come other replica has already done this
-		valWebHookName := util.GetEnv("HCR_WEBHOOK_VALIDATE_CFG_NAME", "hcr-validating-webhook-configuration")
-		mutWebHookName := util.GetEnv("HCR_WEBHOOK_MUTATE_CFG_NAME", "hcr-mutating-webhook-configuration")
-
-		if err = hcr.InjectWebHookCA(valWebHookName, hcr.KindValidateHook); err != nil {
-			logger.Error("webhook is enabled and caBundle injection failed for validating webhook")
-			os.Exit(1)
-		}
-
-		if err = hcr.InjectWebHookCA(mutWebHookName, hcr.KindMutateHook); err != nil {
-			logger.Error("webhook is enabled and caBundle injection failed for mutating webhook")
-			os.Exit(1)
-		}
 	}
 
 }

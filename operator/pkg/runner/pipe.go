@@ -48,7 +48,7 @@ func (r *runner) Echo(arg any) CmdRunner {
 			if _, ok := t.Elem().(fmt.Stringer); ok {
 				r.write(v.Interface().(fmt.Stringer).String())
 			}
-			r.error(errors.New("unknown type passed to echo"))
+			r.error(errors.New("don't know how to echo type " + t.Name()))
 		}
 	}
 	return r

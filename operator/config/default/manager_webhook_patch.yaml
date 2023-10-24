@@ -9,7 +9,7 @@ spec:
       volumes:
         - name: webhook-cert
           secret:
-            secretName: webhook-cert    
+            secretName: webhook-server-cert
       containers:
       - name: manager
         ports:

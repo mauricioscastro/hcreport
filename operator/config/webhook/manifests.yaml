@@ -3,6 +3,13 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: MutatingWebhookConfiguration
 metadata:
   name: mutating-webhook-configuration
+  labels:
+    app.kubernetes.io/name: mutatingwebhookconfiguration
+    app.kubernetes.io/instance: mutating-webhook-configuration
+    app.kubernetes.io/component: webhook
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize  
 webhooks:
 - admissionReviewVersions:
   - v1
@@ -29,6 +36,13 @@ apiVersion: admissionregistration.k8s.io/v1
 kind: ValidatingWebhookConfiguration
 metadata:
   name: validating-webhook-configuration
+  labels:
+    app.kubernetes.io/name: validatingwebhookconfiguration
+    app.kubernetes.io/instance: validating-webhook-configuration
+    app.kubernetes.io/component: webhook
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize  
 webhooks:
 - admissionReviewVersions:
   - v1

@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"errors"
 	"strings"
 
 	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
@@ -8,17 +9,22 @@ import (
 
 const (
 	cmdApiResources = "api-resources -o wide --sort-by=name --no-headers=true"
+	cmdNs           = "get ns -o custom-columns=NAME:.metadata.name --sort-by=.metadata.name --no-headers=true"
 )
+
+var kcReadOnly bool
 
 type KcCmdRunner interface {
 	PipeCmdRunner
 	Kc(cmdArgs string) CmdRunner
 	KcApply() CmdRunner
 	KcCmd(cmdArgs []string) CmdRunner
-	ApiResources() ([][]string, error)
+	KcApiResources() ([][]string, error)
+	KcNs() ([]string, error)
 }
 
 func NewKcCmdRunner() KcCmdRunner {
+	kcReadOnly = false
 	return &runner{}
 }
 
@@ -41,15 +47,24 @@ func (r *runner) Kc(cmdArgs string) CmdRunner {
 }
 
 func (r *runner) KcApply() CmdRunner {
+	if kcReadOnly {
+		r.error(errors.New("trying to KcApply in readOnly mode"))
+		return r
+	}
 	return r.Kc("apply -f -")
 }
 
-func (r *runner) ApiResources() ([][]string, error) {
+func (r *runner) KcApiResources() ([][]string, error) {
 	r.KcCmd(strings.Split(cmdApiResources, " ")).
 		Sed("s/\\s+/ /g").
-		Sed("s/,/;/g").
-		Sed("s/ /,/g").
+		ReplaceAll(",", ";").
+		ReplaceAll(" ", ",").
 		// add shortname col where it's missing
 		Sed("s/^([^\\s,]+,)((?:[^\\s,]+,){4})([^\\s,]+)*$/$1,$2$3/g")
 	return r.Table(), r.Err()
+}
+
+func (r *runner) KcNs() ([]string, error) {
+	r.KcCmd(strings.Split(cmdNs, " "))
+	return r.List(), r.Err()
 }

@@ -35,6 +35,7 @@ import (
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
 	"github.com/mauricioscastro/hcreport/pkg/util"
+	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	//+kubebuilder:scaffold:imports
@@ -48,7 +49,7 @@ var (
 func init() {
 	log.SilenceKcLogs()
 	log.SilenceYqLogs()
-	// yq.SetLoggerLevel("info")
+	yq.SetLoggerLevel("info")
 	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -113,9 +114,7 @@ func main() {
 	} else {
 		logger.Info("webhook is turned off")
 	}
-
 	// +kubebuilder:scaffold:builder
-
 	if err := mgr.AddHealthzCheck("healthz", healthz.Ping); err != nil {
 		logger.Error("unable to set up health check", zap.Error(err))
 		os.Exit(1)
@@ -124,11 +123,9 @@ func main() {
 		logger.Error("unable to set up ready check", zap.Error(err))
 		os.Exit(1)
 	}
-
 	logger.Info("starting manager")
 	if err := mgr.Start(ctrlRuntime.SetupSignalHandler()); err != nil {
 		logger.Error("problem running manager", zap.Error(err))
 		os.Exit(1)
 	}
-
 }

@@ -69,7 +69,7 @@ func ResetLoggerLevel(log *zap.Logger, level string) *zap.Logger {
 	zlevel, err := zapcore.ParseLevel(level)
 	if err != nil {
 		logger.Error(err.Error())
-		zlevel = zapcore.InfoLevel
+		return log
 	}
 	return log.WithOptions(zap.WrapCore(
 		func(zapcore.Core) zapcore.Core {

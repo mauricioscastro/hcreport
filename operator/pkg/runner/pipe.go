@@ -103,6 +103,14 @@ func (r *runner) write(data string) {
 	r.append = false
 }
 
+func (r *runner) writeBytes(data []byte) {
+	if !r.append {
+		r.pipe.Reset()
+	}
+	r.pipe.Write(data)
+	r.append = false
+}
+
 func (r *runner) error(e error) {
 	if e != nil {
 		logger.Error(e.Error())

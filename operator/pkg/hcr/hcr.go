@@ -3,6 +3,10 @@ package hcr
 import (
 	"context"
 	"fmt"
+	"io/fs"
+	"os"
+	"strconv"
+	"strings"
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/hcr/template"
@@ -16,7 +20,7 @@ import (
 )
 
 const (
-	reportPath = "/_data"
+	reportPath = "/_data/"
 )
 
 var (
@@ -25,9 +29,11 @@ var (
 )
 
 type reconciler struct {
-	srw client.SubResourceWriter
-	ctx context.Context
-	cfg *hcrv1.Config
+	srw          client.SubResourceWriter
+	ctx          context.Context
+	cfg          *hcrv1.Config
+	apiResources [][]string
+	ns           []string
 }
 
 type Reconciler interface {
@@ -43,15 +49,59 @@ func SetLoggerLevel(level string) {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	return &reconciler{srw, ctx, cfg}
+	return &reconciler{srw, ctx, cfg, [][]string{}, []string{}}
 }
 
 func (rec *reconciler) Run() (ctrl.Result, error) {
 	rec.statusCheck()
-	if err := rec.statusAdd("extracting"); err != nil {
+	err := rec.statusAddPhase("extracting")
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	rec.setLogLevel()
+	rec.apiResources, err = cmdr.KcApiResources()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	rec.ns, err = cmdr.KcNs()
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+	err = rec.extract()
+	if err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
+}
+
+func (rec *reconciler) extract() error {
+	reportHome := reportPath + rec.cfg.Name
+	apiResourcesYaml := "api-resources: []"
+	cmdr.MkDir(reportHome)
+	if cmdr.Err() != nil {
+		return cmdr.Err()
+	}
+	for _, r := range rec.apiResources {
+		name := r[0]
+		gv := r[2]
+		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
+		fileName := name + "." + strings.Replace(gv, "/", ".", -1) + ".yaml"
+		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortname":"%s", "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "category":"%s"}`
+		apiResourcesYaml = cmdr.
+			Echo(apiResourcesYaml).
+			Yq(fmt.Sprintf(yq, r[4], name, r[1], gv, r[3], verbs, r[6])).
+			String()
+		if namespaced, err := strconv.ParseBool(r[3]); err == nil && namespaced {
+			for _, n := range rec.ns {
+				cmdr.MkDir(reportHome + "/" + n)
+			}
+		} else if err == nil {
+			logger.Sugar().Infof("\nfilename: %s", fileName)
+		} else {
+			return err
+		}
+	}
+	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
 }
 
 func (rec *reconciler) statusCheck() {
@@ -60,7 +110,15 @@ func (rec *reconciler) statusCheck() {
 	}
 }
 
-func (rec *reconciler) statusAdd(phase string) error {
+func (rec *reconciler) setLogLevel() {
+	cmdr.Echo(rec.cfg.Spec).Yq(`.logLevel // ""`)
+	if cmdr.Err() == nil && !cmdr.Empty() {
+		logger.Debug("setting log level", zap.String("level", cmdr.String()))
+		SetLoggerLevel(cmdr.String())
+	}
+}
+
+func (rec *reconciler) statusAddPhase(phase string) error {
 	ts := time.Now().Format(time.RFC3339)
 	jq := fmt.Sprintf(`.phase = "%s" | .transitions.last = "%s" | .transitions.next = "unscheduled"`, phase, ts)
 	if cmdr.Echo(rec.cfg.Status).Jq(jq).Err() == nil {

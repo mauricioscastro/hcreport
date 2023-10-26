@@ -1,6 +1,10 @@
 package runner
 
 import (
+	"encoding/json"
+
+	"gopkg.in/yaml.v3"
+
 	jqw "github.com/mauricioscastro/hcreport/pkg/wrapper/jq"
 	yqw "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 )
@@ -13,6 +17,8 @@ type JqYqCmdRunner interface {
 	YqCreate(expr string) CmdRunner
 	ToYaml() CmdRunner
 	ToJson() CmdRunner
+	MarshalJson(i any) CmdRunner
+	MarshalYaml(i any) CmdRunner
 	ToJsonPretty() CmdRunner
 	JqCmd(cmdArgs []string) CmdRunner
 	YqEach(expr string) CmdRunner
@@ -20,6 +26,28 @@ type JqYqCmdRunner interface {
 
 func NewJqYqCmdRunner() JqYqCmdRunner {
 	return &runner{}
+}
+
+func (r *runner) MarshalYaml(i any) CmdRunner {
+	if r.err == nil {
+		o, e := yaml.Marshal(i)
+		if e == nil {
+			r.write(string(o))
+		}
+		r.error(e)
+	}
+	return r
+}
+
+func (r *runner) MarshalJson(i any) CmdRunner {
+	if r.err == nil {
+		o, e := json.Marshal(i)
+		if e == nil {
+			r.write(string(o))
+		}
+		r.error(e)
+	}
+	return r
 }
 
 func (r *runner) YqEach(expr string) CmdRunner {

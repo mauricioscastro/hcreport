@@ -36,12 +36,40 @@ type CmdRunner interface {
 	EnvSubst(arg string) CmdRunner
 	Match(expr string) CmdRunner
 	ChDir(arg string) CmdRunner
-	MkDir(arg string, perm fs.FileMode) CmdRunner
+	MkDir(arg string) CmdRunner
+	WriteFile(path string) CmdRunner
+	ReadFile(path string) CmdRunner
+	ReplaceAll(old string, new string) CmdRunner
 	Sed(expr string) CmdRunner
 }
 
 func NewCmdRunner() CmdRunner {
 	return &runner{}
+}
+
+func (r *runner) ReplaceAll(old string, new string) CmdRunner {
+	if r.err == nil {
+		r.write(strings.ReplaceAll(r.String(), old, new))
+	}
+	return r
+}
+
+func (r *runner) WriteFile(path string) CmdRunner {
+	if r.err == nil {
+		r.error(os.WriteFile(path, r.Bytes(), fs.ModePerm))
+	}
+	return r
+}
+
+func (r *runner) ReadFile(path string) CmdRunner {
+	if r.err == nil {
+		o, e := os.ReadFile(path)
+		if e == nil {
+			r.writeBytes(o)
+		}
+		r.error(e)
+	}
+	return r
 }
 
 func (r *runner) EnvSubst(arg string) CmdRunner {
@@ -78,9 +106,9 @@ func (r *runner) Match(pattern string) CmdRunner {
 	return r
 }
 
-func (r *runner) MkDir(arg string, perm fs.FileMode) CmdRunner {
+func (r *runner) MkDir(arg string) CmdRunner {
 	if r.err == nil {
-		r.err = os.MkdirAll(arg, perm)
+		r.err = os.MkdirAll(arg, fs.ModePerm)
 	}
 	return r
 }

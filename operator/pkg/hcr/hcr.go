@@ -12,6 +12,8 @@ import (
 	"github.com/mauricioscastro/hcreport/pkg/hcr/template"
 	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
+	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
+	yqw "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -83,14 +85,21 @@ func (rec *reconciler) extract() error {
 	}
 	for _, r := range rec.apiResources {
 		name := r[0]
+		shortNames := r[1]
 		gv := r[2]
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		fileName := name + "." + strings.Replace(gv, "/", ".", -1) + ".yaml"
-		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortname":"%s", "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "category":"%s"}`
+		if len(shortNames) > 0 {
+			shortNames = `"` + strings.ReplaceAll(shortNames, ";", `","`) + `"`
+		}
+		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortNames": [%s], "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "category":"%s", "fileName":"%s"}`
 		apiResourcesYaml = cmdr.
 			Echo(apiResourcesYaml).
-			Yq(fmt.Sprintf(yq, r[4], name, r[1], gv, r[3], verbs, r[6])).
+			Yq(fmt.Sprintf(yq, r[4], name, shortNames, gv, r[3], verbs, r[6], fileName)).
 			String()
+		if cmdr.Err() != nil {
+			return cmdr.Err()
+		}
 		if namespaced, err := strconv.ParseBool(r[3]); err == nil && namespaced {
 			for _, n := range rec.ns {
 				cmdr.MkDir(reportHome + "/" + n)
@@ -115,6 +124,9 @@ func (rec *reconciler) setLogLevel() {
 	if cmdr.Err() == nil && !cmdr.Empty() {
 		logger.Debug("setting log level", zap.String("level", cmdr.String()))
 		SetLoggerLevel(cmdr.String())
+		yqw.SetLoggerLevel(cmdr.String())
+		kcw.SetLoggerLevel(cmdr.String())
+		runner.SetLoggerLevel(cmdr.String())
 	}
 }
 

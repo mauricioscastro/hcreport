@@ -4,17 +4,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"gopkg.in/yaml.v3"
 )
-
-var logger = log.Logger().Named("hcr.util")
-
-func SetLoggerLevel(level string) {
-	logger = log.ResetLoggerLevel(logger, level)
-}
 
 func ValidateJson(yamlInput string, jsonSchemaAsYaml string) error {
 	var (

@@ -49,15 +49,6 @@ type kcWrapper struct {
 
 func NewKcWrapper() KcWrapper {
 	kcw := kcWrapper{}
-	kcw.cmd = kubecmd.NewDefaultKubectlCommandWithArgs(kubecmd.KubectlOptions{
-		PluginHandler: nil,
-		Arguments:     nil,
-		ConfigFlags:   genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag().WithDiscoveryBurst(300).WithDiscoveryQPS(50.0),
-		IOStreams:     genericiooptions.IOStreams{In: &kcw.in, Out: &kcw.out, ErrOut: &kcw.err},
-	})
-	kcw.cmd.SetErr(&kcw.err)
-	kcw.cmd.SetOut(&kcw.err)
-	kcw.cmd.SetIn(&kcw.in)
 	kcw.sync = true
 	cmdUtil.BehaviorOnFatal(func(msg string, code int) {
 		if len(msg) > 0 {
@@ -68,12 +59,9 @@ func NewKcWrapper() KcWrapper {
 }
 
 func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
+	kcw.cmdInit()
+	defer kcw.cmd.ResetCommands()
 	kcw.cmd.SetArgs(append(args, strings.Split(kcDefaultArgs, " ")...))
-	kcw.out.Reset()
-	kcw.cmd.SetOut(&kcw.out)
-	kcw.err.Reset()
-	kcw.cmd.SetErr(&kcw.err)
-	kcw.in.Reset()
 	feedStdin() // in case auth is requested, provoke auth error
 	kcw.in.WriteString(stdin)
 	var err error
@@ -83,6 +71,10 @@ func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
 	} else {
 		logger.Debug("run", zap.String("arg", strings.Join(args, " ")))
 		err = cli.RunNoErrOutput(kcw.cmd)
+	}
+	if err != nil && strings.Contains(err.Error(), "Warning") && kcw.out.Len() > 0 {
+		logger.Warn("", zap.Error(err))
+		err = nil
 	}
 	return strings.TrimSuffix(kcw.out.String(), "\n"), err
 }
@@ -132,4 +124,19 @@ func (kcw *kcWrapper) UnSynced() KcWrapper {
 func (kcw *kcWrapper) Synced() KcWrapper {
 	kcw.sync = true
 	return kcw
+}
+
+func (kcw *kcWrapper) cmdInit() {
+	kcw.cmd = kubecmd.NewDefaultKubectlCommandWithArgs(kubecmd.KubectlOptions{
+		PluginHandler: nil,
+		Arguments:     nil,
+		ConfigFlags:   genericclioptions.NewConfigFlags(true).WithDeprecatedPasswordFlag().WithDiscoveryBurst(300).WithDiscoveryQPS(50.0),
+		IOStreams:     genericiooptions.IOStreams{In: &kcw.in, Out: &kcw.out, ErrOut: &kcw.err},
+	})
+	kcw.cmd.SetErr(&kcw.err)
+	kcw.cmd.SetOut(&kcw.err)
+	kcw.cmd.SetIn(&kcw.in)
+	kcw.err.Reset()
+	kcw.out.Reset()
+	kcw.in.Reset()
 }

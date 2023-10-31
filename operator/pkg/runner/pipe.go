@@ -13,13 +13,16 @@ import (
 type PipeCmdRunner interface {
 	Append() CmdRunner
 	Echo(arg any) CmdRunner
+	Write(data []byte) CmdRunner
 	Trim() CmdRunner
+	Clone() CmdRunner
 	Empty() bool
 	List() []string
 	Table() [][]string
 	Bytes() []byte
 	Out() string
 	String() string
+	Len() int
 	Err() error
 }
 
@@ -80,7 +83,9 @@ func (r *runner) Trim() CmdRunner {
 }
 
 func (r *runner) Bytes() []byte {
-	return r.pipe.Bytes()
+	b := make([]byte, r.pipe.Len())
+	copy(b, r.pipe.Bytes())
+	return b
 }
 
 func (r *runner) Out() string {
@@ -93,6 +98,21 @@ func (r *runner) String() string {
 
 func (r *runner) Err() error {
 	return r.err
+}
+
+func (r *runner) Len() int {
+	return r.pipe.Len()
+}
+
+func (r *runner) Clone() CmdRunner {
+	return NewCmdRunnerWithArgs(r.pipe.Bytes())
+}
+
+func (r *runner) Write(data []byte) CmdRunner {
+	if r.err == nil {
+		r.writeBytes(data)
+	}
+	return r
 }
 
 func (r *runner) write(data string) {

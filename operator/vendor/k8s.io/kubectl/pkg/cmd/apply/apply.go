@@ -380,11 +380,6 @@ func (flags *ApplyFlags) ToOptions(f cmdutil.Factory, cmd *cobra.Command, baseNa
 
 // Validate verifies if ApplyOptions are valid and without conflicts.
 func (o *ApplyOptions) Validate() error {
-
-	if o == nil {
-		return fmt.Errorf("impossible to validate. check cluster connectivity")
-	}
-
 	if o.ForceConflicts && !o.ServerSideApply {
 		return fmt.Errorf("--force-conflicts only works with --server-side")
 	}
@@ -465,7 +460,7 @@ func (o *ApplyOptions) GetObjects() ([]*resource.Info, error) {
 			Schema(o.Validator).
 			ContinueOnError().
 			NamespaceParam(o.Namespace).DefaultNamespace().
-			FilenameParam(o.EnforceNamespace, &o.DeleteOptions.FilenameOptions, o.IOStreams.In).
+			FilenameParam(o.EnforceNamespace, &o.DeleteOptions.FilenameOptions).
 			LabelSelectorParam(o.Selector).
 			Flatten().
 			Do()
@@ -492,11 +487,6 @@ func (o *ApplyOptions) SetObjects(infos []*resource.Info) {
 
 // Run executes the `apply` command.
 func (o *ApplyOptions) Run() error {
-
-	if o == nil {
-		return fmt.Errorf("impossible to apply. check cluster connectivity")
-	}
-
 	if o.PreProcessorFn != nil {
 		klog.V(4).Infof("Running apply pre-processor function")
 		if err := o.PreProcessorFn(); err != nil {

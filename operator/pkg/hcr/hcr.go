@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 
@@ -84,11 +85,19 @@ func (rec *reconciler) extract() error {
 		return cmdr.Err()
 	}
 	for _, r := range rec.apiResources {
-		name := r[0]
-		shortNames := r[1]
-		gv := r[2]
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
+		if !strings.Contains(verbs, "get") {
+			continue
+		}
+		name := r[0]
+		gv := r[2]
 		fileName := name + "." + strings.Replace(gv, "/", ".", -1) + ".yaml"
+		fullName := name
+		cmdr.Echo(gv).Sed("s;/?v[^\\.]*$;;g")
+		if !cmdr.Empty() {
+			fullName = fullName + "." + cmdr.String()
+		}
+		shortNames := r[1]
 		if len(shortNames) > 0 {
 			shortNames = `"` + strings.ReplaceAll(shortNames, ";", `","`) + `"`
 		}
@@ -102,15 +111,63 @@ func (rec *reconciler) extract() error {
 		}
 		if namespaced, err := strconv.ParseBool(r[3]); err == nil && namespaced {
 			for _, n := range rec.ns {
-				cmdr.MkDir(reportHome + "/" + n)
+				nsDir := reportHome + "/" + n
+				if err = os.MkdirAll(nsDir, fs.ModePerm); err != nil {
+					return err
+				}
+				if err = writeResourceList(nsDir+"/"+fileName, fullName, n); err != nil {
+					return err
+				}
 			}
 		} else if err == nil {
-			logger.Sugar().Infof("\nfilename: %s", fileName)
+			if err = writeResourceList(reportHome+"/"+fileName, fullName, ""); err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
 	}
 	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
+}
+
+func writeResourceList(filePath string, fullName string, namespace string) error {
+	kcCmd := []string{"get", "-o", "yaml", fullName}
+	if len(namespace) > 0 {
+		kcCmd = append(kcCmd, "-n", namespace)
+	}
+	cmdr.KcCmd(kcCmd).
+		Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
+	// hide secrets
+	if fullName == "secrets" {
+		cmdr.Yq(`.[].[].data.[] = ""`)
+	}
+	if cmdr.Err() != nil {
+		return cmdr.Err()
+	}
+	resourceList := cmdr.Bytes()
+	if !cmdr.Yq(`.items[0] // ""`).Empty() {
+		if err := os.WriteFile(filePath, resourceList, fs.ModePerm); err != nil {
+			return err
+		}
+		// extract logs
+		if fullName == "pods" {
+			logDir := filepath.Dir(filePath) + "/log/"
+			cmdr.MkDir(logDir).
+				Echo(resourceList).
+				Yq(".[].[].metadata.name")
+			if cmdr.Err() != nil {
+				return cmdr.Err()
+			}
+			for _, pod := range cmdr.List() {
+				cmdr.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).
+					WriteFile(logDir + pod + ".log")
+				if cmdr.Err() != nil {
+					return cmdr.Err()
+				}
+			}
+		}
+	}
+	return nil
 }
 
 func (rec *reconciler) statusCheck() {

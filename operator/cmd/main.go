@@ -47,8 +47,8 @@ var (
 )
 
 func init() {
-	log.SilenceKcLogs()
-	log.SilenceYqLogs()
+	// log.SilenceKcLogs()
+	// log.SilenceYqLogs()
 	yq.SetLoggerLevel("info")
 	// util.SetLoggerLevel("info")
 
@@ -58,6 +58,11 @@ func init() {
 }
 
 func main() {
+	// o, e := kc.NewKcWrapper().Run([]string{"get", "pods", "-n", "cert-manager", "-o", "yaml"}, "")
+	// logger.Sugar().Debugf("\n%s\n%s", o, e)
+
+	// os.Exit(0)
+
 	logger.Info("hcreport running...")
 	var metricsAddr string
 	var enableLeaderElection bool

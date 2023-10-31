@@ -47,6 +47,10 @@ func Logger() *zap.Logger {
 			}
 			loggerCfg.Level.SetLevel(l)
 		}
+		loggerCfg.DisableStacktrace = true
+		if conf := os.Getenv("LOGGER_STACKTRACE"); conf == "true" {
+			loggerCfg.DisableStacktrace = false
+		}
 		loggerCfg.DisableCaller = true
 		var err error
 		if logger, err = loggerCfg.Build(); err != nil {

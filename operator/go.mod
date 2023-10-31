@@ -5,8 +5,10 @@ go 1.20
 replace (
 	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131
 	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.201
-	k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
-	k8s.io/kubectl => github.com/mauricioscastro/kubectl v0.28.210
+	// below replacement is needed to "kubectl apply" to fake stdin 
+	// only apply related code was changed
+	// k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
+	// k8s.io/kubectl => github.com/mauricioscastro/kubectl v0.28.210
 )
 
 require (

@@ -40,6 +40,7 @@ type CmdRunner interface {
 	WriteFile(path string) CmdRunner
 	ReadFile(path string) CmdRunner
 	ReplaceAll(old string, new string) CmdRunner
+	RegexReplaceAll(expr string, new string) CmdRunner
 	Sed(expr string) CmdRunner
 }
 
@@ -47,9 +48,27 @@ func NewCmdRunner() CmdRunner {
 	return &runner{}
 }
 
+func NewCmdRunnerWithArgs(data []byte) CmdRunner {
+	r := runner{}
+	r.pipe.Write(data)
+	return &r
+}
+
 func (r *runner) ReplaceAll(old string, new string) CmdRunner {
 	if r.err == nil {
-		r.write(strings.ReplaceAll(r.String(), old, new))
+		r.write(strings.ReplaceAll(r.pipe.String(), old, new))
+	}
+	return r
+}
+
+func (r *runner) RegexReplaceAll(expr string, new string) CmdRunner {
+	if r.err == nil {
+		re, e := regexp.Compile(expr)
+		if e != nil {
+			r.error(e)
+		} else {
+			r.write(re.ReplaceAllString(r.pipe.String(), new))
+		}
 	}
 	return r
 }

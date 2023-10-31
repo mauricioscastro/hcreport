@@ -140,6 +140,7 @@ func writeResourceList(filePath string, fullName string, namespace string) error
 		kcCmd = append(kcCmd, "-n", namespace)
 	}
 	if !cmdr.KcCmd(kcCmd).Empty() {
+		// cleaning
 		cmdr.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
 		// hide secrets
 		if fullName == "secrets" {
@@ -150,7 +151,6 @@ func writeResourceList(filePath string, fullName string, namespace string) error
 		if fullName == "pods" {
 			logDir := filepath.Dir(filePath) + "/log/"
 			cmdr.MkDir(logDir).
-				// Echo(resourceList).
 				Yq(".[].[].metadata.name")
 			for _, pod := range cmdr.List() {
 				cmdr.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).

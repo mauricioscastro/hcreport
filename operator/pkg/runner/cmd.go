@@ -41,6 +41,7 @@ type CmdRunner interface {
 	ReadFile(path string) CmdRunner
 	ReplaceAll(old string, new string) CmdRunner
 	RegexReplaceAll(expr string, new string) CmdRunner
+	IgnoreError(regex ...string) CmdRunner
 	Sed(expr string) CmdRunner
 }
 
@@ -105,6 +106,24 @@ func (r *runner) EnvSubst(arg string) CmdRunner {
 func (r *runner) ChDir(arg string) CmdRunner {
 	if r.err == nil {
 		r.err = os.Chdir(arg)
+	}
+	return r
+}
+
+func (r *runner) IgnoreError(regex ...string) CmdRunner {
+	if r.err != nil {
+		if len(regex) == 0 {
+			r.err = nil
+		} else {
+			for _, expr := range regex {
+				if m, e := regexp.MatchString(expr, r.err.Error()); e == nil && m {
+					r.err = nil
+					break
+				} else if e != nil {
+					r.error(e)
+				}
+			}
+		}
 	}
 	return r
 }

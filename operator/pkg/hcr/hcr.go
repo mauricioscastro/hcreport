@@ -113,6 +113,9 @@ func (rec *reconciler) extract() error {
 		if cmdr.Err() != nil {
 			return cmdr.Err()
 		}
+		// if m, _ := regexp.MatchString("^[uv]", name); !m {
+		// 	continue
+		// }
 		if namespaced, err := strconv.ParseBool(r[3]); err == nil && namespaced {
 			for _, n := range rec.ns {
 				nsDir := reportHome + "/" + n
@@ -154,11 +157,12 @@ func writeResourceList(filePath string, fullName string, namespace string) error
 				Yq(".[].[].metadata.name")
 			for _, pod := range cmdr.List() {
 				cmdr.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).
-					WriteFile(logDir + pod + ".log")
+					WriteFile(logDir + pod + ".log").
+					IgnoreError()
 			}
 		}
 	}
-	return cmdr.Err()
+	return cmdr.IgnoreError("NotFound", "NotAllowed").Err()
 }
 
 func (rec *reconciler) statusCheck() {

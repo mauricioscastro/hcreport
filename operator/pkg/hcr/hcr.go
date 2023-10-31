@@ -74,6 +74,10 @@ func (rec *reconciler) Run() (ctrl.Result, error) {
 	if err != nil {
 		return ctrl.Result{}, err
 	}
+	err = rec.statusAddPhase("building")
+	if err != nil {
+		return ctrl.Result{}, err
+	}
 	return ctrl.Result{}, nil
 }
 
@@ -119,7 +123,7 @@ func (rec *reconciler) extract() error {
 					return err
 				}
 			}
-		} else if err == nil {
+		} else if err == nil { // cluster wide resources
 			if err = writeResourceList(reportHome+"/"+fileName, fullName, ""); err != nil {
 				return err
 			}
@@ -131,43 +135,30 @@ func (rec *reconciler) extract() error {
 }
 
 func writeResourceList(filePath string, fullName string, namespace string) error {
-	kcCmd := []string{"get", "-o", "yaml", fullName}
+	kcCmd := []string{"get", "--ignore-not-found=true", "-o", "yaml", fullName}
 	if len(namespace) > 0 {
 		kcCmd = append(kcCmd, "-n", namespace)
 	}
-	cmdr.KcCmd(kcCmd).
-		Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
-	// hide secrets
-	if fullName == "secrets" {
-		cmdr.Yq(`.[].[].data.[] = ""`)
-	}
-	if cmdr.Err() != nil {
-		return cmdr.Err()
-	}
-	resourceList := cmdr.Bytes()
-	if !cmdr.Yq(`.items[0] // ""`).Empty() {
-		if err := os.WriteFile(filePath, resourceList, fs.ModePerm); err != nil {
-			return err
+	if !cmdr.KcCmd(kcCmd).Empty() {
+		cmdr.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
+		// hide secrets
+		if fullName == "secrets" {
+			cmdr.Yq(`.[].[].data.[] = ""`)
 		}
+		cmdr.WriteFile(filePath)
 		// extract logs
 		if fullName == "pods" {
 			logDir := filepath.Dir(filePath) + "/log/"
 			cmdr.MkDir(logDir).
-				Echo(resourceList).
+				// Echo(resourceList).
 				Yq(".[].[].metadata.name")
-			if cmdr.Err() != nil {
-				return cmdr.Err()
-			}
 			for _, pod := range cmdr.List() {
 				cmdr.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).
 					WriteFile(logDir + pod + ".log")
-				if cmdr.Err() != nil {
-					return cmdr.Err()
-				}
 			}
 		}
 	}
-	return nil
+	return cmdr.Err()
 }
 
 func (rec *reconciler) statusCheck() {
@@ -199,10 +190,3 @@ func (rec *reconciler) statusAddPhase(phase string) error {
 	}
 	return nil
 }
-
-// TODO: split to files example from Kind: List example
-// r := runner.NewCmdRunner().
-// Kc("get pods -A").
-// YqSplit(".items.[] | with(.metadata; del(.creationTimestamp) | del(.resourceVersion) | del(.uid) | del(.generateName) | del(.labels.pod-template-hash))",
-// 	".metadata.name",
-// 	"/tmp/yq")

@@ -58,6 +58,9 @@ func (r *runner) Echo(arg any) CmdRunner {
 }
 
 func (r *runner) List() []string {
+	if r.err != nil {
+		return []string{}
+	}
 	return strings.Split(r.pipe.String(), "\n")
 }
 

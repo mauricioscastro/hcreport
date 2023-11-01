@@ -12,8 +12,6 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const yqDefaultArgs = "-M"
-
 var logger = log.Logger().Named("hcr.yqw")
 
 func SetLoggerLevel(level string) {
@@ -40,10 +38,7 @@ type yqWrapper struct {
 
 func NewYqWrapper() YqWrapper {
 	yqw := yqWrapper{}
-	yqw.cmd = yq.New()
-	yqw.cmd.SetIn(&yqw.in)
-	yqw.cmd.SetOut(&yqw.out)
-	yqw.cmd.SetErr(&yqw.err)
+	yqw.cmdInit()
 	return &yqw
 }
 
@@ -69,21 +64,18 @@ func (yqw *yqWrapper) Create(expr string) (string, error) {
 }
 
 func (yqw *yqWrapper) Eval(args []string, expr string, yaml string, file ...string) (string, error) {
-	yqw.in.Reset()
-	yqw.out.Reset()
-	yqw.err.Reset()
+	yqw.cmdInit()
+	defer yqw.reset()
+	args = append(args, "-M")
 	if len(expr) != 0 {
 		args = append(args, []string{"--expression", expr}...)
 	}
-	args = append(args, strings.Split(yqDefaultArgs, " ")...)
 	if len(yaml) > 0 {
 		yqw.in.WriteString(yaml)
 		args = append(args, "-")
 	}
 	args = append(args, file...)
 	yqw.cmd.SetArgs(args)
-	yqw.cmd.SetOut(&yqw.out)
-	yqw.cmd.SetErr(&yqw.err)
 	logger.Debug("in: " + yqw.in.String())
 	logger.Debug("run: " + strings.Join(args, " "))
 	err := yqw.cmd.Execute()
@@ -108,4 +100,19 @@ func (yqw *yqWrapper) Split(expr string, fileNameExpr string, yaml string, path 
 
 func (yqw *yqWrapper) ToJson(yaml string) (string, error) {
 	return yqw.Eval([]string{"eval", "-oj"}, "", yaml)
+}
+
+func (yqw *yqWrapper) cmdInit() {
+	yqw.cmd = yq.New()
+	yqw.in.Reset()
+	yqw.out.Reset()
+	yqw.err.Reset()
+	yqw.cmd.SetIn(&yqw.in)
+	yqw.cmd.SetOut(&yqw.out)
+	yqw.cmd.SetErr(&yqw.err)
+}
+
+func (yqw *yqWrapper) reset() {
+	yqw.cmd.ResetCommands()
+	yqw.cmd = nil
 }

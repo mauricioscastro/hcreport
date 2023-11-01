@@ -16,6 +16,7 @@ type PipeCmdRunner interface {
 	Write(data []byte) CmdRunner
 	Trim() CmdRunner
 	Clone() CmdRunner
+	Reset() CmdRunner
 	Empty() bool
 	List() []string
 	Table() [][]string
@@ -89,6 +90,13 @@ func (r *runner) Bytes() []byte {
 	b := make([]byte, r.pipe.Len())
 	copy(b, r.pipe.Bytes())
 	return b
+}
+
+func (r *runner) Reset() CmdRunner {
+	r.pipe.Reset()
+	r.err = nil
+	r.append = false
+	return r
 }
 
 func (r *runner) Out() string {

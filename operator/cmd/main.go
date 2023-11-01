@@ -47,8 +47,8 @@ var (
 )
 
 func init() {
-	// log.SilenceKcLogs()
-	// log.SilenceYqLogs()
+	log.SilenceKcLogs()
+	log.SilenceYqLogs()
 	yq.SetLoggerLevel("info")
 	// util.SetLoggerLevel("info")
 
@@ -60,7 +60,8 @@ func init() {
 func main() {
 	// o, e := kc.NewKcWrapper().Run([]string{"get", "pods", "-n", "cert-manager", "-o", "yaml"}, "")
 	// logger.Sugar().Debugf("\n%s\n%s", o, e)
-
+	// t, _ := fsutil.Size("/home/macastro/dev/csa/latam/openshift/code/hcreport/operator")
+	// logger.Info(t)
 	// os.Exit(0)
 
 	logger.Info("hcreport running...")

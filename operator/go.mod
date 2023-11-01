@@ -5,10 +5,10 @@ go 1.20
 replace (
 	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131
 	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.201
-	// below replacement is needed to "kubectl apply" to fake stdin 
-	// only apply related code was changed
-	// k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
-	// k8s.io/kubectl => github.com/mauricioscastro/kubectl v0.28.210
+// below replacement is needed to "kubectl apply" to fake stdin
+// only apply related code was changed
+// k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
+// k8s.io/kubectl => github.com/mauricioscastro/kubectl v0.28.210
 )
 
 require (
@@ -83,6 +83,7 @@ require (
 require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/cespare/xxhash/v2 v2.2.0 // indirect
+	github.com/coreybutler/go-fsutil v1.2.1
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/drone/envsubst v1.0.3
 	github.com/emicklei/go-restful/v3 v3.11.0 // indirect
@@ -114,6 +115,7 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
+	github.com/ricochet2200/go-disk-usage/du v0.0.0-20210707232629-ac9918953285
 	github.com/rwtodd/Go.Sed v0.0.0-20230610052213-ba3e9c186f0a
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.7.0

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	fsutil "github.com/coreybutler/go-fsutil"
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
@@ -23,8 +24,9 @@ import (
 const (
 	reportPath = "/_data/"
 	status     = `
-  phase: ""
-  transitions: []
+    phase: ""
+    diskUsage: ""
+    transitions: []
   `
 )
 
@@ -85,7 +87,7 @@ func (rec *reconciler) extract() error {
 	if cmd.Err() != nil {
 		return cmd.Err()
 	}
-	for _, r := range rec.apiResources {
+	for i, r := range rec.apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {
 			continue
@@ -110,16 +112,18 @@ func (rec *reconciler) extract() error {
 		if cmd.Err() != nil {
 			return cmd.Err()
 		}
-		writeResourceList(false, reportHome+"/"+fileName, fullName)
+		rec.writeResourceList(false, reportHome+"/"+fileName, fullName)
+		if i%9 == 0 {
+			rec.statusAddDiskUsage()
+		}
 	}
 	logger.Info("extraction done")
 	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
 }
 
-func writeResourceList(async bool, filePath string, fullName string) error {
+func (rec *reconciler) writeResourceList(async bool, filePath string, fullName string) error {
 	cmd := runner.NewCmdRunner()
-	kcCmd := []string{"get", "--ignore-not-found=true", "-o", "yaml", "-A", fullName}
-	if !cmd.KcCmd(kcCmd).Empty() {
+	if !cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
 		// cleaning
 		cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
 		// hide secrets
@@ -136,6 +140,7 @@ func writeResourceList(async bool, filePath string, fullName string) error {
 				cmd.KcCmd([]string{"logs", "--all-containers=true", pod[1], "-n", pod[0]})
 				if !cmd.Empty() {
 					cmd.WriteFile(logDir + pod[0] + "." + pod[1] + ".log").IgnoreError()
+					rec.statusAddDiskUsage()
 				}
 			}
 		}
@@ -162,10 +167,20 @@ func (rec *reconciler) setLogLevel() {
 }
 
 func (rec *reconciler) statusAddPhase(phase string) error {
-	cmd := runner.NewCmdRunner()
 	ts := time.Now().Format(time.RFC3339)
-	jq := fmt.Sprintf(`.phase = "%s" | .transitions += [ {"phase": "%s", "transitionTime": "%s"} ]`, phase, phase, ts)
-	if cmd.Echo(rec.cfg.Status).Jq(jq).Err() == nil {
+	du, _ := fsutil.Size(reportPath)
+	jq := fmt.Sprintf(`.phase = "%s" | .diskUsage = "%s" | .transitions += [ {"phase": "%s", "transitionTime": "%s"} ]`, phase, du, phase, ts)
+	return rec.updateStatus(jq)
+}
+
+func (rec *reconciler) statusAddDiskUsage() error {
+	du, _ := fsutil.Size(reportPath)
+	return rec.updateStatus(fmt.Sprintf(`.diskUsage = "%s"`, du))
+}
+
+func (rec *reconciler) updateStatus(jqExpr string) error {
+	cmd := runner.NewCmdRunner()
+	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
 		rec.cfg.Status = cmd.Bytes()
 		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil {
 			logger.Error("unable to update status", zap.Error(err))

@@ -112,7 +112,7 @@ func (rec *reconciler) extract() error {
 		if cmd.Err() != nil {
 			return cmd.Err()
 		}
-		rec.writeResourceList(false, reportHome+"/"+fileName, fullName)
+		rec.writeResourceList(reportHome+"/"+fileName, fullName)
 		if i%9 == 0 {
 			rec.statusAddDiskUsage()
 		}
@@ -121,7 +121,7 @@ func (rec *reconciler) extract() error {
 	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
 }
 
-func (rec *reconciler) writeResourceList(async bool, filePath string, fullName string) error {
+func (rec *reconciler) writeResourceList(filePath string, fullName string) error {
 	cmd := runner.NewCmdRunner()
 	if !cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
 		// cleaning
@@ -134,8 +134,8 @@ func (rec *reconciler) writeResourceList(async bool, filePath string, fullName s
 		// extract logs
 		if fullName == "pods" {
 			logDir := filepath.Dir(filePath) + "/log/"
-			cmd.MkDir(logDir).Yq(`.[].[].metadata | [.namespace, .name] | join(",")`)
-			for _, p := range cmd.List() {
+			cmd.MkDir(logDir)
+			for _, p := range cmd.Yq(`.[].[].metadata | [.namespace, .name] | join(",")`).List() {
 				pod := strings.Split(p, ",")
 				cmd.KcCmd([]string{"logs", "--all-containers=true", pod[1], "-n", pod[0]})
 				if !cmd.Empty() {

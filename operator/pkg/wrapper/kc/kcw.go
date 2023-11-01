@@ -49,7 +49,7 @@ type kcWrapper struct {
 
 func NewKcWrapper() KcWrapper {
 	kcw := kcWrapper{}
-	kcw.sync = true
+	kcw.sync = false
 	cmdUtil.BehaviorOnFatal(func(msg string, code int) {
 		if len(msg) > 0 {
 			fmt.Fprint(&kcw.err, msg)

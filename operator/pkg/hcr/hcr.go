@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
+	"sync/atomic"
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/hcr/template"
@@ -24,11 +26,14 @@ import (
 
 const (
 	reportPath = "/_data/"
+	maxWriters = 64
 )
 
 var (
-	cmdr   runner.CmdRunner
-	logger = log.Logger().Named("hcr.reconciler")
+	parallelWriters    atomic.Int32
+	parallelWritersGrp sync.WaitGroup
+	cmdr               runner.CmdRunner
+	logger             = log.Logger().Named("hcr.reconciler")
 )
 
 type reconciler struct {
@@ -122,47 +127,63 @@ func (rec *reconciler) extract() error {
 				if err = os.MkdirAll(nsDir, fs.ModePerm); err != nil {
 					return err
 				}
-				if err = writeResourceList(nsDir+"/"+fileName, fullName, n); err != nil {
-					return err
+				if parallelWriters.Load() < maxWriters {
+					go writeResourceList(true, nsDir+"/"+fileName, fullName, n)
+				} else {
+					writeResourceList(false, nsDir+"/"+fileName, fullName, n)
 				}
 			}
 		} else if err == nil { // cluster wide resources
-			if err = writeResourceList(reportHome+"/"+fileName, fullName, ""); err != nil {
-				return err
+			if parallelWriters.Load() < maxWriters {
+				go writeResourceList(true, reportHome+"/"+fileName, fullName, "")
+			} else {
+				writeResourceList(false, reportHome+"/"+fileName, fullName, "")
 			}
 		} else {
 			return err
 		}
 	}
+	parallelWritersGrp.Wait()
+	logger.Info("extraction done")
 	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
 }
 
-func writeResourceList(filePath string, fullName string, namespace string) error {
+func writeResourceList(async bool, filePath string, fullName string, namespace string) {
+	if async {
+		parallelWriters.Add(1)
+		parallelWritersGrp.Add(1)
+		defer func() {
+			parallelWriters.Add(-1)
+			parallelWritersGrp.Done()
+		}()
+		logger.Debug("writeResourceList in async mode")
+	}
+	cmd := runner.NewCmdRunner()
 	kcCmd := []string{"get", "--ignore-not-found=true", "-o", "yaml", fullName}
 	if len(namespace) > 0 {
 		kcCmd = append(kcCmd, "-n", namespace)
 	}
-	if !cmdr.KcCmd(kcCmd).Empty() {
+	if !cmd.KcCmd(kcCmd).Empty() {
 		// cleaning
-		cmdr.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
+		cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]))`)
 		// hide secrets
 		if fullName == "secrets" {
-			cmdr.Yq(`.[].[].data.[] = ""`)
+			cmd.Yq(`.[].[].data.[] = ""`)
 		}
-		cmdr.WriteFile(filePath)
+		cmd.WriteFile(filePath)
 		// extract logs
 		if fullName == "pods" {
 			logDir := filepath.Dir(filePath) + "/log/"
-			cmdr.MkDir(logDir).
+			cmd.MkDir(logDir).
 				Yq(".[].[].metadata.name")
-			for _, pod := range cmdr.List() {
-				cmdr.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).
+			for _, pod := range cmd.List() {
+				cmd.KcCmd([]string{"logs", "--all-containers=true", pod, "-n", namespace}).
 					WriteFile(logDir + pod + ".log").
 					IgnoreError()
 			}
 		}
 	}
-	return cmdr.IgnoreError("NotFound", "NotAllowed").Err()
+	// return cmdr.IgnoreError("NotFound", "NotAllowed").Err()
 }
 
 func (rec *reconciler) statusCheck() {

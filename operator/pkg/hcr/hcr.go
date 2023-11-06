@@ -22,8 +22,9 @@ import (
 )
 
 const (
-	reportPath = "/_data/"
-	status     = `
+	reportPath       = "/_data/"
+	apiResourcesFile = "api_resources.yaml"
+	status           = `
     phase: ""
     diskUsage: ""
     transitions: []
@@ -37,7 +38,6 @@ type reconciler struct {
 	ctx          context.Context
 	cfg          *hcrv1.Config
 	apiResources [][]string
-	ns           []string
 }
 
 type Reconciler interface {
@@ -49,7 +49,7 @@ func SetLoggerLevel(level string) {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	return &reconciler{srw, ctx, cfg, [][]string{}, []string{}}
+	return &reconciler{srw, ctx, cfg, [][]string{}}
 }
 
 func (rec *reconciler) Run() (ctrl.Result, error) {
@@ -61,10 +61,6 @@ func (rec *reconciler) Run() (ctrl.Result, error) {
 	}
 	rec.setLogLevel()
 	rec.apiResources, err = cmd.KcApiResources()
-	if err != nil {
-		return ctrl.Result{}, err
-	}
-	rec.ns, err = cmd.KcNs()
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -81,7 +77,7 @@ func (rec *reconciler) Run() (ctrl.Result, error) {
 
 func (rec *reconciler) extract() error {
 	cmd := runner.NewCmdRunner()
-	reportHome := reportPath + rec.cfg.Name
+	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
 	apiResourcesYaml := "api-resources: []"
 	cmd.MkDir(reportHome)
 	if cmd.Err() != nil {
@@ -94,7 +90,8 @@ func (rec *reconciler) extract() error {
 		}
 		name := r[0]
 		gv := r[2]
-		fileName := name + "." + strings.Replace(gv, "/", ".", -1) + ".yaml"
+		fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
+		fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
 		fullName := name
 		cmd.Echo(gv).Sed("s;/?v[^\\.]*$;;g")
 		if !cmd.Empty() {
@@ -104,21 +101,25 @@ func (rec *reconciler) extract() error {
 		if len(shortNames) > 0 {
 			shortNames = `"` + strings.ReplaceAll(shortNames, ";", `","`) + `"`
 		}
-		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortNames": [%s], "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "category":"%s", "fileName":"%s"}`
+		cat := r[6]
+		if len(cat) > 0 {
+			cat = `"` + strings.ReplaceAll(cat, ";", `","`) + `"`
+		}
+		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortNames": [%s], "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "categories": [%s], "fileName":"%s"}`
 		apiResourcesYaml = cmd.
 			Echo(apiResourcesYaml).
-			Yq(fmt.Sprintf(yq, r[4], name, shortNames, gv, r[3], verbs, r[6], fileName)).
+			Yq(fmt.Sprintf(yq, r[4], name, shortNames, gv, r[3], verbs, cat, fileName)).
 			String()
 		if cmd.Err() != nil {
 			return cmd.Err()
 		}
-		rec.writeResourceList(reportHome+"/"+fileName, fullName)
+		rec.writeResourceList(reportHome+fileName, fullName)
 		if i%9 == 0 {
 			rec.statusAddDiskUsage()
 		}
 	}
 	logger.Info("extraction done")
-	return os.WriteFile(reportHome+"/api-resources.yaml", []byte(apiResourcesYaml), fs.ModePerm)
+	return os.WriteFile(reportHome+apiResourcesFile, []byte(apiResourcesYaml), fs.ModePerm)
 }
 
 func (rec *reconciler) writeResourceList(filePath string, fullName string) error {
@@ -138,8 +139,10 @@ func (rec *reconciler) writeResourceList(filePath string, fullName string) error
 			for _, p := range cmd.Yq(`.[].[].metadata | [.namespace, .name] | join(",")`).List() {
 				pod := strings.Split(p, ",")
 				cmd.KcCmd([]string{"logs", "--all-containers=true", pod[1], "-n", pod[0]})
+				podNsName := strings.ReplaceAll(pod[0], "-", "_")
+				podName := strings.ReplaceAll(pod[1], "-", "_")
 				if !cmd.Empty() {
-					cmd.WriteFile(logDir + pod[0] + "." + pod[1] + ".log").IgnoreError()
+					cmd.WriteFile(logDir + podNsName + "_" + podName + ".log").IgnoreError()
 					rec.statusAddDiskUsage()
 				}
 			}
@@ -179,13 +182,14 @@ func (rec *reconciler) statusAddDiskUsage() error {
 }
 
 func (rec *reconciler) updateStatus(jqExpr string) error {
-	cmd := runner.NewCmdRunner()
-	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
+	if cmd := runner.NewCmdRunner(); cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
 		rec.cfg.Status = cmd.Bytes()
 		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil {
 			logger.Error("unable to update status", zap.Error(err))
 			return err
 		}
+	} else {
+		return cmd.Err()
 	}
 	return nil
 }

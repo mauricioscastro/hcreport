@@ -1,0 +1,97 @@
+site_name: Health Check Report
+
+theme:
+   name: material
+   custom_dir: overrides
+   language: 'en'
+   palette:
+      # Palette toggle for light mode
+      - scheme: default
+        primary: red
+        accent: red
+        toggle:
+          icon: material/lightbulb
+          name: Switch to dark mode
+      # Palette toggle for dark mode
+      - scheme: slate
+        primary: hcr_black
+        accent: red
+        toggle:
+          icon: material/lightbulb-outline
+          name: Switch to light mode
+   font:
+      text: Roboto
+      code: Roboto Mono
+   logo: img/hcreport.png
+   favicon: img/favicon.ico
+   icon:
+      repo: material/github
+
+extra_css:
+  - css/extra.css
+
+plugins:
+   - search
+   - markdownextradata
+   - macros
+   - tags
+
+
+markdown_extensions:
+   - pymdownx.emoji
+  # Python Markdown
+#   - abbr
+#   - admonition
+#   - attr_list
+#   - def_list
+#   - footnotes
+#   - md_in_html
+#   - toc:
+#       permalink: true
+
+  # Python Markdown Extensions
+#   - pymdownx.arithmatex:
+#       generic: true
+#   - pymdownx.betterem:
+#       smart_enable: all
+#   - pymdownx.caret
+#   - pymdownx.details
+#   - pymdownx.highlight
+#   - pymdownx.inlinehilite
+#   - pymdownx.keys
+#   - pymdownx.mark
+#   - pymdownx.smartsymbols
+#   - pymdownx.superfences
+#   - pymdownx.tabbed:
+#       alternate_style: true
+#   - pymdownx.tasklist:
+#       custom_checkbox: true
+#   - pymdownx.tilde
+
+
+# Theme Configuration
+
+#   language: 'en'
+#   palette:
+#     # Palette toggle for light mode
+#     - scheme: default
+#       primary: black
+#       accent: red
+#       toggle:
+#         icon: material/toggle-switch
+#         name: Switch to dark mode
+#     # Palette toggle for dark mode
+#     - scheme: slate
+#       primary: black
+#       accent: red
+#       toggle:
+#         icon: material/toggle-switch-off-outline
+#         name: Switch to light mode
+#   font:
+#     text: Overpass
+#     code: Overpass Mono
+#   logo: favicon.ico
+#   favicon: favicon.ico
+#   icon:
+#     repo: material/github
+

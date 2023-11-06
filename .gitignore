@@ -28,3 +28,4 @@ Dockerfile.cross
 
 reports/**/site
 **/tmp/
+reports/hcr/_data

@@ -1,31 +1,36 @@
 site_name: Health Check Report
 
 theme:
-   name: material
-   custom_dir: overrides
-   language: 'en'
-   palette:
-      # Palette toggle for light mode
-      - scheme: default
-        primary: red
-        accent: red
-        toggle:
-          icon: material/lightbulb
-          name: Switch to dark mode
-      # Palette toggle for dark mode
-      - scheme: slate
-        primary: hcr_black
-        accent: red
-        toggle:
-          icon: material/lightbulb-outline
-          name: Switch to light mode
-   font:
-      text: Roboto
-      code: Roboto Mono
-   logo: img/hcreport.png
-   favicon: img/favicon.ico
-   icon:
-      repo: material/github
+  name: material
+  custom_dir: overrides
+  language: 'en'
+  palette:
+     # Palette toggle for light mode
+     - scheme: default
+       primary: red
+       accent: red
+       toggle:
+         icon: material/lightbulb-outline
+         name: Switch to dark mode
+     # Palette toggle for dark mode
+     - scheme: slate
+       primary: hcr_black
+       accent: red
+       toggle:
+         icon: material/lightbulb
+         name: Switch to light mode
+  font:
+     text: Roboto
+     code: Roboto Mono
+  logo: img/hcreport.png
+  favicon: img/favicon.ico
+  icon:
+     repo: material/github
+  features: []
+    # - navigation.footer      
+extra:
+  generator: false    
+copyright: Red Hat - CSA
 
 extra_css:
   - css/extra.css
@@ -35,7 +40,6 @@ plugins:
    - markdownextradata
    - macros
    - tags
-
 
 markdown_extensions:
    - pymdownx.emoji

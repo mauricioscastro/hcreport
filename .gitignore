@@ -27,5 +27,7 @@ Dockerfile.cross
 .vscode/
 
 reports/**/site
+reports/**/_data
 **/tmp/
-reports/hcr/_data
+
+

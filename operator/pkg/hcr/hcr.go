@@ -83,6 +83,7 @@ func (rec *reconciler) extract() error {
 	if cmd.Err() != nil {
 		return cmd.Err()
 	}
+	cmd.Kc("version").WriteFile(reportHome + "version.yaml")
 	for i, r := range rec.apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {

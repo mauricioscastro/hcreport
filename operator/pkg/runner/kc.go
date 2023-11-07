@@ -2,6 +2,7 @@ package runner
 
 import (
 	"errors"
+	"slices"
 	"strings"
 
 	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
@@ -12,7 +13,10 @@ const (
 	cmdNs           = "get ns -o custom-columns=NAME:.metadata.name --sort-by=.metadata.name --no-headers=true"
 )
 
-var kcReadOnly bool
+var (
+	kcReadOnly   bool
+	readOnlyCmds = []string{"get", "explain", "cluster-info", "top", "describe", "logs", "api-resources", "api-versions", "version"}
+)
 
 type KcCmdRunner interface {
 	PipeCmdRunner
@@ -30,6 +34,10 @@ func NewKcCmdRunner() KcCmdRunner {
 
 func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
 	if r.err == nil {
+		if kcReadOnly && !slices.Contains(readOnlyCmds, cmdArgs[0]) {
+			r.error(errors.New("trying to non read only command in readOnly mode"))
+			return r
+		}
 		if r.kcw == nil {
 			r.kcw = kcw.NewKcWrapper()
 		}
@@ -47,10 +55,6 @@ func (r *runner) Kc(cmdArgs string) CmdRunner {
 }
 
 func (r *runner) KcApply() CmdRunner {
-	if kcReadOnly {
-		r.error(errors.New("trying to KcApply in readOnly mode"))
-		return r
-	}
 	return r.Kc("apply -f -")
 }
 

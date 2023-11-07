@@ -1,6 +1,6 @@
 module github.com/mauricioscastro/hcreport
 
-go 1.20
+go 1.21
 
 replace (
 	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131

@@ -162,7 +162,6 @@ func (rec *reconciler) writeResourceList(path string, name string, fullName stri
 			nsCmd.WriteFile(nsDir + name)
 			if fullName == "pods" {
 				for _, podName := range nsCmd.Yq(".items[].metadata.name").List() {
-					logger.Debug("podName:" + podName)
 					nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).
 						WriteFile(nsDir + "log/" + podName + ".log")
 				}

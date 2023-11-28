@@ -59,7 +59,7 @@ func (yqw *yqWrapper) EvalAllInplace(expr string, file ...string) (string, error
 }
 
 func (yqw *yqWrapper) Create(expr string) (string, error) {
-	defer yqw.cmd.PersistentFlags().Lookup("null-input").Value.Set("false")
+	//defer yqw.cmd.PersistentFlags().Lookup("null-input").Value.Set("false")
 	return yqw.Eval([]string{"eval", "--null-input"}, expr, "")
 }
 

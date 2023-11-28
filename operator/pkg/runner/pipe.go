@@ -51,8 +51,9 @@ func (r *runner) Echo(arg any) CmdRunner {
 		default:
 			if _, ok := t.Elem().(fmt.Stringer); ok {
 				r.write(v.Interface().(fmt.Stringer).String())
+			} else {
+				r.error(errors.New("don't know how to echo type " + t.Name()))
 			}
-			r.error(errors.New("don't know how to echo type " + t.Name()))
 		}
 	}
 	return r

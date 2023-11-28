@@ -3,7 +3,6 @@ package kc
 import (
 	"bytes"
 	"fmt"
-	"os"
 	"strings"
 
 	"github.com/spf13/cobra"
@@ -58,7 +57,7 @@ func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
 	kcw.cmdInit()
 	defer kcw.reset()
 	kcw.cmd.SetArgs(append(args, strings.Split(kcDefaultArgs, " ")...))
-	feedStdin() // in case auth is requested, provoke auth error
+	// feedStdin() // in case auth is requested, provoke auth error
 	kcw.in.WriteString(stdin)
 	logger.Debug("run", zap.String("arg", strings.Join(args, " ")))
 	err := cli.RunNoErrOutput(kcw.cmd)
@@ -107,14 +106,14 @@ func (kcw *kcWrapper) Run(args []string, stdin string) (string, error) {
 // 	return err
 // }
 
-func feedStdin() {
-	ri, wi, err := os.Pipe()
-	if err == nil {
-		os.Stdin = ri
-		wi.Write([]byte("0\r0\r"))
-		wi.Close()
-	}
-}
+// func feedStdin() {
+// 	ri, wi, err := os.Pipe()
+// 	if err == nil {
+// 		os.Stdin = ri
+// 		wi.Write([]byte("0\r0\r"))
+// 		wi.Close()
+// 	}
+// }
 
 // func (kcw *kcWrapper) UnSynced() KcWrapper {
 // 	kcw.sync = false

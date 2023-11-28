@@ -5,7 +5,8 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"path/filepath"
+	"regexp"
+	"strconv"
 	"strings"
 
 	fsutil "github.com/coreybutler/go-fsutil"
@@ -79,11 +80,20 @@ func (rec *reconciler) extract() error {
 	cmd := runner.NewCmdRunner()
 	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
 	apiResourcesYaml := "api-resources: []"
-	cmd.MkDir(reportHome)
-	if cmd.Err() != nil {
+	if cmd.MkDir(reportHome); cmd.Err() != nil {
 		return cmd.Err()
 	}
 	cmd.Kc("version").WriteFile(reportHome + "version.yaml")
+	nsList, err := cmd.KcNs()
+	if err != nil {
+		return err
+	} else {
+		for _, ns := range nsList {
+			if cmd.MkDir(reportHome + strings.ReplaceAll(ns, "-", "_") + "/log"); cmd.Err() != nil {
+				return cmd.Err()
+			}
+		}
+	}
 	for i, r := range rec.apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {
@@ -114,7 +124,11 @@ func (rec *reconciler) extract() error {
 		if cmd.Err() != nil {
 			return cmd.Err()
 		}
-		rec.writeResourceList(reportHome+fileName, fullName)
+		namespaced, err := strconv.ParseBool(r[3])
+		if err != nil {
+			return err
+		}
+		rec.writeResourceList(reportHome, fileName, fullName, nsList, namespaced)
 		if i%9 == 0 {
 			rec.statusAddDiskUsage()
 		}
@@ -123,28 +137,34 @@ func (rec *reconciler) extract() error {
 	return os.WriteFile(reportHome+apiResourcesFile, []byte(apiResourcesYaml), fs.ModePerm)
 }
 
-func (rec *reconciler) writeResourceList(filePath string, fullName string) error {
+func (rec *reconciler) writeResourceList(path string, name string, fullName string, nsList []string, namespaced bool) error {
 	cmd := runner.NewCmdRunner()
-	if !cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
-		// cleaning
-		cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
-		// hide secrets
-		if fullName == "secrets" {
-			cmd.Yq(`.[].[].data.[] = ""`)
-		}
-		cmd.WriteFile(filePath)
-		// extract logs
-		if fullName == "pods" {
-			logDir := filepath.Dir(filePath) + "/log/"
-			cmd.MkDir(logDir)
-			for _, p := range cmd.Yq(`.[].[].metadata | [.namespace, .name] | join(",")`).List() {
-				pod := strings.Split(p, ",")
-				cmd.KcCmd([]string{"logs", "--all-containers=true", pod[1], "-n", pod[0]})
-				podNsName := strings.ReplaceAll(pod[0], "-", "_")
-				podName := strings.ReplaceAll(pod[1], "-", "_")
-				if !cmd.Empty() {
-					cmd.WriteFile(logDir + podNsName + "_" + podName + ".log").IgnoreError()
-					rec.statusAddDiskUsage()
+	if cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
+		return nil
+	}
+	// cleaning
+	cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
+	// hide secrets
+	if fullName == "secrets" {
+		cmd.Yq(`.[].[].data.[] = ""`)
+	}
+	if !namespaced {
+		cmd.WriteFile(path + name)
+	} else {
+		splitYq := `{ "kind": "List", "apiVersion": "v1", "items": [.items[].metadata.namespace | select(. == "%s") | parent | parent] }`
+		emptyRe, _ := regexp.Compile(`(?m)^items: \[\]`)
+		for _, ns := range nsList {
+			nsCmd := cmd.Clone().Yq(fmt.Sprintf(splitYq, ns))
+			if emptyRe.Match(nsCmd.Bytes()) {
+				continue
+			}
+			nsDir := path + strings.ReplaceAll(ns, "-", "_") + "/"
+			nsCmd.WriteFile(nsDir + name)
+			if fullName == "pods" {
+				for _, podName := range nsCmd.Yq(".items[].metadata.name").List() {
+					logger.Debug("podName:" + podName)
+					nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).
+						WriteFile(nsDir + "log/" + podName + ".log")
 				}
 			}
 		}

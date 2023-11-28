@@ -203,14 +203,13 @@ func (rec *reconciler) statusAddDiskUsage() error {
 }
 
 func (rec *reconciler) updateStatus(jqExpr string) error {
-	if cmd := runner.NewCmdRunner(); cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
+	cmd := runner.NewCmdRunner()
+	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
 		rec.cfg.Status = cmd.Bytes()
 		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil {
 			logger.Error("unable to update status", zap.Error(err))
 			return err
 		}
-	} else {
-		return cmd.Err()
 	}
-	return nil
+	return cmd.Err()
 }

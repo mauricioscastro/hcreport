@@ -61,6 +61,9 @@ func initCommand(cmd *cobra.Command, args []string) (string, []string, error) {
 	if len(args) > 0 {
 		inputFilename = args[0]
 	}
+
+	inputFormat = "yaml"
+
 	if inputFormat == "" || inputFormat == "auto" || inputFormat == "a" {
 
 		inputFormat = yqlib.FormatFromFilename(inputFilename)
@@ -184,7 +187,7 @@ func configureEncoder() (yqlib.Encoder, error) {
 func createEncoder(format yqlib.PrinterOutputFormat) (yqlib.Encoder, error) {
 	switch format {
 	case yqlib.JSONOutputFormat:
-		return yqlib.NewJSONEncoder(indent, colorsEnabled, unwrapScalar), nil
+		return yqlib.NewJSONEncoder(indent, false, unwrapScalar), nil
 	case yqlib.PropsOutputFormat:
 		return yqlib.NewPropertiesEncoder(unwrapScalar), nil
 	case yqlib.CSVOutputFormat:
@@ -192,7 +195,7 @@ func createEncoder(format yqlib.PrinterOutputFormat) (yqlib.Encoder, error) {
 	case yqlib.TSVOutputFormat:
 		return yqlib.NewCsvEncoder('\t'), nil
 	case yqlib.YamlOutputFormat:
-		return yqlib.NewYamlEncoder(indent, colorsEnabled, yqlib.ConfiguredYamlPreferences), nil
+		return yqlib.NewYamlEncoder(indent, false, yqlib.ConfiguredYamlPreferences), nil
 	case yqlib.XMLOutputFormat:
 		return yqlib.NewXMLEncoder(indent, yqlib.ConfiguredXMLPreferences), nil
 	case yqlib.TomlOutputFormat:

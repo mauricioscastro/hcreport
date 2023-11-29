@@ -110,7 +110,7 @@ func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
 		if r.jqw == nil {
 			r.jqw = jqw.NewJqWrapper()
 		}
-		o, e := r.jqw.Run(append(cmdArgs, "-M"), r.pipe.String())
+		o, e := r.jqw.Run(append(cmdArgs, "--monochrome-output"), r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}

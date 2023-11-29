@@ -32,13 +32,15 @@ const (
   `
 )
 
-var logger = log.Logger().Named("hcr.reconciler")
+var (
+	logger = log.Logger().Named("hcr.reconciler")
+	// lck    *sync.Mutex
+)
 
 type reconciler struct {
-	srw          client.SubResourceWriter
-	ctx          context.Context
-	cfg          *hcrv1.Config
-	apiResources [][]string
+	srw client.SubResourceWriter
+	ctx context.Context
+	cfg *hcrv1.Config
 }
 
 type Reconciler interface {
@@ -50,21 +52,17 @@ func SetLoggerLevel(level string) {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	return &reconciler{srw, ctx, cfg, [][]string{}}
+	// lck = &sync.Mutex{}
+	return &reconciler{srw, ctx, cfg}
 }
 
 func (rec *reconciler) Run() (ctrl.Result, error) {
-	cmd := runner.NewCmdRunner()
 	rec.statusCheck()
 	err := rec.statusAddPhase("extracting")
 	if err != nil {
 		return ctrl.Result{}, err
 	}
 	rec.setLogLevel()
-	rec.apiResources, err = cmd.KcApiResources()
-	if err != nil {
-		return ctrl.Result{}, err
-	}
 	err = rec.extract()
 	if err != nil {
 		return ctrl.Result{}, err
@@ -94,7 +92,14 @@ func (rec *reconciler) extract() error {
 			}
 		}
 	}
-	for i, r := range rec.apiResources {
+	apiResources, _ := cmd.KcApiResources()
+	if cmd.Err() != nil {
+		return cmd.Err()
+	}
+	// var wg sync.WaitGroup
+	// resourceWorkerPool, _ := ants.NewPool(16)
+	// defer resourceWorkerPool.Release()
+	for _, r := range apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {
 			continue
@@ -117,30 +122,31 @@ func (rec *reconciler) extract() error {
 			cat = `"` + strings.ReplaceAll(cat, ";", `","`) + `"`
 		}
 		yq := `.api-resources += {"kind":"%s", "name":"%s", "shortNames": [%s], "groupVersion":"%s", "namespaced":"%s", "verbs": [%s], "categories": [%s], "fileName":"%s"}`
-		apiResourcesYaml = cmd.
-			Echo(apiResourcesYaml).
+		apiResourcesYaml = cmd.Echo(apiResourcesYaml).
 			Yq(fmt.Sprintf(yq, r[4], name, shortNames, gv, r[3], verbs, cat, fileName)).
 			String()
-		if cmd.Err() != nil {
+		if err != nil {
 			return cmd.Err()
 		}
 		namespaced, err := strconv.ParseBool(r[3])
 		if err != nil {
 			return err
 		}
-		rec.writeResourceList(reportHome, fileName, fullName, nsList, namespaced)
-		if i%9 == 0 {
-			rec.statusAddDiskUsage()
-		}
+		// resourceWorkerPool.Submit(func() {
+		// 	wg.Add(1)
+		writeResourceList(rec, reportHome, fileName, fullName, nsList, namespaced)
+		// 	wg.Done()
+		// })
 	}
+	// wg.Wait()
 	logger.Info("extraction done")
 	return os.WriteFile(reportHome+apiResourcesFile, []byte(apiResourcesYaml), fs.ModePerm)
 }
 
-func (rec *reconciler) writeResourceList(path string, name string, fullName string, nsList []string, namespaced bool) error {
+func writeResourceList(rec *reconciler, path string, name string, fullName string, nsList []string, namespaced bool) {
 	cmd := runner.NewCmdRunner()
 	if cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
-		return nil
+		return
 	}
 	// cleaning
 	cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
@@ -162,13 +168,14 @@ func (rec *reconciler) writeResourceList(path string, name string, fullName stri
 			nsCmd.WriteFile(nsDir + name)
 			if fullName == "pods" {
 				for _, podName := range nsCmd.Yq(".items[].metadata.name").List() {
-					nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).
-						WriteFile(nsDir + "log/" + podName + ".log")
+					if !nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).Empty() {
+						nsCmd.WriteFile(nsDir + "log/" + podName + ".log")
+					}
 				}
 			}
 		}
 	}
-	return cmd.IgnoreError("NotFound", "NotAllowed").Err()
+	rec.statusAddDiskUsage()
 }
 
 func (rec *reconciler) statusCheck() {
@@ -202,11 +209,13 @@ func (rec *reconciler) statusAddDiskUsage() error {
 }
 
 func (rec *reconciler) updateStatus(jqExpr string) error {
+	// defer lck.Unlock()
 	cmd := runner.NewCmdRunner()
 	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
+		// lck.Lock()
 		rec.cfg.Status = cmd.Bytes()
-		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil {
-			logger.Error("unable to update status", zap.Error(err))
+		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil && !strings.Contains(err.Error(), "try again") {
+			logger.Debug("unable to update status", zap.Error(err))
 			return err
 		}
 	}

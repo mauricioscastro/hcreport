@@ -66,7 +66,7 @@ func (yqw *yqWrapper) Create(expr string) (string, error) {
 func (yqw *yqWrapper) Eval(args []string, expr string, yaml string, file ...string) (string, error) {
 	yqw.cmdInit()
 	defer yqw.reset()
-	args = append(args, "-M")
+	args = append(args, []string{"--no-colors", "--input-format", "yaml"}...)
 	if len(expr) != 0 {
 		args = append(args, []string{"--expression", expr}...)
 	}

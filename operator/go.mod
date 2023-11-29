@@ -4,7 +4,7 @@ go 1.21
 
 replace (
 	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131
-	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.201
+	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.210
 // below replacement is needed to "kubectl apply" to fake stdin
 // only apply related code was changed
 // k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
@@ -12,12 +12,10 @@ replace (
 )
 
 require (
-	github.com/daviddengcn/go-colortext v1.0.0
 	github.com/itchyny/gojq v0.12.13
 	github.com/mikefarah/yq/v4 v4.35.2
 	github.com/onsi/ginkgo/v2 v2.9.5
 	github.com/onsi/gomega v1.27.7
-	golang.org/x/sync v0.3.0
 	gopkg.in/op/go-logging.v1 v1.0.0-20160211212156-b2cb9fa56473
 	k8s.io/api v0.28.3
 	k8s.io/apimachinery v0.28.3
@@ -25,7 +23,6 @@ require (
 	k8s.io/client-go v0.28.3
 	k8s.io/kubectl v0.28.3
 	sigs.k8s.io/controller-runtime v0.15.0
-	sigs.k8s.io/kustomize/kyaml v0.14.3-0.20230601165947-6ce0bf390ce3
 )
 
 require (
@@ -35,6 +32,7 @@ require (
 	github.com/alecthomas/participle/v2 v2.1.0 // indirect
 	github.com/blang/semver/v4 v4.0.0 // indirect
 	github.com/chai2010/gettext-go v1.0.2 // indirect
+	github.com/daviddengcn/go-colortext v1.0.0 // indirect
 	github.com/dimchansky/utfbom v1.1.1 // indirect
 	github.com/docker/distribution v2.8.2+incompatible // indirect
 	github.com/elliotchance/orderedmap v1.5.0 // indirect
@@ -73,11 +71,13 @@ require (
 	github.com/xlab/treeprint v1.2.0 // indirect
 	github.com/yuin/gopher-lua v1.1.0 // indirect
 	go.starlark.net v0.0.0-20230525235612-a134d8f9ddca // indirect
+	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/xerrors v0.0.0-20220907171357-04be3eba64a2 // indirect
 	k8s.io/component-helpers v0.28.3 // indirect
 	k8s.io/metrics v0.28.3 // indirect
 	sigs.k8s.io/kustomize/api v0.13.5-0.20230601165947-6ce0bf390ce3 // indirect
 	sigs.k8s.io/kustomize/kustomize/v5 v5.0.4-0.20230601165947-6ce0bf390ce3 // indirect
+	sigs.k8s.io/kustomize/kyaml v0.14.3-0.20230601165947-6ce0bf390ce3 // indirect
 )
 
 require (
@@ -115,7 +115,6 @@ require (
 	github.com/prometheus/client_model v0.4.0 // indirect
 	github.com/prometheus/common v0.44.0 // indirect
 	github.com/prometheus/procfs v0.10.1 // indirect
-	github.com/ricochet2200/go-disk-usage/du v0.0.0-20210707232629-ac9918953285
 	github.com/rwtodd/Go.Sed v0.0.0-20230610052213-ba3e9c186f0a
 	github.com/santhosh-tekuri/jsonschema/v5 v5.3.1
 	github.com/spf13/cobra v1.7.0
@@ -126,7 +125,7 @@ require (
 	golang.org/x/oauth2 v0.8.0 // indirect
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
-	golang.org/x/text v0.13.0
+	golang.org/x/text v0.13.0 // indirect
 	golang.org/x/time v0.3.0 // indirect
 	golang.org/x/tools v0.13.0 // indirect
 	gomodules.xyz/jsonpatch/v2 v2.3.0 // indirect
@@ -141,6 +140,6 @@ require (
 	k8s.io/kube-openapi v0.0.0-20231009201959-f62364c3c354 // indirect
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b // indirect
 	sigs.k8s.io/json v0.0.0-20221116044647-bc3834ca7abd // indirect
-	sigs.k8s.io/structured-merge-diff/v4 v4.3.0
+	sigs.k8s.io/structured-merge-diff/v4 v4.3.0 // indirect
 	sigs.k8s.io/yaml v1.3.0 // indirect
 )

@@ -35,7 +35,6 @@ import (
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
 	"github.com/mauricioscastro/hcreport/pkg/util"
-	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	//+kubebuilder:scaffold:imports
@@ -47,9 +46,9 @@ var (
 )
 
 func init() {
-	log.SilenceKcLogs()
-	log.SilenceYqLogs()
-	yq.SetLoggerLevel("info")
+	// log.SilenceKcLogs()
+	// log.SilenceYqLogs()
+	// yq.SetLoggerLevel("debug")
 	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))

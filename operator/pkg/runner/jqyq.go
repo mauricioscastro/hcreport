@@ -12,6 +12,7 @@ import (
 type JqYqCmdRunner interface {
 	PipeCmdRunner
 	Jq(expr string) CmdRunner
+	JqPretty(expr string) CmdRunner
 	Yq(expr string) CmdRunner
 	YqSplit(expr string, fileNameExpr string, path string) CmdRunner
 	YqCreate(expr string) CmdRunner
@@ -120,20 +121,20 @@ func (r *runner) JqCmd(cmdArgs []string) CmdRunner {
 }
 
 func (r *runner) Jq(expr string) CmdRunner {
-	return r.JqCmd([]string{"-c", expr})
+	return r.JqCmd([]string{expr, "--compact-output"})
+}
+
+func (r *runner) JqPretty(expr string) CmdRunner {
+	return r.JqCmd([]string{expr})
 }
 
 func (r *runner) json(compact bool) CmdRunner {
 	if r.err == nil {
-		r.yqInit()
-		o, e := r.yqw.ToJson(r.pipe.String())
-		if e == nil {
-			r.write(o)
-			if compact {
-				return r.JqCmd([]string{"-c"})
-			}
+		arg := []string{"--yaml-input"}
+		if compact {
+			arg = append(arg, "--compact-output")
 		}
-		r.error(e)
+		return r.JqCmd(arg)
 	}
 	return r
 }

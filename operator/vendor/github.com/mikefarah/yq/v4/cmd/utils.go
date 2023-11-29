@@ -95,18 +95,21 @@ func initCommand(cmd *cobra.Command, args []string) (string, []string, error) {
 		outputFormat = "yaml"
 	}
 
-	outputFormatType, err := yqlib.OutputFormatFromString(outputFormat)
+	// outputFormatType := YamlOutputFormat
+	// outputFormatType, err := yqlib.OutputFormatFromString(outputFormat)
 
-	if err != nil {
-		return "", nil, err
-	}
+	// if err != nil {
+	// 	return "", nil, err
+	// }
 	yqlib.GetLogger().Debug("Using input format %v", inputFormat)
 	yqlib.GetLogger().Debug("Using output format %v", outputFormat)
 
-	if outputFormatType == yqlib.YamlOutputFormat ||
-		outputFormatType == yqlib.PropsOutputFormat {
-		unwrapScalar = true
-	}
+	// if outputFormatType == yqlib.YamlOutputFormat ||
+	// 	outputFormatType == yqlib.PropsOutputFormat {
+	// 	unwrapScalar = true
+	// }
+	unwrapScalar = true
+
 	if unwrapScalarFlag.IsExplicitlySet() {
 		unwrapScalar = unwrapScalarFlag.IsSet()
 	}
@@ -120,11 +123,12 @@ func initCommand(cmd *cobra.Command, args []string) (string, []string, error) {
 }
 
 func configureDecoder(evaluateTogether bool) (yqlib.Decoder, error) {
-	yqlibInputFormat, err := yqlib.InputFormatFromString(inputFormat)
-	if err != nil {
-		return nil, err
-	}
-	yqlibDecoder, err := createDecoder(yqlibInputFormat, evaluateTogether)
+	// yqlibInputFormat, err := yqlib.InputFormatFromString(inputFormat)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	// yqlibDecoder, err := createDecoder(yqlibInputFormat, evaluateTogether)
+	yqlibDecoder, err := createDecoder(yqlib.YamlInputFormat, evaluateTogether)
 	if yqlibDecoder == nil {
 		return nil, fmt.Errorf("no support for %s input format", inputFormat)
 	}
@@ -173,11 +177,11 @@ func configurePrinterWriter(format yqlib.PrinterOutputFormat, out io.Writer) (yq
 }
 
 func configureEncoder() (yqlib.Encoder, error) {
-	yqlibOutputFormat, err := yqlib.OutputFormatFromString(outputFormat)
-	if err != nil {
-		return nil, err
-	}
-	yqlibEncoder, err := createEncoder(yqlibOutputFormat)
+	// yqlibOutputFormat, err := yqlib.OutputFormatFromString(outputFormat)
+	// if err != nil {
+	// 	return nil, err
+	// }
+	yqlibEncoder, err := createEncoder(yqlib.YamlOutputFormat)
 	if yqlibEncoder == nil {
 		return nil, fmt.Errorf("no support for %s output format", outputFormat)
 	}

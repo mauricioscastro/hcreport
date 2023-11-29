@@ -3,8 +3,8 @@ module github.com/mauricioscastro/hcreport
 go 1.21
 
 replace (
-	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131
-	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.210
+	github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.132
+	github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.221
 // below replacement is needed to "kubectl apply" to fake stdin
 // only apply related code was changed
 // k8s.io/cli-runtime => github.com/mauricioscastro/cli-runtime v0.28.202
@@ -110,6 +110,7 @@ require (
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.2 // indirect
 	github.com/munnerz/goautoneg v0.0.0-20191010083416-a7dc8b61c822 // indirect
+	github.com/panjf2000/ants/v2 v2.9.0
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/prometheus/client_golang v1.16.0 // indirect
 	github.com/prometheus/client_model v0.4.0 // indirect

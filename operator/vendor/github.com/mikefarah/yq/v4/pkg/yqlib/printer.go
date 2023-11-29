@@ -35,6 +35,7 @@ const (
 )
 
 func OutputFormatFromString(format string) (PrinterOutputFormat, error) {
+	return YamlOutputFormat, nil
 	switch format {
 	case "yaml", "y", "yml":
 		return YamlOutputFormat, nil

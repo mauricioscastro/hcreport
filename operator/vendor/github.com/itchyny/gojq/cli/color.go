@@ -13,6 +13,7 @@ func newColor(c string) []byte {
 }
 
 func setColor(buf *bytes.Buffer, color []byte) {
+	return
 	if !noColor {
 		buf.Write(color)
 	}

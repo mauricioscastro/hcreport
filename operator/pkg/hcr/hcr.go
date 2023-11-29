@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
+	"sync"
 
 	fsutil "github.com/coreybutler/go-fsutil"
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
@@ -20,6 +20,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/client"
 
 	"time"
+
+	"github.com/panjf2000/ants/v2"
 )
 
 const (
@@ -34,7 +36,7 @@ const (
 
 var (
 	logger = log.Logger().Named("hcr.reconciler")
-	// lck    *sync.Mutex
+	lck    *sync.Mutex
 )
 
 type reconciler struct {
@@ -52,7 +54,7 @@ func SetLoggerLevel(level string) {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	// lck = &sync.Mutex{}
+	lck = &sync.Mutex{}
 	return &reconciler{srw, ctx, cfg}
 }
 
@@ -96,9 +98,9 @@ func (rec *reconciler) extract() error {
 	if cmd.Err() != nil {
 		return cmd.Err()
 	}
-	// var wg sync.WaitGroup
-	// resourceWorkerPool, _ := ants.NewPool(16)
-	// defer resourceWorkerPool.Release()
+	var wg sync.WaitGroup
+	resourceWorkerPool, _ := ants.NewPool(8)
+	defer resourceWorkerPool.Release()
 	for _, r := range apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {
@@ -132,13 +134,14 @@ func (rec *reconciler) extract() error {
 		if err != nil {
 			return err
 		}
-		// resourceWorkerPool.Submit(func() {
-		// 	wg.Add(1)
-		writeResourceList(rec, reportHome, fileName, fullName, nsList, namespaced)
-		// 	wg.Done()
-		// })
+		resourceWorkerPool.Submit(func() {
+			wg.Add(1)
+			writeResourceList(rec, reportHome, fileName, fullName, nsList, namespaced)
+			wg.Done()
+		})
 	}
-	// wg.Wait()
+	wg.Wait()
+	rec.statusAddDiskUsage()
 	logger.Info("extraction done")
 	return os.WriteFile(reportHome+apiResourcesFile, []byte(apiResourcesYaml), fs.ModePerm)
 }
@@ -149,7 +152,7 @@ func writeResourceList(rec *reconciler, path string, name string, fullName strin
 		return
 	}
 	// cleaning
-	cmd.Yq(`with(.[].[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
+	cmd.Yq(`with(.items[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
 	// hide secrets
 	if fullName == "secrets" {
 		cmd.Yq(`.[].[].data.[] = ""`)
@@ -158,10 +161,9 @@ func writeResourceList(rec *reconciler, path string, name string, fullName strin
 		cmd.WriteFile(path + name)
 	} else {
 		splitYq := `{ "kind": "List", "apiVersion": "v1", "items": [.items[].metadata.namespace | select(. == "%s") | parent | parent] }`
-		emptyRe, _ := regexp.Compile(`(?m)^items: \[\]`)
 		for _, ns := range nsList {
 			nsCmd := cmd.Clone().Yq(fmt.Sprintf(splitYq, ns))
-			if emptyRe.Match(nsCmd.Bytes()) {
+			if strings.Contains(nsCmd.String(), "\nitems: []") {
 				continue
 			}
 			nsDir := path + strings.ReplaceAll(ns, "-", "_") + "/"
@@ -186,7 +188,7 @@ func (rec *reconciler) statusCheck() {
 
 func (rec *reconciler) setLogLevel() {
 	cmd := runner.NewCmdRunner()
-	cmd.Echo(rec.cfg.Spec).Yq(`.logLevel // ""`)
+	cmd.Echo(rec.cfg.Spec).Yq(`.logLevel // "info"`)
 	if cmd.Err() == nil && !cmd.Empty() {
 		logger.Debug("setting log level", zap.String("level", cmd.String()))
 		SetLoggerLevel(cmd.String())
@@ -209,15 +211,17 @@ func (rec *reconciler) statusAddDiskUsage() error {
 }
 
 func (rec *reconciler) updateStatus(jqExpr string) error {
-	// defer lck.Unlock()
 	cmd := runner.NewCmdRunner()
 	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
-		// lck.Lock()
+		defer lck.Unlock()
+		lck.Lock()
 		rec.cfg.Status = cmd.Bytes()
 		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil && !strings.Contains(err.Error(), "try again") {
 			logger.Debug("unable to update status", zap.Error(err))
 			return err
 		}
+	} else {
+		logger.Debug("cmd runner error", zap.Error(cmd.Err()))
 	}
 	return cmd.Err()
 }

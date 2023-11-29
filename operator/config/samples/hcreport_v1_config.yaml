@@ -2,5 +2,5 @@ apiVersion: hcreport.csa.latam.redhat.com/v1
 kind: Config
 metadata:
   name: config-sample
-spec: {}
-
+spec: 
+  logLevel: info

@@ -172,7 +172,7 @@ github.com/imdario/mergo
 # github.com/inconshreveable/mousetrap v1.1.0
 ## explicit; go 1.18
 github.com/inconshreveable/mousetrap
-# github.com/itchyny/gojq v0.12.13 => github.com/mauricioscastro/gojq v0.12.131
+# github.com/itchyny/gojq v0.12.13 => github.com/mauricioscastro/gojq v0.12.132
 ## explicit; go 1.19
 github.com/itchyny/gojq
 github.com/itchyny/gojq/cli
@@ -217,7 +217,7 @@ github.com/mattn/go-runewidth
 # github.com/matttproud/golang_protobuf_extensions v1.0.4
 ## explicit; go 1.9
 github.com/matttproud/golang_protobuf_extensions/pbutil
-# github.com/mikefarah/yq/v4 v4.35.2 => github.com/mauricioscastro/yq/v4 v4.35.210
+# github.com/mikefarah/yq/v4 v4.35.2 => github.com/mauricioscastro/yq/v4 v4.35.221
 ## explicit; go 1.20
 github.com/mikefarah/yq/v4/cmd
 github.com/mikefarah/yq/v4/pkg/yqlib
@@ -284,6 +284,10 @@ github.com/onsi/gomega/types
 # github.com/opencontainers/go-digest v1.0.0
 ## explicit; go 1.13
 github.com/opencontainers/go-digest
+# github.com/panjf2000/ants/v2 v2.9.0
+## explicit; go 1.13
+github.com/panjf2000/ants/v2
+github.com/panjf2000/ants/v2/internal/sync
 # github.com/pelletier/go-toml/v2 v2.1.0
 ## explicit; go 1.16
 github.com/pelletier/go-toml/v2/internal/characters
@@ -1067,5 +1071,5 @@ sigs.k8s.io/structured-merge-diff/v4/value
 # sigs.k8s.io/yaml v1.3.0
 ## explicit; go 1.12
 sigs.k8s.io/yaml
-# github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.131
-# github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.210
+# github.com/itchyny/gojq => github.com/mauricioscastro/gojq v0.12.132
+# github.com/mikefarah/yq/v4 => github.com/mauricioscastro/yq/v4 v4.35.221

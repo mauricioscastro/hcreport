@@ -1,74 +1,68 @@
 package runner
 
 import (
-	"errors"
+	"fmt"
 	"slices"
 	"strings"
 
-	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
-)
-
-const (
-	cmdApiResources = "api-resources -o wide --sort-by=name --no-headers=true"
-	cmdNs           = "get ns -o custom-columns=NAME:.metadata.name --sort-by=.metadata.name --no-headers=true"
+	"github.com/mauricioscastro/hcreport/pkg/kc"
+	"go.uber.org/zap"
 )
 
 var (
-	kcReadOnly   bool
-	readOnlyCmds = []string{"get", "explain", "cluster-info", "top", "describe", "logs", "api-resources", "api-versions", "version"}
+	kcReadOnly = false
 )
 
 type KcCmdRunner interface {
 	PipeCmdRunner
-	Kc(cmdArgs string) CmdRunner
-	KcApply() CmdRunner
-	KcCmd(cmdArgs []string) CmdRunner
-	KcApiResources() ([][]string, error)
-	KcNs() ([]string, error)
+	KcGet(api string) CmdRunner
+	KcApiResources() CmdRunner
 }
 
-func NewKcCmdRunner() KcCmdRunner {
-	kcReadOnly = false
-	return &runner{}
-}
-
-func (r *runner) KcCmd(cmdArgs []string) CmdRunner {
+func (r *runner) KcGet(api string) CmdRunner {
 	if r.err == nil {
-		if kcReadOnly && !slices.Contains(readOnlyCmds, cmdArgs[0]) {
-			r.error(errors.New("trying to non read only command in readOnly mode"))
-			return r
+		if r.kc == nil {
+			r.kc = kc.NewKc()
 		}
-		if r.kcw == nil {
-			r.kcw = kcw.NewKcWrapper()
-		}
-		o, e := r.kcw.Run(cmdArgs, r.pipe.String())
+		o, e := r.kc.Get(api)
 		if e == nil {
 			r.write(o)
 		}
-		r.error(e)
+		if e != nil {
+			r.error(fmt.Errorf("problem getting %s. error: %s", api, e.Error()))
+		}
 	}
 	return r
 }
 
-func (r *runner) Kc(cmdArgs string) CmdRunner {
-	return r.KcCmd(strings.Split(cmdArgs+" -o yaml", " "))
-}
-
-func (r *runner) KcApply() CmdRunner {
-	return r.Kc("apply -f -")
-}
-
-func (r *runner) KcApiResources() ([][]string, error) {
-	r.KcCmd(strings.Split(cmdApiResources, " ")).
-		Sed("s/\\s+/ /g").
-		ReplaceAll(",", ";").
-		ReplaceAll(" ", ",").
-		// add shortname col where it's missing
-		Sed("s/^([^\\s,]+,)((?:[^\\s,]+,){4})([^\\s,]+)*$/$1,$2$3/g")
-	return r.Table(), r.Err()
-}
-
-func (r *runner) KcNs() ([]string, error) {
-	r.KcCmd(strings.Split(cmdNs, " "))
-	return r.List(), r.Err()
+func (r *runner) KcApiResources() CmdRunner {
+	version := r.KcGet("/api").Yq(".versions[-1]").String()
+	if r.err != nil {
+		return r
+	}
+	apiList := []string{"/api/" + version, "/apis/apps/" + version}
+	otherApiListYq := `.groups[].preferredVersion.groupVersion | select(. != "apps/%s")`
+	otherApis := r.KcGet("/apis").Yq(fmt.Sprintf(otherApiListYq, version)).Sed("s;^;/apis/;g").List()
+	if r.err != nil {
+		return r
+	}
+	slices.Sort(otherApis)
+	apiList = append(apiList, otherApis...)
+	apiRLYq := `[.resources[] | select(.singularName != "") | del(.storageVersionHash) | del (.singularName) | .groupVersion = "%s" | .available = "%s"]`
+	apiRLHeaderYq := `{ "kind": "APIResourceList", "groupVersion": "%s", "resources": . }`
+	apiYamlList := ""
+	for _, api := range apiList {
+		r.KcGet(api)
+		gv := strings.TrimPrefix(api, "/api/")
+		gv = strings.TrimPrefix(gv, "/apis/")
+		if r.err == nil {
+			apiYamlList += r.Yq(fmt.Sprintf(apiRLYq, gv, "true")).String() + "\n"
+		} else {
+			logger.Error("error getting api resource", zap.String("api", api), zap.Error(r.err))
+			r.IgnoreError("503")
+			badApiYq := `. + {"groupVersion": "%s", "available": "false"}`
+			apiYamlList += r.Echo("[]").Yq(fmt.Sprintf(badApiYq, gv)).String() + "\n"
+		}
+	}
+	return r.Echo(apiYamlList).Yq(fmt.Sprintf(apiRLHeaderYq, version))
 }

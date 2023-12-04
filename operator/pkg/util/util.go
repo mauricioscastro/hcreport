@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
+	"github.com/mauricioscastro/hcreport/pkg/yqjq/yq"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"gopkg.in/yaml.v3"
 )
@@ -19,7 +19,7 @@ func ValidateJson(yamlInput string, jsonSchemaAsYaml string) error {
 	if err = yaml.Unmarshal([]byte(yamlInput), &input); err != nil {
 		return err
 	}
-	if schemaString, err = yq.NewYqWrapper().ToJson(jsonSchemaAsYaml); err != nil {
+	if schemaString, err = yq.Y2JC(jsonSchemaAsYaml); err != nil {
 		return err
 	}
 	compiler := jsonschema.NewCompiler()

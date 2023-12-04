@@ -27,10 +27,6 @@ type PipeCmdRunner interface {
 	Err() error
 }
 
-func NewPipeCmdRunner() PipeCmdRunner {
-	return &runner{}
-}
-
 func (r *runner) Append() CmdRunner {
 	r.append = true
 	return r
@@ -117,7 +113,7 @@ func (r *runner) Len() int {
 }
 
 func (r *runner) Clone() CmdRunner {
-	return NewCmdRunnerWithArgs(r.pipe.Bytes())
+	return NewCmdRunnerWithData(r.pipe.Bytes())
 }
 
 func (r *runner) Write(data []byte) CmdRunner {

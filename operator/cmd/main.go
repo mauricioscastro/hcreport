@@ -18,6 +18,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -34,6 +35,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
@@ -46,9 +48,7 @@ var (
 )
 
 func init() {
-	// log.SilenceKcLogs()
-	// log.SilenceYqLogs()
-	// yq.SetLoggerLevel("debug")
+	log.SilenceYqLogs()
 	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -57,6 +57,15 @@ func init() {
 }
 
 func main() {
+	fmt.Print(runner.NewCmdRunner().KcApiResources().String())
+
+	// kc := kc.NewKc()
+	// r, err := kc.Get(os.Args[1])
+	// fmt.Println("Error:", err)
+	// fmt.Print(r)
+
+	os.Exit(0)
+
 	logger.Info("hcreport running...")
 	var metricsAddr string
 	var enableLeaderElection bool

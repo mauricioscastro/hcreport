@@ -8,10 +8,8 @@ import (
 	"strings"
 
 	"github.com/drone/envsubst"
+	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	jqw "github.com/mauricioscastro/hcreport/pkg/wrapper/jq"
-	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
-	yqw "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"github.com/rwtodd/Go.Sed/sed"
 )
 
@@ -25,9 +23,7 @@ type runner struct {
 	pipe   bytes.Buffer
 	err    error
 	append bool
-	jqw    jqw.JqWrapper
-	kcw    kcw.KcWrapper
-	yqw    yqw.YqWrapper
+	kc     kc.Kc
 }
 
 type CmdRunner interface {
@@ -49,7 +45,7 @@ func NewCmdRunner() CmdRunner {
 	return &runner{}
 }
 
-func NewCmdRunnerWithArgs(data []byte) CmdRunner {
+func NewCmdRunnerWithData(data []byte) CmdRunner {
 	r := runner{}
 	r.pipe.Write(data)
 	return &r

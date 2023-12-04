@@ -13,8 +13,6 @@ import (
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	kcw "github.com/mauricioscastro/hcreport/pkg/wrapper/kc"
-	yqw "github.com/mauricioscastro/hcreport/pkg/wrapper/yq"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -36,7 +34,7 @@ const (
 
 var (
 	logger = log.Logger().Named("hcr.reconciler")
-	lck    *sync.Mutex
+	duLock *sync.Mutex
 )
 
 type reconciler struct {
@@ -54,7 +52,7 @@ func SetLoggerLevel(level string) {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	lck = &sync.Mutex{}
+	duLock = &sync.Mutex{}
 	return &reconciler{srw, ctx, cfg}
 }
 
@@ -80,21 +78,22 @@ func (rec *reconciler) extract() error {
 	cmd := runner.NewCmdRunner()
 	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
 	apiResourcesYaml := "api-resources: []"
-	if cmd.MkDir(reportHome); cmd.Err() != nil {
-		return cmd.Err()
-	}
-	cmd.Kc("version").WriteFile(reportHome + "version.yaml")
-	nsList, err := cmd.KcNs()
-	if err != nil {
-		return err
-	} else {
-		for _, ns := range nsList {
-			if cmd.MkDir(reportHome + strings.ReplaceAll(ns, "-", "_") + "/log"); cmd.Err() != nil {
-				return cmd.Err()
-			}
-		}
-	}
-	apiResources, _ := cmd.KcApiResources()
+	fsutil.Clean(reportHome)
+	// cmd.Kc("version").WriteFile(reportHome + "version.yaml")
+	// nsList, err := cmd.KcNs()
+	nsList := []string{}
+	// err := nil
+	// if err != nil {
+	// 	return err
+	// } else {
+	// 	for _, ns := range nsList {
+	// 		if cmd.MkDir(reportHome + strings.ReplaceAll(ns, "-", "_") + "/log"); cmd.Err() != nil {
+	// 			return cmd.Err()
+	// 		}
+	// 	}
+	// }
+	apiResources := [][]string{}
+	// apiResources, _ := [][]string{} //cmd.KcApiResources()
 	if cmd.Err() != nil {
 		return cmd.Err()
 	}
@@ -127,9 +126,9 @@ func (rec *reconciler) extract() error {
 		apiResourcesYaml = cmd.Echo(apiResourcesYaml).
 			Yq(fmt.Sprintf(yq, r[4], name, shortNames, gv, r[3], verbs, cat, fileName)).
 			String()
-		if err != nil {
-			return cmd.Err()
-		}
+		// if err != nil {
+		// 	return cmd.Err()
+		// }
 		namespaced, err := strconv.ParseBool(r[3])
 		if err != nil {
 			return err
@@ -148,9 +147,9 @@ func (rec *reconciler) extract() error {
 
 func writeResourceList(rec *reconciler, path string, name string, fullName string, nsList []string, namespaced bool) {
 	cmd := runner.NewCmdRunner()
-	if cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
-		return
-	}
+	// if cmd.Kc("get --ignore-not-found=true -A " + fullName).Empty() {
+	// 	return
+	// }
 	// cleaning
 	cmd.Yq(`with(.items[].metadata; del(.uid) | del(.generation) | del(.resourceVersion) | del(.annotations.["kubectl.kubernetes.io/last-applied-configuration"]) | del(.labels.["kubernetes.io/metadata.name"]))`)
 	// hide secrets
@@ -169,14 +168,16 @@ func writeResourceList(rec *reconciler, path string, name string, fullName strin
 			nsDir := path + strings.ReplaceAll(ns, "-", "_") + "/"
 			nsCmd.WriteFile(nsDir + name)
 			if fullName == "pods" {
-				for _, podName := range nsCmd.Yq(".items[].metadata.name").List() {
-					if !nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).Empty() {
-						nsCmd.WriteFile(nsDir + "log/" + podName + ".log")
-					}
-				}
+				// for _, podName := range nsCmd.Yq(".items[].metadata.name").List() {
+				// 	// if !nsCmd.KcCmd([]string{"logs", "--all-containers=true", podName, "-n", ns}).Empty() {
+				// 	// 	nsCmd.WriteFile(nsDir + "log/" + podName + ".log")
+				// 	// }
+				// }
 			}
 		}
 	}
+	defer duLock.Unlock()
+	duLock.Lock()
 	rec.statusAddDiskUsage()
 }
 
@@ -192,8 +193,6 @@ func (rec *reconciler) setLogLevel() {
 	if cmd.Err() == nil && !cmd.Empty() {
 		logger.Debug("setting log level", zap.String("level", cmd.String()))
 		SetLoggerLevel(cmd.String())
-		yqw.SetLoggerLevel(cmd.String())
-		kcw.SetLoggerLevel(cmd.String())
 		runner.SetLoggerLevel(cmd.String())
 	}
 }
@@ -213,8 +212,6 @@ func (rec *reconciler) statusAddDiskUsage() error {
 func (rec *reconciler) updateStatus(jqExpr string) error {
 	cmd := runner.NewCmdRunner()
 	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
-		defer lck.Unlock()
-		lck.Lock()
 		rec.cfg.Status = cmd.Bytes()
 		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil && !strings.Contains(err.Error(), "try again") {
 			logger.Debug("unable to update status", zap.Error(err))

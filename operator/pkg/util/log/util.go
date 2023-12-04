@@ -5,27 +5,25 @@ import (
 	"io"
 	"os"
 
-	"github.com/go-logr/zapr"
 	"github.com/mikefarah/yq/v4/pkg/yqlib"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 	"gopkg.in/op/go-logging.v1"
-	"k8s.io/klog/v2"
 )
 
 var logger *zap.Logger
 var loggerCfg zap.Config
 
-func SilenceKcLogs() {
-	zc := zap.NewProductionConfig()
-	zc.OutputPaths = []string{os.DevNull}
-	z, err := zc.Build()
-	if err != nil {
-		fmt.Println(err)
-		os.Exit(1)
-	}
-	klog.SetLogger(zapr.NewLogger(z))
-}
+// func SilenceKcLogs() {
+// 	zc := zap.NewProductionConfig()
+// 	zc.OutputPaths = []string{os.DevNull}
+// 	z, err := zc.Build()
+// 	if err != nil {
+// 		fmt.Println(err)
+// 		os.Exit(1)
+// 	}
+// 	klog.SetLogger(zapr.NewLogger(z))
+// }
 
 func SilenceYqLogs() {
 	bke := logging.NewLogBackend(io.Discard, "", 0)

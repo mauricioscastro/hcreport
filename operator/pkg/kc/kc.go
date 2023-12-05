@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
@@ -187,7 +188,7 @@ func (kc *kc) PrettyPrintJson() Kc {
 func (kc *kc) Get(apiCall string) (string, error) {
 	resp, err := kc.client.R().Get(kc.cluster + apiCall)
 	if err != nil {
-		return "", err
+		return "R.Get err", err
 	}
 	zapFields := []zap.Field{
 		zap.String("req", apiCall),
@@ -198,9 +199,6 @@ func (kc *kc) Get(apiCall string) (string, error) {
 		zap.Time("received at", resp.ReceivedAt()),
 	}
 	if logger.Level() == zapcore.DebugLevel {
-		if kc.yamlOutput {
-			resp.Header().Set("Content-Type", "application/x-yaml")
-		}
 		for name, values := range resp.Header() {
 			for _, value := range values {
 				zapFields = append(zapFields, zap.String(name, value))
@@ -208,23 +206,22 @@ func (kc *kc) Get(apiCall string) (string, error) {
 		}
 	}
 	logger.Debug("http resp", zapFields...)
+	contentType := strings.ToLower(resp.Header().Get("Content-Type"))
+	body := string(resp.Body())
 	if resp.StatusCode() >= 400 {
-		body := string(resp.Body())
-		if resp.Header().Get("Content-Type") == "application/json" && kc.yamlOutput {
-			resp.Header().Set("Content-Type", "application/x-yaml")
-			body, _ = yq.J2Y(body)
+		if strings.Contains(contentType, "json") && kc.yamlOutput {
+			if ymlBody, err := yq.J2Y(body); err == nil {
+				body = ymlBody
+			}
 		}
 		return "", errors.New(resp.Status() + "\n" + body)
 	}
-	body := string(resp.Body())
-	if kc.yamlOutput {
-		resp.Header().Set("Content-Type", "application/x-yaml")
-		body, err = yq.J2Y(body)
-		if err != nil {
-			return "", err
+	if strings.Contains(contentType, "json") {
+		if kc.yamlOutput {
+			body, err = yq.J2Y(body)
+		} else if kc.prettyPrintJson {
+			body, err = yq.J2JP(body)
 		}
-	} else if kc.prettyPrintJson {
-		body, err = yq.J2JP(body)
 		if err != nil {
 			return "", err
 		}

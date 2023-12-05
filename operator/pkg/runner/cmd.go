@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/drone/envsubst"
-	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	"github.com/rwtodd/Go.Sed/sed"
 )
@@ -23,7 +22,7 @@ type runner struct {
 	pipe   bytes.Buffer
 	err    error
 	append bool
-	kc     kc.Kc
+	kcRunner
 }
 
 type CmdRunner interface {

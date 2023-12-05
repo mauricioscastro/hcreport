@@ -35,7 +35,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
+	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
@@ -57,12 +57,12 @@ func init() {
 }
 
 func main() {
-	fmt.Print(runner.NewCmdRunner().KcApiResources().String())
+	// fmt.Println(runner.NewCmdRunner().KcNs().String())
 
-	// kc := kc.NewKc()
-	// r, err := kc.Get(os.Args[1])
-	// fmt.Println("Error:", err)
-	// fmt.Print(r)
+	kc := kc.NewKc()
+	r, err := kc.Get(os.Args[1])
+	fmt.Println("Error:", err)
+	fmt.Print(r)
 
 	os.Exit(0)
 

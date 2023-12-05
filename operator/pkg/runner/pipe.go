@@ -8,6 +8,8 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
+
+	"go.uber.org/zap"
 )
 
 type PipeCmdRunner interface {
@@ -139,9 +141,12 @@ func (r *runner) writeBytes(data []byte) {
 	r.append = false
 }
 
-func (r *runner) error(e error) {
+// log error and add optional extra error messages
+func (r *runner) error(e error, msg ...string) {
+	m := strings.Join(msg, " ")
 	if e != nil {
-		logger.Error(e.Error())
+		e = fmt.Errorf("%s\n%s", m, e.Error())
+		logger.Error("CmdRunner", zap.Error(e))
 	}
 	r.err = e
 }

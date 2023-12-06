@@ -107,6 +107,7 @@ func (rec *reconciler) extract() error {
 		}
 		name := r[0]
 		gv := r[2]
+		// with(.resources[]; .fileName = (.name + "_" + .groupVersion | sub("\.","_") | sub ("/", "_")) + ".yaml")
 		fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
 		fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
 		fullName := name
@@ -159,6 +160,7 @@ func writeResourceList(rec *reconciler, path string, name string, fullName strin
 	if !namespaced {
 		cmd.WriteFile(path + name)
 	} else {
+		// del(.items.[] | select(.metadata.namespace != "hcr")) | del(.metadata)
 		splitYq := `{ "kind": "List", "apiVersion": "v1", "items": [.items[].metadata.namespace | select(. == "%s") | parent | parent] }`
 		for _, ns := range nsList {
 			nsCmd := cmd.Clone().Yq(fmt.Sprintf(splitYq, ns))

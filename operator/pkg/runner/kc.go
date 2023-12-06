@@ -14,7 +14,7 @@ type KcCmdRunner interface {
 	KcGet(api string) CmdRunner
 	KcApiResources() CmdRunner
 	KcNs() CmdRunner
-	newKcRunner()
+	initKc()
 }
 
 type kcRunner struct {
@@ -24,9 +24,7 @@ type kcRunner struct {
 }
 
 func (r *runner) KcGet(api string) CmdRunner {
-	if r.kc == nil {
-		r.newKcRunner()
-	}
+	r.initKc()
 	if r.err == nil {
 		o, e := r.kc.Get(api)
 		if e == nil {
@@ -38,6 +36,7 @@ func (r *runner) KcGet(api string) CmdRunner {
 }
 
 func (r *runner) KcApiResources() CmdRunner {
+	r.initKc()
 	apiList := []string{"/api/" + r.kcVersion, "/apis/apps/" + r.kcVersion}
 	otherApiListYq := `.groups[].preferredVersion.groupVersion | select(. != "apps/%s")`
 	otherApis := r.KcGet("/apis").Yq(fmt.Sprintf(otherApiListYq, r.kcVersion)).Sed("s;^;/apis/;g").List()
@@ -57,7 +56,7 @@ func (r *runner) KcApiResources() CmdRunner {
 			apiYamlList += r.Yq(fmt.Sprintf(apiRLYq, gv)).String() + "\n"
 		} else {
 			logger.Error("error getting api resource", zap.String("api", api), zap.Error(r.err))
-			r.IgnoreError("503")
+			r.IgnoreError()
 			badApiYq := `. + {"groupVersion": "%s", "available": "false"}`
 			apiYamlList += r.Echo("[]").Yq(fmt.Sprintf(badApiYq, gv)).String() + "\n"
 		}
@@ -66,11 +65,16 @@ func (r *runner) KcApiResources() CmdRunner {
 }
 
 func (r *runner) KcNs() CmdRunner {
+	r.initKc()
 	r.KcGet("/api/" + r.kcVersion + "/namespaces").Yq(`del(.metadata) | with(.items[].metadata; del(.uid) | del(.resourceVersion) | del(.creationTimestamp) | del(.annotations["kubectl.kubernetes.io/last-applied-configuration"]) | del(.managedFields))`)
 	return r
 }
 
-func (r *runner) newKcRunner() {
-	r.kcReadOnly = false
-	r.kcVersion = r.KcGet("/api").Yq(".versions[-1]").String()
+func (r *runner) initKc() {
+	if r.kc == nil {
+		r.kc = kc.NewKc()
+		r.kcReadOnly = false
+		r.kcVersion = r.KcGet("/api").Yq(".versions[-1]").String()
+		logger.Debug("kcVersion=" + r.kcVersion)
+	}
 }

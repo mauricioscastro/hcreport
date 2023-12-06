@@ -57,10 +57,15 @@ func init() {
 }
 
 func main() {
+	body, _ := os.ReadFile("config/samples/hcreport_v1_config.yaml")
+
+	// fmt.Println(runner.NewCmdRunner().KcApiResources().String())
 	// fmt.Println(runner.NewCmdRunner().KcNs().String())
 
 	kc := kc.NewKc()
-	r, err := kc.Get(os.Args[1])
+	r, err := kc.Replace("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", string(body))
+	// r, err := kc.Delete("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", true)
+	// r, err := kc.Get(os.Args[1])
 	fmt.Println("Error:", err)
 	fmt.Print(r)
 

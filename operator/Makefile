@@ -65,17 +65,17 @@ test: manifests generate fmt vet envtest ## Run tests.
 
 ##@ Build
 
-.PHONY: vendor
+#.PHONY: vendor
 vendor:
-	go mod tidy
-	go mod vendor
+#	go mod tidy
+#	go mod vendor
 
 .PHONY: build
-build: vendor manifests generate fmt vet ## Build manager binary.
+build: manifests generate fmt vet ## Build manager binary.
 	go build -o bin/manager cmd/main.go
 
 .PHONY: run
-run: vendor manifests generate fmt vet ## Run a controller from your host.
+run: manifests generate fmt vet ## Run a controller from your host.
 	go run ./cmd/main.go
 
 # If you wish built the manager image targeting other platforms you can use the --platform flag.

@@ -13,6 +13,7 @@ type JqYqCmdRunner interface {
 	Jq(expr string) CmdRunner
 	JqPretty(expr string) CmdRunner
 	Yq(expr string) CmdRunner
+	YqJ(expr string) CmdRunner
 	ToYaml() CmdRunner
 	ToJson() CmdRunner
 	ToJsonPretty() CmdRunner
@@ -45,6 +46,17 @@ func (r *runner) MarshalJson(i any) CmdRunner {
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
 		o, e := yq.Eval(expr, r.pipe.String())
+		if e == nil {
+			r.write(o)
+		}
+		r.error(e)
+	}
+	return r
+}
+
+func (r *runner) YqJ(expr string) CmdRunner {
+	if r.err == nil {
+		o, e := yq.EvalJY(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}

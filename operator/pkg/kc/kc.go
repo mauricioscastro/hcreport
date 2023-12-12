@@ -30,6 +30,7 @@ var (
 )
 
 type (
+	// Kc represents a kubernetes client
 	Kc interface {
 		SetToken(token string) Kc
 		SetCert(cert tls.Certificate) Kc
@@ -66,8 +67,10 @@ type (
 		err             error
 		status          int
 	}
-	//  in: api called, response, error
-	// out: new response, new error
+	// Optional transformer function to Get methods
+	//
+	// parameters are ('api called', 'response', 'error') in this order.
+	// returns ('transformed response', 'transformed error')
 	ResponseTransformer func(string, string, error) (string, error)
 )
 

@@ -66,6 +66,7 @@ func (r *runner) Copy(runner CmdRunner) CmdRunner {
 
 func (r *runner) List() []string {
 	if r.err != nil {
+		r.append = false
 		return []string{}
 	}
 	r.append = false

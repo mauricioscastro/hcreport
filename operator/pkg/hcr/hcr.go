@@ -99,7 +99,7 @@ func (rec *reconciler) extract() error {
 	}
 	var wg sync.WaitGroup
 	resourceWorkerPool, _ := ants.NewPool(8)
-	defer resourceWorkerPool.Release()
+	defer resourceWorkerPool.ReleaseTimeout(5 * time.Second)
 	for _, r := range apiResources {
 		verbs := `"` + strings.ReplaceAll(r[5], ";", `","`) + `"`
 		if !strings.Contains(verbs, "get") {

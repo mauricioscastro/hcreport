@@ -1,28 +1,24 @@
 package runner
 
 import (
-	"fmt"
-	"slices"
 	"strings"
+	"sync"
 
 	"github.com/mauricioscastro/hcreport/pkg/kc"
-	"go.uber.org/zap"
+	"github.com/mauricioscastro/hcreport/pkg/yjq"
 )
 
 type KcCmdRunner interface {
 	PipeCmdRunner
+	KcVersion() string
 	KcGet(api string) CmdRunner
+	KcGetAsync(apis []string, separator string) CmdRunner
 	KcApiResources() CmdRunner
 	KcNs() CmdRunner
 	initKc()
 }
 
-type kcRunner struct {
-	kcReadOnly bool
-	kcVersion  string
-	kc         kc.Kc
-}
-
+// kube client get resource
 func (r *runner) KcGet(api string) CmdRunner {
 	r.initKc()
 	if r.err == nil {
@@ -35,46 +31,78 @@ func (r *runner) KcGet(api string) CmdRunner {
 	return r
 }
 
-func (r *runner) KcApiResources() CmdRunner {
-	r.initKc()
-	apiList := []string{"/api/" + r.kcVersion, "/apis/apps/" + r.kcVersion}
-	otherApiListYq := `.groups[].preferredVersion.groupVersion | select(. != "apps/%s")`
-	otherApis := r.KcGet("/apis").Yq(fmt.Sprintf(otherApiListYq, r.kcVersion)).Sed("s;^;/apis/;g").List()
-	if r.err != nil {
-		return r
+func (r *runner) KcGetAsync(apis []string, separator string) CmdRunner {
+	var wg sync.WaitGroup
+	kcList := make([]kc.Kc, len(apis))
+	for i, api := range apis {
+		_kc := kc.NewKc()
+		_kc.GetAsync(api, &wg)
+		kcList[i] = _kc
 	}
-	slices.Sort(otherApis)
-	apiList = append(apiList, otherApis...)
-	apiRLYq := `[.resources[] | select(.singularName != "") | del(.storageVersionHash) | del (.singularName) | .groupVersion = "%s" | .available = "true"]`
-	apiRLHeaderYq := `{ "kind": "APIResourceList", "groupVersion": "%s", "resources": . }`
-	apiYamlList := ""
-	for _, api := range apiList {
-		r.KcGet(api)
-		gv := strings.TrimPrefix(api, "/api/")
-		gv = strings.TrimPrefix(gv, "/apis/")
-		if r.err == nil {
-			apiYamlList += r.Yq(fmt.Sprintf(apiRLYq, gv)).String() + "\n"
-		} else {
-			logger.Error("error getting api resource", zap.String("api", api), zap.Error(r.err))
-			r.IgnoreError()
-			badApiYq := `. + {"groupVersion": "%s", "available": "false"}`
-			apiYamlList += r.Echo("[]").Yq(fmt.Sprintf(badApiYq, gv)).String() + "\n"
+	wg.Wait()
+	var sb strings.Builder
+	for i, v := range kcList {
+		sb.WriteString(v.Response())
+		if len(separator) > 0 && i+1 < len(kcList) {
+			sb.WriteString(separator)
 		}
 	}
-	return r.Echo(apiYamlList).Yq(fmt.Sprintf(apiRLHeaderYq, r.kcVersion))
+	return r.Echo(sb.String())
+}
+
+func (r *runner) KcApiResources() CmdRunner {
+	wr := NewCmdRunner()
+	apiList :=
+		wr.KcGet("/apis").
+			Yq(`.groups[].preferredVersion.groupVersion`).
+			Sed("s;^;/apis/;g").
+			Append().Echo("\n/api/" + wr.KcVersion()).
+			List()
+	if r.err = wr.Err(); r.err != nil {
+		return r
+	}
+	var wg sync.WaitGroup
+	kcList := make([]kc.Kc, len(apiList))
+	for i, api := range apiList {
+		_kc := kc.NewKc()
+		_kc.GetTransformAsync(api, &wg, func(kcApi string, kcResp string, kcErr error) (string, error) {
+			if kcErr == nil {
+				expr := `[.resources[] += {"groupVersion": .groupVersion} | .resources[] += {"available": true} | .resources[] | select(.singularName != "") | del(.storageVersionHash)]`
+				kcResp, kcErr = yjq.YqEval(expr, kcResp)
+				if kcErr == nil && kcResp != "[]" {
+					return kcResp, nil
+				}
+			}
+			kcResp = "- groupVersion: " + strings.TrimPrefix(kcApi, "/apis/") + "\n  available: false"
+			return kcResp, nil
+		})
+		kcList[i] = _kc
+	}
+	wg.Wait()
+	var sb strings.Builder
+	for i, _kc := range kcList {
+		sb.WriteString(_kc.Response())
+		if i+1 < len(kcList) {
+			sb.WriteString("\n")
+		}
+	}
+	return r.Echo("kind: APIResourceList\nresources:\n").Append().Echo(sb.String())
 }
 
 func (r *runner) KcNs() CmdRunner {
+	wr := NewCmdRunner()
+	return r.Copy(wr.KcGet("/api/" + wr.KcVersion() + "/namespaces").
+		Yq(`del(.metadata) | with(.items[].metadata; del(.uid) | del(.resourceVersion) | del(.creationTimestamp) | del(.annotations["kubectl.kubernetes.io/last-applied-configuration"]) | del(.managedFields))`))
+}
+
+func (r *runner) KcVersion() string {
 	r.initKc()
-	r.KcGet("/api/" + r.kcVersion + "/namespaces").Yq(`del(.metadata) | with(.items[].metadata; del(.uid) | del(.resourceVersion) | del(.creationTimestamp) | del(.annotations["kubectl.kubernetes.io/last-applied-configuration"]) | del(.managedFields))`)
-	return r
+	return r.kc.Version()
 }
 
 func (r *runner) initKc() {
 	if r.kc == nil {
 		r.kc = kc.NewKc()
-		r.kcReadOnly = false
-		r.kcVersion = r.KcGet("/api").Yq(".versions[-1]").String()
-		logger.Debug("kcVersion=" + r.kcVersion)
+		logger.Debug("kcVersion=" + r.kc.Version())
 	}
 }

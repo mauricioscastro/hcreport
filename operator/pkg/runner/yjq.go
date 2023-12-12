@@ -4,8 +4,7 @@ import (
 	"github.com/goccy/go-json"
 	"gopkg.in/yaml.v3"
 
-	"github.com/mauricioscastro/hcreport/pkg/yqjq/jq"
-	"github.com/mauricioscastro/hcreport/pkg/yqjq/yq"
+	"github.com/mauricioscastro/hcreport/pkg/yjq"
 )
 
 type JqYqCmdRunner interface {
@@ -13,7 +12,7 @@ type JqYqCmdRunner interface {
 	Jq(expr string) CmdRunner
 	JqPretty(expr string) CmdRunner
 	Yq(expr string) CmdRunner
-	YqJ(expr string) CmdRunner
+	YqJ2Y(expr string) CmdRunner
 	ToYaml() CmdRunner
 	ToJson() CmdRunner
 	ToJsonPretty() CmdRunner
@@ -43,9 +42,10 @@ func (r *runner) MarshalJson(i any) CmdRunner {
 	return r
 }
 
+// eval yaml content with yq
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
-		o, e := yq.Eval(expr, r.pipe.String())
+		o, e := yjq.YqEval(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -54,9 +54,10 @@ func (r *runner) Yq(expr string) CmdRunner {
 	return r
 }
 
-func (r *runner) YqJ(expr string) CmdRunner {
+// eval json with yq to yaml
+func (r *runner) YqJ2Y(expr string) CmdRunner {
 	if r.err == nil {
-		o, e := yq.EvalJY(expr, r.pipe.String())
+		o, e := yjq.YqEvalJ2Y(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -65,9 +66,10 @@ func (r *runner) YqJ(expr string) CmdRunner {
 	return r
 }
 
+// from json
 func (r *runner) ToYaml() CmdRunner {
 	if r.err == nil {
-		o, e := yq.J2Y(r.pipe.String())
+		o, e := yjq.J2Y(r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -76,9 +78,10 @@ func (r *runner) ToYaml() CmdRunner {
 	return r
 }
 
+// from yaml
 func (r *runner) ToJson() CmdRunner {
 	if r.err == nil {
-		o, e := yq.Y2JC(r.pipe.String())
+		o, e := yjq.Y2JC(r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -87,9 +90,10 @@ func (r *runner) ToJson() CmdRunner {
 	return r
 }
 
+// yaml input to json pretty
 func (r *runner) ToJsonPretty() CmdRunner {
 	if r.err == nil {
-		o, e := yq.Y2JP(r.pipe.String())
+		o, e := yjq.Y2JP(r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -98,9 +102,10 @@ func (r *runner) ToJsonPretty() CmdRunner {
 	return r
 }
 
+// json input to json compact
 func (r *runner) Jq(expr string) CmdRunner {
 	if r.err == nil {
-		o, e := jq.Eval(expr, r.pipe.String())
+		o, e := yjq.JqEval(expr, r.pipe.String())
 		if e == nil {
 			r.write(o)
 		}
@@ -109,6 +114,15 @@ func (r *runner) Jq(expr string) CmdRunner {
 	return r
 }
 
+// json input to json pretty
 func (r *runner) JqPretty(expr string) CmdRunner {
-	return r.Jq(expr).ToJsonPretty()
+	j := r.Jq(expr).String()
+	if r.err == nil {
+		o, e := yjq.J2JP(j)
+		if e == nil {
+			r.write(o)
+		}
+		r.error(e)
+	}
+	return r
 }

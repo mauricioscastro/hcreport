@@ -7,18 +7,20 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/go-resty/resty/v2"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
 
-	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	"github.com/mauricioscastro/hcreport/pkg/yqjq/yq"
+	"github.com/mauricioscastro/hcreport/pkg/yjq"
 )
 
 const (
 	TokenPath               = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+	CurrentContext          = ".current-context"
 	queryContextForCluster  = `(%s as $c | .contexts[] | select (.name == $c)).context as $ctx | $ctx | parent | parent | parent | .clusters[] | select(.name == $ctx.cluster) | .cluster.server // ""`
 	queryContextForUserAuth = `(%s as $c | .contexts[] | select (.name == $c)).context as $ctx | $ctx | parent | parent | parent | .users[] | select(.name == $ctx.user) | .user.%s`
 )
@@ -27,43 +29,63 @@ var (
 	logger = log.Logger().Named("hcr.kc")
 )
 
-type Kc interface {
-	SetToken(token string) Kc
-	SetCert(cert tls.Certificate) Kc
-	SetCluster(cluster string) Kc
-	SetJsonOutput() Kc
-	PrettyPrintJson() Kc
-	Get(apiCall string) (string, error)
-	Apply(apiCall string, body string) (string, error)
-	Create(apiCall string, body string) (string, error)
-	Replace(apiCall string, body string) (string, error)
-	Delete(apiCall string, ignoreNotFound bool) (string, error)
-	setCert(cert []byte, key []byte)
-	send(method string, apiCall string, body string) (string, error)
-}
+type (
+	Kc interface {
+		SetToken(token string) Kc
+		SetCert(cert tls.Certificate) Kc
+		SetCluster(cluster string) Kc
+		SetJsonOutput() Kc
+		SetYamlOutput() Kc
+		PrettyPrintJson() Kc
+		Get(apiCall string) (string, error)
+		GetTransform(apiCall string, transformer ResponseTransformer) (string, error)
+		GetAsync(apiCall string, wg *sync.WaitGroup)
+		GetTransformAsync(apiCall string, wg *sync.WaitGroup, transformer ResponseTransformer)
+		Apply(apiCall string, body string) (string, error)
+		Create(apiCall string, body string) (string, error)
+		Replace(apiCall string, body string) (string, error)
+		Delete(apiCall string, ignoreNotFound bool) (string, error)
+		SetGetParams(queryParams map[string]string) Kc
+		SetGetParam(name string, value string) Kc
+		Version() string
+		Response() string
+		Err() error
+		Status() int
+		setCert(cert []byte, key []byte)
+		response(resp *resty.Response) (string, error)
+		send(method string, apiCall string, body string) (string, error)
+	}
 
-type kc struct {
-	client          *resty.Client
-	cluster         string
-	yamlOutput      bool
-	prettyPrintJson bool
-}
+	kc struct {
+		client          *resty.Client
+		yamlOutput      bool
+		prettyPrintJson bool
+		version         string
+		readOnly        bool
+		resp            string
+		err             error
+		status          int
+	}
+	//  in: api called, response, error
+	// out: new response, new error
+	ResponseTransformer func(string, string, error) (string, error)
+)
 
 func NewKc() Kc {
 	token, err := os.ReadFile(TokenPath)
 	if err != nil {
-		logger.Error("could not read default sa token. skipping to kubeconfig", zap.Error(err))
+		logger.Info("could not read default sa token. skipping to kubeconfig", zap.Error(err))
 	} else {
 		logger.Debug("", zap.String("token from sa account", "XXX"))
-		host := util.GetEnv("KUBERNETES_SERVICE_HOST", "")
-		port := util.GetEnv("KUBERNETES_SERVICE_PORT_HTTPS", "")
+		host := os.Getenv("KUBERNETES_SERVICE_HOST")
+		port := os.Getenv("KUBERNETES_SERVICE_PORT_HTTPS")
 		if host != "" && port != "" {
 			logger.Info("kc will auth with token and env KUBERNETES_SERVICE_...")
 			logger.Debug("", zap.String("host:port from env", host+":"+port))
 			return NewKcWithToken(host+":"+port, string(token))
 		}
 	}
-	return NewKcWithContext(".current-context")
+	return NewKcWithContext(CurrentContext)
 }
 
 func NewKcWithContext(context string) Kc {
@@ -72,16 +94,16 @@ func NewKcWithContext(context string) Kc {
 		logger.Error("reading home info", zap.Error(err))
 		return newKc()
 	}
-	return NewKcWithConfigContext(context, home+"/.kube/config")
+	return NewKcWithConfigContext(home+"/.kube/config", context)
 }
 
 func NewKcWithConfig(config string) Kc {
-	return NewKcWithConfigContext(".current-context", config)
+	return NewKcWithConfigContext(config, CurrentContext)
 }
 
-func NewKcWithConfigContext(context string, config string) Kc {
+func NewKcWithConfigContext(config string, context string) Kc {
 	kc := newKc()
-	if context != ".current-context" {
+	if context != CurrentContext {
 		context = `"` + context + `"`
 	}
 	kcfg, err := os.ReadFile(config)
@@ -90,7 +112,7 @@ func NewKcWithConfigContext(context string, config string) Kc {
 		return kc
 	}
 	kubeCfg := string(kcfg)
-	cluster, err := yq.Eval(fmt.Sprintf(queryContextForCluster, context), kubeCfg)
+	cluster, err := yjq.YqEval(fmt.Sprintf(queryContextForCluster, context), kubeCfg)
 	if err != nil {
 		logger.Error("reading cluster info for context", zap.Error(err))
 		return kc
@@ -101,14 +123,14 @@ func NewKcWithConfigContext(context string, config string) Kc {
 	}
 	logger.Debug("", zap.String("cluster", cluster))
 	kc.SetCluster(cluster)
-	token, err := yq.Eval(fmt.Sprintf(queryContextForUserAuth, context, `token // ""`), kubeCfg)
+	token, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `token // ""`), kubeCfg)
 	if err != nil {
 		logger.Error("reading token info for context", zap.Error(err))
 		return kc
 	}
 	if len(token) == 0 {
 		logger.Debug("empty user token info reading context. trying user cert...")
-		cert, err := yq.Eval(fmt.Sprintf(queryContextForUserAuth, context, `client-certificate-data // "" | @base64d`), kubeCfg)
+		cert, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `client-certificate-data // "" | @base64d`), kubeCfg)
 		if err != nil {
 			logger.Error("reading user cert info for context", zap.Error(err))
 			return kc
@@ -118,7 +140,7 @@ func NewKcWithConfigContext(context string, config string) Kc {
 			return kc
 		}
 		logger.Debug("", zap.String("cert", cert))
-		key, err := yq.Eval(fmt.Sprintf(queryContextForUserAuth, context, `client-key-data // "" | @base64d`), kubeCfg)
+		key, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `client-key-data // "" | @base64d`), kubeCfg)
 		if err != nil {
 			logger.Error("reading user cert key info for context", zap.Error(err))
 			return kc
@@ -158,14 +180,18 @@ func (kc *kc) setCert(cert []byte, key []byte) {
 
 func newKc() Kc {
 	kc := kc{}
-	kc.client = resty.New().SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true})
+	kc.client = resty.New().
+		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
+		SetTimeout(55 * time.Second)
 	kc.yamlOutput = true
 	kc.prettyPrintJson = false
+	kc.readOnly = false
+	yjq.SilenceYqLogs()
 	return &kc
 }
 
 func (kc *kc) SetCluster(cluster string) Kc {
-	kc.cluster = cluster
+	kc.client.SetBaseURL(cluster)
 	return kc
 }
 
@@ -185,19 +211,57 @@ func (kc *kc) SetJsonOutput() Kc {
 	return kc
 }
 
+func (kc *kc) SetYamlOutput() Kc {
+	kc.yamlOutput = true
+	return kc
+}
+
 func (kc *kc) PrettyPrintJson() Kc {
 	kc.yamlOutput = false
 	kc.prettyPrintJson = true
 	return kc
 }
 
+func (kc *kc) GetAsync(apiCall string, wg *sync.WaitGroup) {
+	kc.GetTransformAsync(apiCall, wg, nil)
+}
+
+func (kc *kc) GetTransformAsync(apiCall string, wg *sync.WaitGroup, transformer ResponseTransformer) {
+	wg.Add(1)
+	go func(_kc Kc) {
+		defer wg.Done()
+		_kc.GetTransform(apiCall, transformer)
+	}(kc)
+}
+
+func (kc *kc) Response() string {
+	return kc.resp
+}
+
+func (kc *kc) Err() error {
+	return kc.err
+}
+
+func (kc *kc) Status() int {
+	return kc.status
+}
+
 func (kc *kc) Get(apiCall string) (string, error) {
-	resp, err := kc.client.R().Get(kc.cluster + apiCall)
+	return kc.GetTransform(apiCall, nil)
+}
+
+func (kc *kc) GetTransform(apiCall string, transformer ResponseTransformer) (string, error) {
+	resp, err := kc.client.R().Get(apiCall)
 	if err != nil {
 		return "", err
 	}
-	logResp(apiCall, resp)
-	return processResp(resp, kc.yamlOutput, kc.prettyPrintJson)
+	logResponse(apiCall, resp)
+	kc.resp, kc.err = kc.response(resp)
+	kc.status = resp.StatusCode()
+	if transformer != nil {
+		kc.resp, kc.err = transformer(apiCall, kc.resp, kc.err)
+	}
+	return kc.resp, kc.err
 }
 
 func (kc *kc) Apply(apiCall string, body string) (string, error) {
@@ -213,18 +277,43 @@ func (kc *kc) Replace(apiCall string, body string) (string, error) {
 }
 
 func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
-	resp, err := kc.client.R().Delete(kc.cluster + apiCall)
+	if kc.readOnly {
+		return "", errors.New("trying to delete in read only mode")
+	}
+	resp, err := kc.client.R().Delete(apiCall)
 	if err != nil {
 		return "", err
 	}
-	logResp(apiCall, resp)
+	logResponse(apiCall, resp)
 	if resp.StatusCode() == http.StatusNotFound && ignoreNotFound {
 		return "", nil
 	}
-	return processResp(resp, kc.yamlOutput, kc.prettyPrintJson)
+	return kc.response(resp)
 }
 
-func logResp(api string, resp *resty.Response) {
+func (kc *kc) Version() string {
+	if kc.version == "" {
+		kc.version, kc.err = kc.GetTransform("/api", func(a string, r string, e error) (string, error) {
+			return yjq.YqEval(".versions[-1]", r)
+		})
+		if kc.err != nil {
+			logger.Error("unable to get version", zap.Error(kc.err))
+		}
+	}
+	return kc.version
+}
+
+func (kc *kc) SetGetParams(queryParams map[string]string) Kc {
+	kc.client.SetQueryParams(queryParams)
+	return kc
+}
+
+func (kc *kc) SetGetParam(name string, value string) Kc {
+	kc.client.SetQueryParam(name, value)
+	return kc
+}
+
+func logResponse(api string, resp *resty.Response) {
 	zapFields := []zap.Field{
 		zap.String("req", api),
 		zap.Int("status code", resp.StatusCode()),
@@ -243,12 +332,12 @@ func logResp(api string, resp *resty.Response) {
 	logger.Debug("http resp", zapFields...)
 }
 
-func processResp(resp *resty.Response, isYamlOutput bool, isPrettyJsonOutput bool) (string, error) {
+func (kc *kc) response(resp *resty.Response) (string, error) {
 	contentType := strings.ToLower(resp.Header().Get("Content-Type"))
 	body := string(resp.Body())
 	if resp.StatusCode() >= 400 {
-		if strings.Contains(contentType, "json") && isYamlOutput {
-			if ymlBody, err := yq.J2Y(body); err == nil {
+		if strings.Contains(contentType, "json") && kc.yamlOutput {
+			if ymlBody, err := yjq.J2Y(body); err == nil {
 				body = ymlBody
 			}
 		}
@@ -256,10 +345,10 @@ func processResp(resp *resty.Response, isYamlOutput bool, isPrettyJsonOutput boo
 	}
 	if strings.Contains(contentType, "json") {
 		var err error
-		if isYamlOutput {
-			body, err = yq.J2Y(body)
-		} else if isPrettyJsonOutput {
-			body, err = yq.J2JP(body)
+		if kc.yamlOutput {
+			body, err = yjq.J2Y(body)
+		} else if kc.prettyPrintJson {
+			body, err = yjq.J2JP(body)
 		}
 		if err != nil {
 			return "", err
@@ -269,8 +358,11 @@ func processResp(resp *resty.Response, isYamlOutput bool, isPrettyJsonOutput boo
 }
 
 func (kc *kc) send(method string, apiCall string, body string) (string, error) {
+	if kc.readOnly {
+		return "", errors.New("trying to write in read only mode")
+	}
 	var (
-		req = kc.client.R().SetBody(body)
+		req = kc.client.R().SetBody(body).SetHeader("Content-Type", "application/yaml")
 		res *resty.Response
 		err error
 	)
@@ -278,21 +370,19 @@ func (kc *kc) send(method string, apiCall string, body string) (string, error) {
 	case http.MethodPatch == method:
 		res, err = req.SetQueryParam("fieldManager", "hcr-client-side-apply").
 			SetHeader("Content-Type", "application/apply-patch+yaml").
-			Patch(kc.cluster + apiCall)
+			Patch(apiCall)
 	case http.MethodPost == method:
-		res, err = req.SetHeader("Content-Type", "application/yaml").
-			Post(kc.cluster + apiCall)
+		res, err = req.Post(apiCall)
 	case http.MethodPut == method:
-		resource, _ := kc.Get(apiCall)
-		rv, _ := yq.Eval(`.metadata.resourceVersion`, resource)
-		body, _ = yq.Eval(`.metadata.resourceVersion = "`+rv+`"`, body)
-		req.SetBody(body)
-		res, err = req.SetHeader("Content-Type", "application/yaml").
-			Put(kc.cluster + apiCall)
+		r, _ := kc.Get(apiCall)
+		rv, _ := yjq.YqEval(`.metadata.resourceVersion`, r)
+		body, _ = yjq.YqEval(`.metadata.resourceVersion = "`+rv+`"`, body)
+		res, err = req.SetBody(body).
+			Put(apiCall)
 	}
 	if err != nil {
 		return "", err
 	}
-	logResp(apiCall, res)
-	return processResp(res, kc.yamlOutput, kc.prettyPrintJson)
+	logResponse(apiCall, res)
+	return kc.response(res)
 }

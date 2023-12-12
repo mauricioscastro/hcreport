@@ -2,13 +2,10 @@ package log
 
 import (
 	"fmt"
-	"io"
 	"os"
 
-	"github.com/mikefarah/yq/v4/pkg/yqlib"
 	"go.uber.org/zap"
 	"go.uber.org/zap/zapcore"
-	"gopkg.in/op/go-logging.v1"
 )
 
 var logger *zap.Logger
@@ -25,11 +22,11 @@ var loggerCfg zap.Config
 // 	klog.SetLogger(zapr.NewLogger(z))
 // }
 
-func SilenceYqLogs() {
-	bke := logging.NewLogBackend(io.Discard, "", 0)
-	bkel := logging.AddModuleLevel(bke)
-	yqlib.GetLogger().SetBackend(bkel)
-}
+// func SilenceYqLogs() {
+// 	bke := logging.NewLogBackend(io.Discard, "", 0)
+// 	bkel := logging.AddModuleLevel(bke)
+// 	yqlib.GetLogger().SetBackend(bkel)
+// }
 
 func Logger() *zap.Logger {
 	if logger == nil {

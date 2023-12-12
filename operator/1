@@ -1,0 +1,1394 @@
+2023-12-11T16:24:44.431-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.433-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.436-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.438-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.439-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.440-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.442-0300	DEBUG	hcr.kc	http resp	{"req": "/api", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.442-0300", "Content-Length": "136", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "283e8035-d01b-4102-b1a5-eaf95c793c0b", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2"}
+2023-12-11T16:24:44.443-0300	DEBUG	hcr.runner	kcVersion=v1
+2023-12-11T16:24:44.443-0300	DEBUG	hcr.kc	http resp	{"req": "/apis", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 0, "received at": "2023-12-11T16:24:44.443-0300", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "5b2490e5-eddf-45f3-9243-3ed974d5e1a9", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440"}
+2023-12-11T16:24:44.447-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.449-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.451-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.452-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.454-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.454-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.454-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.456-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.456-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/apiregistration.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.456-0300", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "49705d0a-e878-43cc-b084-3818f6d5fab7", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "465"}
+2023-12-11T16:24:44.458-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.460-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.462-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.462-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.462-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.464-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/apps/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.464-0300", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "2254", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "e2941226-21af-4f56-946c-5808a410d381"}
+2023-12-11T16:24:44.464-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.466-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.468-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.470-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.470-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.470-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.472-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/events.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.472-0300", "Audit-Id": "8fb0c564-3ab9-4bfb-b788-603b7f309ae0", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "308", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.472-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.475-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.476-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.478-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.478-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.478-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.480-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/authentication.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.480-0300", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "213", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "19cc4bea-9086-480c-8b09-fbbf94c986d0", "Cache-Control": "no-cache, private"}
+2023-12-11T16:24:44.480-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.483-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.485-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.486-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.486-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.486-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.488-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/authorization.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.488-0300", "Audit-Id": "c5eb34ba-6bc2-451d-af9c-5b65803815db", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "679", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.488-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.490-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.492-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.494-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.494-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.494-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.496-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/autoscaling/v2", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.496-0300", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "a27804a4-3c61-4b14-89ff-5dac2e6bea8d", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "527"}
+2023-12-11T16:24:44.496-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.498-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.500-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.502-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.502-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.502-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.504-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/batch/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.504-0300", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "755", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "e384f333-9e79-4de7-81b6-314cb89196c8", "Cache-Control": "no-cache, private", "Content-Type": "application/json"}
+2023-12-11T16:24:44.504-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.506-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.508-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.510-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.510-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.510-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.512-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.512-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/certificates.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.512-0300", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "678", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "460fd12e-74be-4da7-82eb-0285d740b8c6"}
+2023-12-11T16:24:44.514-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.516-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.518-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.518-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.518-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.520-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/networking.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.520-0300", "Content-Length": "1022", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "3efbcb71-8c0c-4669-859f-e940aa07ff4c", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2"}
+2023-12-11T16:24:44.520-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.522-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.524-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.526-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.526-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.526-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.528-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/policy/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.528-0300", "Audit-Id": "a57609a3-2e82-4295-9ff7-b746149a2e84", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "481", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.528-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.530-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.531-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.533-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.533-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.533-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.535-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/rbac.authorization.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.535-0300", "Audit-Id": "6b7a2031-1b24-4d8b-9f16-e74b5d0dc2c7", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "959", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.535-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.537-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.539-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.541-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.541-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.541-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.543-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.543-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/storage.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.543-0300", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "1338", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "92a5b3cf-2dea-43f1-a606-4acb8ed624ff", "Cache-Control": "no-cache, private", "Content-Type": "application/json"}
+2023-12-11T16:24:44.546-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.550-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.553-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.553-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.553-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.555-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/admissionregistration.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.555-0300", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "708", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "505b2e24-e759-4bb0-adb4-16227967a7e5", "Cache-Control": "no-cache, private", "Content-Type": "application/json"}
+2023-12-11T16:24:44.557-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.559-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.561-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.563-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.563-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.563-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.564-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/apiextensions.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.564-0300", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "561", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "39eb2917-2262-4a83-b1a8-9cc0ed44aeda", "Cache-Control": "no-cache, private"}
+2023-12-11T16:24:44.565-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.567-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.569-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.571-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.571-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.571-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.573-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/scheduling.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.573-0300", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "338", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "b24b447c-f749-4e4c-bf93-baad7c68f26b", "Cache-Control": "no-cache, private", "Content-Type": "application/json"}
+2023-12-11T16:24:44.573-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.575-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.577-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.579-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.579-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.579-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.581-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.581-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/coordination.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.581-0300", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "148574ee-02bd-4c4c-b209-a919f2ded005", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "294"}
+2023-12-11T16:24:44.583-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.585-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.587-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.587-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.587-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.589-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.589-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/node.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.589-0300", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "309", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "17f6dca8-b9a5-4682-a8a6-b68d0f84362f"}
+2023-12-11T16:24:44.590-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.592-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.594-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.594-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.594-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.596-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.596-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/discovery.k8s.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.596-0300", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "315", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "f2223514-b9a5-4cbf-aa13-17367a961f65", "Cache-Control": "no-cache, private"}
+2023-12-11T16:24:44.598-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.600-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.601-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.602-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.602-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.603-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/flowcontrol.apiserver.k8s.io/v1beta3", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.603-0300", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "855", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "dc6a7e5f-deda-4732-b0f7-f3977eadfa5a", "Cache-Control": "no-cache, private"}
+2023-12-11T16:24:44.603-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.607-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.609-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.611-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.611-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.611-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.613-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.614-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/acme.cert-manager.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.614-0300", "Audit-Id": "183a6e34-9a64-4b63-a365-737e7c0d531a", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "828", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.616-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.619-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.620-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.621-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.621-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.622-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/cert-manager.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.622-0300", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "1629", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "cb572ac7-3435-41e8-a50d-47c216c11e03", "Cache-Control": "no-cache, private"}
+2023-12-11T16:24:44.623-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.626-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.628-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.630-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.630-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.630-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.632-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/hcreport.csa.latam.redhat.com/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.632-0300", "Content-Length": "420", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "fa4c8a0a-5146-4423-9188-466d46d52931", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2"}
+2023-12-11T16:24:44.632-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.634-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.636-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.638-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.638-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.638-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.640-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/helm.cattle.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.640-0300", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "aa7deb5d-c45a-48df-a88a-728f38425e7d", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "526"}
+2023-12-11T16:24:44.640-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.642-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.644-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.647-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.647-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.647-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.649-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/k3s.cattle.io/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.649-0300", "Audit-Id": "dfd06204-9bc8-4e50-9467-e7693a410834", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "288", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.649-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.651-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.652-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.654-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.654-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.654-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.656-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.657-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/traefik.containo.us/v1alpha1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.657-0300", "Audit-Id": "c8953d2b-a3f6-4b30-a9bf-9b0a0628ed80", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "2061", "Date": "Mon, 11 Dec 2023 19:24:44 GMT"}
+2023-12-11T16:24:44.658-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.660-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.664-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.664-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.664-0300	ERROR	hcr.kc	could not read default sa token. skipping to kubeconfig	{"error": "open /var/run/secrets/kubernetes.io/serviceaccount/token: no such file or directory"}
+2023-12-11T16:24:44.666-0300	DEBUG	hcr.kc	http resp	{"req": "/apis/metrics.k8s.io/v1beta1", "status code": 503, "status": "503 Service Unavailable", "proto": "HTTP/2.0", "time": 1, "received at": "2023-12-11T16:24:44.666-0300", "X-Content-Type-Options": "nosniff", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2", "Content-Length": "20", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "e3d05d52-f04c-493d-82b4-973d88d0f016", "Cache-Control": "no-cache, private", "Content-Type": "text/plain; charset=utf-8"}
+2023-12-11T16:24:44.668-0300	DEBUG	hcr.kc		{"cluster": "https://127.0.0.1:6443"}
+2023-12-11T16:24:44.671-0300	DEBUG	hcr.kc	empty user token info reading context. trying user cert...
+2023-12-11T16:24:44.674-0300	DEBUG	hcr.kc		{"cert": "-----BEGIN CERTIFICATE-----\nMIIBkjCCATegAwIBAgIIED5tu6rHix8wCgYIKoZIzj0EAwIwIzEhMB8GA1UEAwwY\nazNzLWNsaWVudC1jYUAxNjk4MTUxMDMzMB4XDTIzMTAyNDEyMzcxM1oXDTI0MTAy\nMzEyMzcxM1owMDEXMBUGA1UEChMOc3lzdGVtOm1hc3RlcnMxFTATBgNVBAMTDHN5\nc3RlbTphZG1pbjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABA2vOpOQqDnrxrM+\nrsYVheau/srpU0MEZCNe3ky7nIzX5pw5kYF8aOAsojlooEGg2vLtW+75m1FBiwIx\nMpYJ1tOjSDBGMA4GA1UdDwEB/wQEAwIFoDATBgNVHSUEDDAKBggrBgEFBQcDAjAf\nBgNVHSMEGDAWgBT5047BOFUceZ4b1P50MjBoYemikDAKBggqhkjOPQQDAgNJADBG\nAiEA98jHrjgMQ8A7nJZxlVOw96ErPZFbhGjwvGLHyh/e28QCIQD7JsledAvHqOAG\nQrQ+xzzYL4tex+i7aF0LO9mARmdS4w==\n-----END CERTIFICATE-----\n-----BEGIN CERTIFICATE-----\nMIIBdzCCAR2gAwIBAgIBADAKBggqhkjOPQQDAjAjMSEwHwYDVQQDDBhrM3MtY2xp\nZW50LWNhQDE2OTgxNTEwMzMwHhcNMjMxMDI0MTIzNzEzWhcNMzMxMDIxMTIzNzEz\nWjAjMSEwHwYDVQQDDBhrM3MtY2xpZW50LWNhQDE2OTgxNTEwMzMwWTATBgcqhkjO\nPQIBBggqhkjOPQMBBwNCAATgOBbspdt7yFk3tF7snOP2+Kn/5QzMRHRVZ6r4p5Xt\nRwGPrhWp/NXNQVK7ioicuqv1dHrRuwS/2TTtZeW2WElLo0IwQDAOBgNVHQ8BAf8E\nBAMCAqQwDwYDVR0TAQH/BAUwAwEB/zAdBgNVHQ4EFgQU+dOOwThVHHmeG9T+dDIw\naGHpopAwCgYIKoZIzj0EAwIDSAAwRQIhAKe2hXERAhYBUmlmziGJeaKlNq6Av+g5\ns2hFY+kyCBWeAiA5MHEz+H97k0tiW36lrN8igmlXW0rnph/0RFcEz/i2VA==\n-----END CERTIFICATE-----\n"}
+2023-12-11T16:24:44.678-0300	DEBUG	hcr.kc		{"key": "XXX"}
+2023-12-11T16:24:44.678-0300	INFO	hcr.kc	kc will auth with kube config
+2023-12-11T16:24:44.681-0300	DEBUG	hcr.kc	http resp	{"req": "/api/v1", "status code": 200, "status": "200 OK", "proto": "HTTP/2.0", "time": 2, "received at": "2023-12-11T16:24:44.681-0300", "Date": "Mon, 11 Dec 2023 19:24:44 GMT", "Audit-Id": "80371000-9c39-48b7-8dca-3e0c88fb5104", "Cache-Control": "no-cache, private", "Content-Type": "application/json", "X-Kubernetes-Pf-Flowschema-Uid": "e4fb7491-9d22-47f7-8afd-d472e5b52440", "X-Kubernetes-Pf-Prioritylevel-Uid": "929cc9c8-96f8-4775-ac8d-c3f495b57df2"}
+2023-12-11T16:24:44.693-0300	ERROR	hcr.runner	CmdRunner	{"error": "\nbad input '/apis/apiregistration.k8s.io/v1\n/apis/apps/v1\n/apis/events.k8s.io/v1\n/apis/authentication.k8s.io/v1\n/apis/authorization.k8s.io/v1\n/apis/autoscaling/v2\n/apis/batch/v1\n/apis/certificates.k8s.io/v1\n/apis/networking.k8s.io/v1\n/apis/policy/v1\n/apis/rbac.authorization.k8s.io/v1\n/apis/storage.k8s.io/v1\n/apis/admissionregistration.k8s.io/v1\n/apis/apiextensions.k8s.io/v1\n/apis/scheduling.k8s.io/v1\n/apis/coordination.k8s.io/v1\n/apis/node.k8s.io/v1\n/apis/discovery.k8s.io/v1\n/apis/flowcontrol.apiserver.k8s.io/v1beta3\n/apis/acme.cert-manager.io/v1\n/apis/cert-manager.io/v1\n/apis/hcreport.csa.latam.redhat.com/v1\n/apis/helm.cattle.io/v1\n/apis/k3s.cattle.io/v1\n/apis/traefik.containo.us/v1alpha1\n/apis/metrics.k8s.io/v1beta1\n/api/v1- name: certificatesigningrequests\n  singularName: certificatesigningrequest\n  namespaced: false\n  kind: CertificateSigningRequest\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - csr\n  groupVersion: certificates.k8s.io/v1\n  available: true\n- name: flowschemas\n  singularName: flowschema\n  namespaced: false\n  kind: FlowSchema\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: flowcontrol.apiserver.k8s.io/v1beta3\n  available: true\n- name: prioritylevelconfigurations\n  singularName: prioritylevelconfiguration\n  namespaced: false\n  kind: PriorityLevelConfiguration\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: flowcontrol.apiserver.k8s.io/v1beta3\n  available: true\n- name: configs\n  singularName: config\n  namespaced: false\n  kind: Config\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: hcreport.csa.latam.redhat.com/v1\n  available: true\n- name: events\n  singularName: event\n  namespaced: true\n  kind: Event\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ev\n  groupVersion: events.k8s.io/v1\n  available: true\n- name: clusterrolebindings\n  singularName: clusterrolebinding\n  namespaced: false\n  kind: ClusterRoleBinding\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: rbac.authorization.k8s.io/v1\n  available: true\n- name: clusterroles\n  singularName: clusterrole\n  namespaced: false\n  kind: ClusterRole\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: rbac.authorization.k8s.io/v1\n  available: true\n- name: rolebindings\n  singularName: rolebinding\n  namespaced: true\n  kind: RoleBinding\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: rbac.authorization.k8s.io/v1\n  available: true\n- name: roles\n  singularName: role\n  namespaced: true\n  kind: Role\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: rbac.authorization.k8s.io/v1\n  available: true\n- name: priorityclasses\n  singularName: priorityclass\n  namespaced: false\n  kind: PriorityClass\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - pc\n  groupVersion: scheduling.k8s.io/v1\n  available: true\n- name: leases\n  singularName: lease\n  namespaced: true\n  kind: Lease\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: coordination.k8s.io/v1\n  available: true\n- name: challenges\n  singularName: challenge\n  namespaced: true\n  kind: Challenge\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  categories:\n    - cert-manager\n    - cert-manager-acme\n  groupVersion: acme.cert-manager.io/v1\n  available: true\n- name: orders\n  singularName: order\n  namespaced: true\n  kind: Order\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  categories:\n    - cert-manager\n    - cert-manager-acme\n  groupVersion: acme.cert-manager.io/v1\n  available: true\n- name: tokenreviews\n  singularName: tokenreview\n  namespaced: false\n  kind: TokenReview\n  verbs:\n    - create\n  groupVersion: authentication.k8s.io/v1\n  available: true\n- name: localsubjectaccessreviews\n  singularName: localsubjectaccessreview\n  namespaced: true\n  kind: LocalSubjectAccessReview\n  verbs:\n    - create\n  groupVersion: authorization.k8s.io/v1\n  available: true\n- name: selfsubjectaccessreviews\n  singularName: selfsubjectaccessreview\n  namespaced: false\n  kind: SelfSubjectAccessReview\n  verbs:\n    - create\n  groupVersion: authorization.k8s.io/v1\n  available: true\n- name: selfsubjectrulesreviews\n  singularName: selfsubjectrulesreview\n  namespaced: false\n  kind: SelfSubjectRulesReview\n  verbs:\n    - create\n  groupVersion: authorization.k8s.io/v1\n  available: true\n- name: subjectaccessreviews\n  singularName: subjectaccessreview\n  namespaced: false\n  kind: SubjectAccessReview\n  verbs:\n    - create\n  groupVersion: authorization.k8s.io/v1\n  available: true\n- name: horizontalpodautoscalers\n  singularName: horizontalpodautoscaler\n  namespaced: true\n  kind: HorizontalPodAutoscaler\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - hpa\n  categories:\n    - all\n  groupVersion: autoscaling/v2\n  available: true\n- name: bindings\n  singularName: binding\n  namespaced: true\n  kind: Binding\n  verbs:\n    - create\n  groupVersion: v1\n  available: true\n- name: componentstatuses\n  singularName: componentstatus\n  namespaced: false\n  kind: ComponentStatus\n  verbs:\n    - get\n    - list\n  shortNames:\n    - cs\n  groupVersion: v1\n  available: true\n- name: configmaps\n  singularName: configmap\n  namespaced: true\n  kind: ConfigMap\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - cm\n  groupVersion: v1\n  available: true\n- name: endpoints\n  singularName: endpoints\n  namespaced: true\n  kind: Endpoints\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ep\n  groupVersion: v1\n  available: true\n- name: events\n  singularName: event\n  namespaced: true\n  kind: Event\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ev\n  groupVersion: v1\n  available: true\n- name: limitranges\n  singularName: limitrange\n  namespaced: true\n  kind: LimitRange\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - limits\n  groupVersion: v1\n  available: true\n- name: namespaces\n  singularName: namespace\n  namespaced: false\n  kind: Namespace\n  verbs:\n    - create\n    - delete\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ns\n  groupVersion: v1\n  available: true\n- name: nodes\n  singularName: node\n  namespaced: false\n  kind: Node\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - no\n  groupVersion: v1\n  available: true\n- name: persistentvolumeclaims\n  singularName: persistentvolumeclaim\n  namespaced: true\n  kind: PersistentVolumeClaim\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - pvc\n  groupVersion: v1\n  available: true\n- name: persistentvolumes\n  singularName: persistentvolume\n  namespaced: false\n  kind: PersistentVolume\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - pv\n  groupVersion: v1\n  available: true\n- name: pods\n  singularName: pod\n  namespaced: true\n  kind: Pod\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - po\n  categories:\n    - all\n  groupVersion: v1\n  available: true\n- name: podtemplates\n  singularName: podtemplate\n  namespaced: true\n  kind: PodTemplate\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: v1\n  available: true\n- name: replicationcontrollers\n  singularName: replicationcontroller\n  namespaced: true\n  kind: ReplicationController\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - rc\n  categories:\n    - all\n  groupVersion: v1\n  available: true\n- name: resourcequotas\n  singularName: resourcequota\n  namespaced: true\n  kind: ResourceQuota\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - quota\n  groupVersion: v1\n  available: true\n- name: secrets\n  singularName: secret\n  namespaced: true\n  kind: Secret\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: v1\n  available: true\n- name: serviceaccounts\n  singularName: serviceaccount\n  namespaced: true\n  kind: ServiceAccount\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - sa\n  groupVersion: v1\n  available: true\n- name: services\n  singularName: service\n  namespaced: true\n  kind: Service\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - svc\n  categories:\n    - all\n  groupVersion: v1\n  available: true\n- name: addons\n  singularName: addon\n  namespaced: true\n  kind: Addon\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: k3s.cattle.io/v1\n  available: true\n- groupVersion: metrics.k8s.io/v1beta1\n  available: false\n- name: controllerrevisions\n  singularName: controllerrevision\n  namespaced: true\n  kind: ControllerRevision\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: apps/v1\n  available: true\n- name: daemonsets\n  singularName: daemonset\n  namespaced: true\n  kind: DaemonSet\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ds\n  categories:\n    - all\n  groupVersion: apps/v1\n  available: true\n- name: deployments\n  singularName: deployment\n  namespaced: true\n  kind: Deployment\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - deploy\n  categories:\n    - all\n  groupVersion: apps/v1\n  available: true\n- name: replicasets\n  singularName: replicaset\n  namespaced: true\n  kind: ReplicaSet\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - rs\n  categories:\n    - all\n  groupVersion: apps/v1\n  available: true\n- name: statefulsets\n  singularName: statefulset\n  namespaced: true\n  kind: StatefulSet\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - sts\n  categories:\n    - all\n  groupVersion: apps/v1\n  available: true\n- name: cronjobs\n  singularName: cronjob\n  namespaced: true\n  kind: CronJob\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - cj\n  categories:\n    - all\n  groupVersion: batch/v1\n  available: true\n- name: jobs\n  singularName: job\n  namespaced: true\n  kind: Job\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  categories:\n    - all\n  groupVersion: batch/v1\n  available: true\n- name: mutatingwebhookconfigurations\n  singularName: mutatingwebhookconfiguration\n  namespaced: false\n  kind: MutatingWebhookConfiguration\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  categories:\n    - api-extensions\n  groupVersion: admissionregistration.k8s.io/v1\n  available: true\n- name: validatingwebhookconfigurations\n  singularName: validatingwebhookconfiguration\n  namespaced: false\n  kind: ValidatingWebhookConfiguration\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  categories:\n    - api-extensions\n  groupVersion: admissionregistration.k8s.io/v1\n  available: true\n- name: endpointslices\n  singularName: endpointslice\n  namespaced: true\n  kind: EndpointSlice\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: discovery.k8s.io/v1\n  available: true\n- name: apiservices\n  singularName: apiservice\n  namespaced: false\n  kind: APIService\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  categories:\n    - api-extensions\n  groupVersion: apiregistration.k8s.io/v1\n  available: true\n- name: ingressclasses\n  singularName: ingressclass\n  namespaced: false\n  kind: IngressClass\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: networking.k8s.io/v1\n  available: true\n- name: ingresses\n  singularName: ingress\n  namespaced: true\n  kind: Ingress\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - ing\n  groupVersion: networking.k8s.io/v1\n  available: true\n- name: networkpolicies\n  singularName: networkpolicy\n  namespaced: true\n  kind: NetworkPolicy\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - netpol\n  groupVersion: networking.k8s.io/v1\n  available: true\n- name: runtimeclasses\n  singularName: runtimeclass\n  namespaced: false\n  kind: RuntimeClass\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: node.k8s.io/v1\n  available: true\n- name: certificaterequests\n  singularName: certificaterequest\n  namespaced: true\n  kind: CertificateRequest\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  shortNames:\n    - cr\n    - crs\n  categories:\n    - cert-manager\n  groupVersion: cert-manager.io/v1\n  available: true\n- name: certificates\n  singularName: certificate\n  namespaced: true\n  kind: Certificate\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  shortNames:\n    - cert\n    - certs\n  categories:\n    - cert-manager\n  groupVersion: cert-manager.io/v1\n  available: true\n- name: clusterissuers\n  singularName: clusterissuer\n  namespaced: false\n  kind: ClusterIssuer\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  categories:\n    - cert-manager\n  groupVersion: cert-manager.io/v1\n  available: true\n- name: issuers\n  singularName: issuer\n  namespaced: true\n  kind: Issuer\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  categories:\n    - cert-manager\n  groupVersion: cert-manager.io/v1\n  available: true\n- name: poddisruptionbudgets\n  singularName: poddisruptionbudget\n  namespaced: true\n  kind: PodDisruptionBudget\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - pdb\n  groupVersion: policy/v1\n  available: true\n- name: customresourcedefinitions\n  singularName: customresourcedefinition\n  namespaced: false\n  kind: CustomResourceDefinition\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - crd\n    - crds\n  categories:\n    - api-extensions\n  groupVersion: apiextensions.k8s.io/v1\n  available: true\n- name: ingressrouteudps\n  singularName: ingressrouteudp\n  namespaced: true\n  kind: IngressRouteUDP\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: middlewaretcps\n  singularName: middlewaretcp\n  namespaced: true\n  kind: MiddlewareTCP\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: tlsoptions\n  singularName: tlsoption\n  namespaced: true\n  kind: TLSOption\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: traefikservices\n  singularName: traefikservice\n  namespaced: true\n  kind: TraefikService\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: ingressroutetcps\n  singularName: ingressroutetcp\n  namespaced: true\n  kind: IngressRouteTCP\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: serverstransports\n  singularName: serverstransport\n  namespaced: true\n  kind: ServersTransport\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: tlsstores\n  singularName: tlsstore\n  namespaced: true\n  kind: TLSStore\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: ingressroutes\n  singularName: ingressroute\n  namespaced: true\n  kind: IngressRoute\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: middlewares\n  singularName: middleware\n  namespaced: true\n  kind: Middleware\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: traefik.containo.us/v1alpha1\n  available: true\n- name: csidrivers\n  singularName: csidriver\n  namespaced: false\n  kind: CSIDriver\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: storage.k8s.io/v1\n  available: true\n- name: csinodes\n  singularName: csinode\n  namespaced: false\n  kind: CSINode\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: storage.k8s.io/v1\n  available: true\n- name: csistoragecapacities\n  singularName: csistoragecapacity\n  namespaced: true\n  kind: CSIStorageCapacity\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: storage.k8s.io/v1\n  available: true\n- name: storageclasses\n  singularName: storageclass\n  namespaced: false\n  kind: StorageClass\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  shortNames:\n    - sc\n  groupVersion: storage.k8s.io/v1\n  available: true\n- name: volumeattachments\n  singularName: volumeattachment\n  namespaced: false\n  kind: VolumeAttachment\n  verbs:\n    - create\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - update\n    - watch\n  groupVersion: storage.k8s.io/v1\n  available: true\n- name: helmcharts\n  singularName: helmchart\n  namespaced: true\n  kind: HelmChart\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: helm.cattle.io/v1\n  available: true\n- name: helmchartconfigs\n  singularName: helmchartconfig\n  namespaced: true\n  kind: HelmChartConfig\n  verbs:\n    - delete\n    - deletecollection\n    - get\n    - list\n    - patch\n    - create\n    - update\n    - watch\n  groupVersion: helm.cattle.io/v1\n  available: true\n': yaml: line 27: mapping values are not allowed in this context"}
+/apis/apiregistration.k8s.io/v1
+/apis/apps/v1
+/apis/events.k8s.io/v1
+/apis/authentication.k8s.io/v1
+/apis/authorization.k8s.io/v1
+/apis/autoscaling/v2
+/apis/batch/v1
+/apis/certificates.k8s.io/v1
+/apis/networking.k8s.io/v1
+/apis/policy/v1
+/apis/rbac.authorization.k8s.io/v1
+/apis/storage.k8s.io/v1
+/apis/admissionregistration.k8s.io/v1
+/apis/apiextensions.k8s.io/v1
+/apis/scheduling.k8s.io/v1
+/apis/coordination.k8s.io/v1
+/apis/node.k8s.io/v1
+/apis/discovery.k8s.io/v1
+/apis/flowcontrol.apiserver.k8s.io/v1beta3
+/apis/acme.cert-manager.io/v1
+/apis/cert-manager.io/v1
+/apis/hcreport.csa.latam.redhat.com/v1
+/apis/helm.cattle.io/v1
+/apis/k3s.cattle.io/v1
+/apis/traefik.containo.us/v1alpha1
+/apis/metrics.k8s.io/v1beta1
+/api/v1- name: certificatesigningrequests
+  singularName: certificatesigningrequest
+  namespaced: false
+  kind: CertificateSigningRequest
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - csr
+  groupVersion: certificates.k8s.io/v1
+  available: true
+- name: flowschemas
+  singularName: flowschema
+  namespaced: false
+  kind: FlowSchema
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: flowcontrol.apiserver.k8s.io/v1beta3
+  available: true
+- name: prioritylevelconfigurations
+  singularName: prioritylevelconfiguration
+  namespaced: false
+  kind: PriorityLevelConfiguration
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: flowcontrol.apiserver.k8s.io/v1beta3
+  available: true
+- name: configs
+  singularName: config
+  namespaced: false
+  kind: Config
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: hcreport.csa.latam.redhat.com/v1
+  available: true
+- name: events
+  singularName: event
+  namespaced: true
+  kind: Event
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ev
+  groupVersion: events.k8s.io/v1
+  available: true
+- name: clusterrolebindings
+  singularName: clusterrolebinding
+  namespaced: false
+  kind: ClusterRoleBinding
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: rbac.authorization.k8s.io/v1
+  available: true
+- name: clusterroles
+  singularName: clusterrole
+  namespaced: false
+  kind: ClusterRole
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: rbac.authorization.k8s.io/v1
+  available: true
+- name: rolebindings
+  singularName: rolebinding
+  namespaced: true
+  kind: RoleBinding
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: rbac.authorization.k8s.io/v1
+  available: true
+- name: roles
+  singularName: role
+  namespaced: true
+  kind: Role
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: rbac.authorization.k8s.io/v1
+  available: true
+- name: priorityclasses
+  singularName: priorityclass
+  namespaced: false
+  kind: PriorityClass
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - pc
+  groupVersion: scheduling.k8s.io/v1
+  available: true
+- name: leases
+  singularName: lease
+  namespaced: true
+  kind: Lease
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: coordination.k8s.io/v1
+  available: true
+- name: challenges
+  singularName: challenge
+  namespaced: true
+  kind: Challenge
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  categories:
+    - cert-manager
+    - cert-manager-acme
+  groupVersion: acme.cert-manager.io/v1
+  available: true
+- name: orders
+  singularName: order
+  namespaced: true
+  kind: Order
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  categories:
+    - cert-manager
+    - cert-manager-acme
+  groupVersion: acme.cert-manager.io/v1
+  available: true
+- name: tokenreviews
+  singularName: tokenreview
+  namespaced: false
+  kind: TokenReview
+  verbs:
+    - create
+  groupVersion: authentication.k8s.io/v1
+  available: true
+- name: localsubjectaccessreviews
+  singularName: localsubjectaccessreview
+  namespaced: true
+  kind: LocalSubjectAccessReview
+  verbs:
+    - create
+  groupVersion: authorization.k8s.io/v1
+  available: true
+- name: selfsubjectaccessreviews
+  singularName: selfsubjectaccessreview
+  namespaced: false
+  kind: SelfSubjectAccessReview
+  verbs:
+    - create
+  groupVersion: authorization.k8s.io/v1
+  available: true
+- name: selfsubjectrulesreviews
+  singularName: selfsubjectrulesreview
+  namespaced: false
+  kind: SelfSubjectRulesReview
+  verbs:
+    - create
+  groupVersion: authorization.k8s.io/v1
+  available: true
+- name: subjectaccessreviews
+  singularName: subjectaccessreview
+  namespaced: false
+  kind: SubjectAccessReview
+  verbs:
+    - create
+  groupVersion: authorization.k8s.io/v1
+  available: true
+- name: horizontalpodautoscalers
+  singularName: horizontalpodautoscaler
+  namespaced: true
+  kind: HorizontalPodAutoscaler
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - hpa
+  categories:
+    - all
+  groupVersion: autoscaling/v2
+  available: true
+- name: bindings
+  singularName: binding
+  namespaced: true
+  kind: Binding
+  verbs:
+    - create
+  groupVersion: v1
+  available: true
+- name: componentstatuses
+  singularName: componentstatus
+  namespaced: false
+  kind: ComponentStatus
+  verbs:
+    - get
+    - list
+  shortNames:
+    - cs
+  groupVersion: v1
+  available: true
+- name: configmaps
+  singularName: configmap
+  namespaced: true
+  kind: ConfigMap
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - cm
+  groupVersion: v1
+  available: true
+- name: endpoints
+  singularName: endpoints
+  namespaced: true
+  kind: Endpoints
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ep
+  groupVersion: v1
+  available: true
+- name: events
+  singularName: event
+  namespaced: true
+  kind: Event
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ev
+  groupVersion: v1
+  available: true
+- name: limitranges
+  singularName: limitrange
+  namespaced: true
+  kind: LimitRange
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - limits
+  groupVersion: v1
+  available: true
+- name: namespaces
+  singularName: namespace
+  namespaced: false
+  kind: Namespace
+  verbs:
+    - create
+    - delete
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ns
+  groupVersion: v1
+  available: true
+- name: nodes
+  singularName: node
+  namespaced: false
+  kind: Node
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - no
+  groupVersion: v1
+  available: true
+- name: persistentvolumeclaims
+  singularName: persistentvolumeclaim
+  namespaced: true
+  kind: PersistentVolumeClaim
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - pvc
+  groupVersion: v1
+  available: true
+- name: persistentvolumes
+  singularName: persistentvolume
+  namespaced: false
+  kind: PersistentVolume
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - pv
+  groupVersion: v1
+  available: true
+- name: pods
+  singularName: pod
+  namespaced: true
+  kind: Pod
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - po
+  categories:
+    - all
+  groupVersion: v1
+  available: true
+- name: podtemplates
+  singularName: podtemplate
+  namespaced: true
+  kind: PodTemplate
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: v1
+  available: true
+- name: replicationcontrollers
+  singularName: replicationcontroller
+  namespaced: true
+  kind: ReplicationController
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - rc
+  categories:
+    - all
+  groupVersion: v1
+  available: true
+- name: resourcequotas
+  singularName: resourcequota
+  namespaced: true
+  kind: ResourceQuota
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - quota
+  groupVersion: v1
+  available: true
+- name: secrets
+  singularName: secret
+  namespaced: true
+  kind: Secret
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: v1
+  available: true
+- name: serviceaccounts
+  singularName: serviceaccount
+  namespaced: true
+  kind: ServiceAccount
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - sa
+  groupVersion: v1
+  available: true
+- name: services
+  singularName: service
+  namespaced: true
+  kind: Service
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - svc
+  categories:
+    - all
+  groupVersion: v1
+  available: true
+- name: addons
+  singularName: addon
+  namespaced: true
+  kind: Addon
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: k3s.cattle.io/v1
+  available: true
+- groupVersion: metrics.k8s.io/v1beta1
+  available: false
+- name: controllerrevisions
+  singularName: controllerrevision
+  namespaced: true
+  kind: ControllerRevision
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: apps/v1
+  available: true
+- name: daemonsets
+  singularName: daemonset
+  namespaced: true
+  kind: DaemonSet
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ds
+  categories:
+    - all
+  groupVersion: apps/v1
+  available: true
+- name: deployments
+  singularName: deployment
+  namespaced: true
+  kind: Deployment
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - deploy
+  categories:
+    - all
+  groupVersion: apps/v1
+  available: true
+- name: replicasets
+  singularName: replicaset
+  namespaced: true
+  kind: ReplicaSet
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - rs
+  categories:
+    - all
+  groupVersion: apps/v1
+  available: true
+- name: statefulsets
+  singularName: statefulset
+  namespaced: true
+  kind: StatefulSet
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - sts
+  categories:
+    - all
+  groupVersion: apps/v1
+  available: true
+- name: cronjobs
+  singularName: cronjob
+  namespaced: true
+  kind: CronJob
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - cj
+  categories:
+    - all
+  groupVersion: batch/v1
+  available: true
+- name: jobs
+  singularName: job
+  namespaced: true
+  kind: Job
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  categories:
+    - all
+  groupVersion: batch/v1
+  available: true
+- name: mutatingwebhookconfigurations
+  singularName: mutatingwebhookconfiguration
+  namespaced: false
+  kind: MutatingWebhookConfiguration
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  categories:
+    - api-extensions
+  groupVersion: admissionregistration.k8s.io/v1
+  available: true
+- name: validatingwebhookconfigurations
+  singularName: validatingwebhookconfiguration
+  namespaced: false
+  kind: ValidatingWebhookConfiguration
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  categories:
+    - api-extensions
+  groupVersion: admissionregistration.k8s.io/v1
+  available: true
+- name: endpointslices
+  singularName: endpointslice
+  namespaced: true
+  kind: EndpointSlice
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: discovery.k8s.io/v1
+  available: true
+- name: apiservices
+  singularName: apiservice
+  namespaced: false
+  kind: APIService
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  categories:
+    - api-extensions
+  groupVersion: apiregistration.k8s.io/v1
+  available: true
+- name: ingressclasses
+  singularName: ingressclass
+  namespaced: false
+  kind: IngressClass
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: networking.k8s.io/v1
+  available: true
+- name: ingresses
+  singularName: ingress
+  namespaced: true
+  kind: Ingress
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - ing
+  groupVersion: networking.k8s.io/v1
+  available: true
+- name: networkpolicies
+  singularName: networkpolicy
+  namespaced: true
+  kind: NetworkPolicy
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - netpol
+  groupVersion: networking.k8s.io/v1
+  available: true
+- name: runtimeclasses
+  singularName: runtimeclass
+  namespaced: false
+  kind: RuntimeClass
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: node.k8s.io/v1
+  available: true
+- name: certificaterequests
+  singularName: certificaterequest
+  namespaced: true
+  kind: CertificateRequest
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  shortNames:
+    - cr
+    - crs
+  categories:
+    - cert-manager
+  groupVersion: cert-manager.io/v1
+  available: true
+- name: certificates
+  singularName: certificate
+  namespaced: true
+  kind: Certificate
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  shortNames:
+    - cert
+    - certs
+  categories:
+    - cert-manager
+  groupVersion: cert-manager.io/v1
+  available: true
+- name: clusterissuers
+  singularName: clusterissuer
+  namespaced: false
+  kind: ClusterIssuer
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  categories:
+    - cert-manager
+  groupVersion: cert-manager.io/v1
+  available: true
+- name: issuers
+  singularName: issuer
+  namespaced: true
+  kind: Issuer
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  categories:
+    - cert-manager
+  groupVersion: cert-manager.io/v1
+  available: true
+- name: poddisruptionbudgets
+  singularName: poddisruptionbudget
+  namespaced: true
+  kind: PodDisruptionBudget
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - pdb
+  groupVersion: policy/v1
+  available: true
+- name: customresourcedefinitions
+  singularName: customresourcedefinition
+  namespaced: false
+  kind: CustomResourceDefinition
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - crd
+    - crds
+  categories:
+    - api-extensions
+  groupVersion: apiextensions.k8s.io/v1
+  available: true
+- name: ingressrouteudps
+  singularName: ingressrouteudp
+  namespaced: true
+  kind: IngressRouteUDP
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: middlewaretcps
+  singularName: middlewaretcp
+  namespaced: true
+  kind: MiddlewareTCP
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: tlsoptions
+  singularName: tlsoption
+  namespaced: true
+  kind: TLSOption
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: traefikservices
+  singularName: traefikservice
+  namespaced: true
+  kind: TraefikService
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: ingressroutetcps
+  singularName: ingressroutetcp
+  namespaced: true
+  kind: IngressRouteTCP
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: serverstransports
+  singularName: serverstransport
+  namespaced: true
+  kind: ServersTransport
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: tlsstores
+  singularName: tlsstore
+  namespaced: true
+  kind: TLSStore
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: ingressroutes
+  singularName: ingressroute
+  namespaced: true
+  kind: IngressRoute
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: middlewares
+  singularName: middleware
+  namespaced: true
+  kind: Middleware
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: traefik.containo.us/v1alpha1
+  available: true
+- name: csidrivers
+  singularName: csidriver
+  namespaced: false
+  kind: CSIDriver
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: storage.k8s.io/v1
+  available: true
+- name: csinodes
+  singularName: csinode
+  namespaced: false
+  kind: CSINode
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: storage.k8s.io/v1
+  available: true
+- name: csistoragecapacities
+  singularName: csistoragecapacity
+  namespaced: true
+  kind: CSIStorageCapacity
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: storage.k8s.io/v1
+  available: true
+- name: storageclasses
+  singularName: storageclass
+  namespaced: false
+  kind: StorageClass
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  shortNames:
+    - sc
+  groupVersion: storage.k8s.io/v1
+  available: true
+- name: volumeattachments
+  singularName: volumeattachment
+  namespaced: false
+  kind: VolumeAttachment
+  verbs:
+    - create
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - update
+    - watch
+  groupVersion: storage.k8s.io/v1
+  available: true
+- name: helmcharts
+  singularName: helmchart
+  namespaced: true
+  kind: HelmChart
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: helm.cattle.io/v1
+  available: true
+- name: helmchartconfigs
+  singularName: helmchartconfig
+  namespaced: true
+  kind: HelmChartConfig
+  verbs:
+    - delete
+    - deletecollection
+    - get
+    - list
+    - patch
+    - create
+    - update
+    - watch
+  groupVersion: helm.cattle.io/v1
+  available: true
+

@@ -35,8 +35,9 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
-	"github.com/mauricioscastro/hcreport/pkg/kc"
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
+	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
 	//+kubebuilder:scaffold:imports
@@ -48,7 +49,7 @@ var (
 )
 
 func init() {
-	log.SilenceYqLogs()
+	yjq.SilenceYqLogs()
 	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
@@ -57,17 +58,19 @@ func init() {
 }
 
 func main() {
-	body, _ := os.ReadFile("config/samples/hcreport_v1_config.yaml")
+	// body, _ := os.ReadFile("config/samples/hcreport_v1_config.yaml")
 
-	// fmt.Println(runner.NewCmdRunner().KcApiResources().String())
+	// fmt.Println(runner.NewCmdRunner().KcGetAsync([]string{"/api", "/apis"}, "---\n").String())
+
+	fmt.Println(runner.NewCmdRunner().KcApiResources().String())
 	// fmt.Println(runner.NewCmdRunner().KcNs().String())
 
-	kc := kc.NewKc()
-	r, err := kc.Replace("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", string(body))
-	// r, err := kc.Delete("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", true)
-	// r, err := kc.Get(os.Args[1])
-	fmt.Println("Error:", err)
-	fmt.Print(r)
+	// kc := kc.NewKc()
+	// // r, err := kc.Replace("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", string(body))
+	// // r, err := kc.Delete("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", true)
+	// r, err := kc.Get(os.Args[1]) //, os.Args[2], "pretty=true", "timestamps=true")
+	// fmt.Println("Error:", err)
+	// fmt.Print(r)
 
 	os.Exit(0)
 

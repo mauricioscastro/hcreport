@@ -18,6 +18,7 @@ type PipeCmdRunner interface {
 	Write(data []byte) CmdRunner
 	Trim() CmdRunner
 	Clone() CmdRunner
+	Copy(runner CmdRunner) CmdRunner
 	Reset() CmdRunner
 	Empty() bool
 	List() []string
@@ -57,10 +58,17 @@ func (r *runner) Echo(arg any) CmdRunner {
 	return r
 }
 
+func (r *runner) Copy(runner CmdRunner) CmdRunner {
+	r.writeBytes(runner.Bytes())
+	r.err = runner.Err()
+	return r
+}
+
 func (r *runner) List() []string {
 	if r.err != nil {
 		return []string{}
 	}
+	r.append = false
 	return strings.Split(r.pipe.String(), "\n")
 }
 
@@ -71,6 +79,7 @@ func (r *runner) Table() [][]string {
 		r.error(err)
 		return [][]string{}
 	}
+	r.append = false
 	return table
 }
 
@@ -95,6 +104,7 @@ func (r *runner) Reset() CmdRunner {
 	r.pipe.Reset()
 	r.err = nil
 	r.append = false
+	r.kc = nil
 	return r
 }
 
@@ -149,4 +159,5 @@ func (r *runner) error(e error, msg ...string) {
 		logger.Error("CmdRunner", zap.Error(e))
 	}
 	r.err = e
+	r.append = false
 }

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -40,8 +39,6 @@ type (
 		PrettyPrintJson() Kc
 		Get(apiCall string) (string, error)
 		GetTransform(apiCall string, transformer ResponseTransformer) (string, error)
-		GetAsync(apiCall string, wg *sync.WaitGroup)
-		GetTransformAsync(apiCall string, wg *sync.WaitGroup, transformer ResponseTransformer)
 		Apply(apiCall string, body string) (string, error)
 		Create(apiCall string, body string) (string, error)
 		Replace(apiCall string, body string) (string, error)
@@ -225,18 +222,6 @@ func (kc *kc) PrettyPrintJson() Kc {
 	return kc
 }
 
-func (kc *kc) GetAsync(apiCall string, wg *sync.WaitGroup) {
-	kc.GetTransformAsync(apiCall, wg, nil)
-}
-
-func (kc *kc) GetTransformAsync(apiCall string, wg *sync.WaitGroup, transformer ResponseTransformer) {
-	wg.Add(1)
-	go func(_kc Kc) {
-		defer wg.Done()
-		_kc.GetTransform(apiCall, transformer)
-	}(kc)
-}
-
 func (kc *kc) Response() string {
 	return kc.resp
 }
@@ -367,25 +352,27 @@ func (kc *kc) send(method string, apiCall string, body string) (string, error) {
 	var (
 		req = kc.client.R().SetBody(body).SetHeader("Content-Type", "application/yaml")
 		res *resty.Response
-		err error
 	)
 	switch {
 	case http.MethodPatch == method:
-		res, err = req.SetQueryParam("fieldManager", "hcr-client-side-apply").
+		res, kc.err = req.SetQueryParam("fieldManager", "skc-client-side-apply").
 			SetHeader("Content-Type", "application/apply-patch+yaml").
 			Patch(apiCall)
 	case http.MethodPost == method:
-		res, err = req.Post(apiCall)
+		res, kc.err = req.Post(apiCall)
 	case http.MethodPut == method:
 		r, _ := kc.Get(apiCall)
-		rv, _ := yjq.YqEval(`.metadata.resourceVersion`, r)
-		body, _ = yjq.YqEval(`.metadata.resourceVersion = "`+rv+`"`, body)
-		res, err = req.SetBody(body).
-			Put(apiCall)
+		if rv, err := yjq.YqEval(`.metadata.resourceVersion`, r); err == nil && kc.err == nil {
+			if body, kc.err = yjq.YqEval(`.metadata.resourceVersion = "`+rv+`"`, body); kc.err == nil {
+				res, kc.err = req.SetBody(body).Put(apiCall)
+			}
+		} else if err != nil {
+			kc.err = err
+		}
 	}
-	if err != nil {
-		return "", err
+	if kc.err == nil {
+		logResponse(apiCall, res)
+		kc.resp, kc.err = kc.response(res)
 	}
-	logResponse(apiCall, res)
-	return kc.response(res)
+	return kc.resp, kc.err
 }

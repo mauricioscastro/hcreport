@@ -27,7 +27,7 @@ type runner struct {
 }
 
 type CmdRunner interface {
-	JqYqCmdRunner
+	YJqCmdRunner
 	KcCmdRunner
 	EnvSubst(arg string) CmdRunner
 	Match(expr string) CmdRunner
@@ -39,6 +39,14 @@ type CmdRunner interface {
 	RegexReplaceAll(expr string, new string) CmdRunner
 	IgnoreError(regex ...string) CmdRunner
 	Sed(expr string) CmdRunner
+}
+
+func R() CmdRunner {
+	return &runner{}
+}
+
+func Run() CmdRunner {
+	return &runner{}
 }
 
 func NewCmdRunner() CmdRunner {

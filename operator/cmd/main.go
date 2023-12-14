@@ -18,7 +18,6 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
@@ -35,7 +34,6 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
@@ -58,21 +56,30 @@ func init() {
 }
 
 func main() {
-	// body, _ := os.ReadFile("config/samples/hcreport_v1_config.yaml")
+	// // body, _ := os.ReadFile("config/samples/hcreport_v1_config.yaml")
 
-	// fmt.Println(runner.NewCmdRunner().KcGetAsync([]string{"/api", "/apis"}, "---\n").String())
+	// // fmt.Println(runner.R().KcGetAsync([]string{"/api", "/apis"}, "---\n", -1).String())
 
-	fmt.Println(runner.NewCmdRunner().KcApiResources().String())
-	// fmt.Println(runner.NewCmdRunner().KcNs().String())
+	// // fmt.Println(runner.R().KcApiResources().String())
+	// // fmt.Println(runner.R().KcNs().String())
+	// var c atomic.Int32
 
-	// kc := kc.NewKc()
-	// // r, err := kc.Replace("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", string(body))
-	// // r, err := kc.Delete("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", true)
-	// r, err := kc.Get(os.Args[1]) //, os.Args[2], "pretty=true", "timestamps=true")
-	// fmt.Println("Error:", err)
-	// fmt.Print(r)
+	// fmt.Println(runner.R().KcDump("/tmp/_data", 0, func() {
+	// 	c.Add(1)
+	// 	fmt.Printf("apis processed so far: %d\r", c.Load())
+	// }))
+	// // fmt.Println(runner.R().KcGetWithParams("/api/v1/namespaces/hcr/pods/hcr-controller-manager-6b4b4dc7fd-md5h8/log", map[string]string{"container": "manager"}).String())
+	// // fmt.Println(runner.R().KcGet("/api/v1").String())
 
-	os.Exit(0)
+	// // kc := kc.NewKc()
+	// // // // r, err := kc.Replace("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", string(body))
+	// // // // r, err := kc.Delete("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample", true)
+	// // // r, err := kc.Get(os.Args[1]) //, os.Args[2], "pretty=true", "timestamps=true")
+	// // // kc.KcDump("/tmp/_data", nil)
+	// // fmt.Println("Error:", err)
+	// // fmt.Print(r)
+
+	// os.Exit(0)
 
 	logger.Info("hcreport running...")
 	var metricsAddr string

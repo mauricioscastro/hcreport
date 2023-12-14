@@ -7,17 +7,32 @@ import (
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 )
 
-type JqYqCmdRunner interface {
-	PipeCmdRunner
-	Jq(expr string) CmdRunner
-	JqPretty(expr string) CmdRunner
-	Yq(expr string) CmdRunner
-	YqJ2Y(expr string) CmdRunner
-	ToYaml() CmdRunner
-	ToJson() CmdRunner
-	ToJsonPretty() CmdRunner
-	MarshalJson(i any) CmdRunner
-	MarshalYaml(i any) CmdRunner
+type (
+	YJqCmdRunner interface {
+		PipeCmdRunner
+		Jq(expr string) CmdRunner
+		JqPretty(expr string) CmdRunner
+		Yq(expr string) CmdRunner
+		YqJ2Y(expr string) CmdRunner
+		ToYaml() CmdRunner
+		ToJson() CmdRunner
+		ToJsonPretty() CmdRunner
+		MarshalJson(i any) CmdRunner
+		MarshalYaml(i any) CmdRunner
+		UnMarshalYaml() map[string]interface{}
+	}
+)
+
+func (r *runner) UnMarshalYaml() map[string]interface{} {
+	if r.err == nil {
+		var i map[string]interface{}
+		e := yaml.Unmarshal(r.Bytes(), &i)
+		if e == nil {
+			return i
+		}
+		r.error(e)
+	}
+	return nil
 }
 
 func (r *runner) MarshalYaml(i any) CmdRunner {
@@ -42,7 +57,7 @@ func (r *runner) MarshalJson(i any) CmdRunner {
 	return r
 }
 
-// eval yaml content with yq
+// Eval yaml content with yq expression issuing result in yaml
 func (r *runner) Yq(expr string) CmdRunner {
 	if r.err == nil {
 		o, e := yjq.YqEval(expr, r.pipe.String())
@@ -54,7 +69,7 @@ func (r *runner) Yq(expr string) CmdRunner {
 	return r
 }
 
-// eval json with yq to yaml
+// Eval json content with yq expression issuing result in yaml
 func (r *runner) YqJ2Y(expr string) CmdRunner {
 	if r.err == nil {
 		o, e := yjq.YqEvalJ2Y(expr, r.pipe.String())
@@ -66,7 +81,7 @@ func (r *runner) YqJ2Y(expr string) CmdRunner {
 	return r
 }
 
-// from json
+// From json to yaml
 func (r *runner) ToYaml() CmdRunner {
 	if r.err == nil {
 		o, e := yjq.J2Y(r.pipe.String())
@@ -78,7 +93,7 @@ func (r *runner) ToYaml() CmdRunner {
 	return r
 }
 
-// from yaml
+// From yaml to compact json
 func (r *runner) ToJson() CmdRunner {
 	if r.err == nil {
 		o, e := yjq.Y2JC(r.pipe.String())
@@ -90,7 +105,7 @@ func (r *runner) ToJson() CmdRunner {
 	return r
 }
 
-// yaml input to json pretty
+// From yaml to pretty json
 func (r *runner) ToJsonPretty() CmdRunner {
 	if r.err == nil {
 		o, e := yjq.Y2JP(r.pipe.String())
@@ -102,7 +117,7 @@ func (r *runner) ToJsonPretty() CmdRunner {
 	return r
 }
 
-// json input to json compact
+// Eval json content with jq expression issuing result in json compact
 func (r *runner) Jq(expr string) CmdRunner {
 	if r.err == nil {
 		o, e := yjq.JqEval(expr, r.pipe.String())
@@ -114,7 +129,7 @@ func (r *runner) Jq(expr string) CmdRunner {
 	return r
 }
 
-// json input to json pretty
+// / Eval json content with jq expression issuing result in json pretty
 func (r *runner) JqPretty(expr string) CmdRunner {
 	j := r.Jq(expr).String()
 	if r.err == nil {

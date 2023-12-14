@@ -14,12 +14,14 @@ import (
 
 type PipeCmdRunner interface {
 	Append() CmdRunner
+	A() CmdRunner
 	Echo(arg any) CmdRunner
 	Write(data []byte) CmdRunner
 	Trim() CmdRunner
 	Clone() CmdRunner
 	Copy(runner CmdRunner) CmdRunner
 	Reset() CmdRunner
+	Stop() CmdRunner
 	Empty() bool
 	List() []string
 	Table() [][]string
@@ -33,6 +35,10 @@ type PipeCmdRunner interface {
 func (r *runner) Append() CmdRunner {
 	r.append = true
 	return r
+}
+
+func (r *runner) A() CmdRunner {
+	return r.Append()
 }
 
 // accepts string, json.RawMessage, []byte, Stringer
@@ -101,6 +107,10 @@ func (r *runner) Bytes() []byte {
 	return b
 }
 
+func (r *runner) Stop() CmdRunner {
+	return r.Reset()
+}
+
 func (r *runner) Reset() CmdRunner {
 	r.pipe.Reset()
 	r.err = nil
@@ -154,11 +164,9 @@ func (r *runner) writeBytes(data []byte) {
 
 // log error and add optional extra error messages
 func (r *runner) error(e error, msg ...string) {
-	m := strings.Join(msg, " ")
 	if e != nil {
-		e = fmt.Errorf("%s\n%s", m, e.Error())
-		logger.Error("CmdRunner", zap.Error(e))
+		r.err = fmt.Errorf("%s\n%s", strings.Join(msg, " "), e.Error())
+		logger.Debug("CmdRunner error:", zap.Error(r.err))
 	}
-	r.err = e
 	r.append = false
 }

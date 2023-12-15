@@ -3,6 +3,7 @@ package runner
 import (
 	"errors"
 	"fmt"
+	"net/http"
 	"strconv"
 	"strings"
 
@@ -19,11 +20,13 @@ type KcCmdRunner interface {
 	KcVersion() string
 	KcGet(api string) CmdRunner
 	KcGetWithParams(api string, queryParams map[string]string) CmdRunner
-	KcGetAsync(apis []string, separator string, poolSize int, queryParams map[string]string) CmdRunner
+	KcGetAsync(apis []string, separator string, poolSize int, queryParams map[string]string, transformer kc.ResponseTransformer) CmdRunner
+	KcTransformResponse(kc.ResponseTransformer) CmdRunner
+	KcIgnoreNotFound() CmdRunner
 	KcApiResources() CmdRunner
 	KcNs() CmdRunner
 	KcDump(path string, poolSize int, progress func()) CmdRunner
-	initKc()
+	initKc() CmdRunner
 }
 
 var DefaultCleaningYqQuery = `del(.metadata) | with(.items[].metadata; del(.uid) | del(.resourceVersion) | del(.creationTimestamp) | del(.annotations["kubectl.kubernetes.io/last-applied-configuration"]) | del(.managedFields))`
@@ -32,6 +35,7 @@ var DefaultCleaningYqQuery = `del(.metadata) | with(.items[].metadata; del(.uid)
 func (r *runner) KcGet(api string) CmdRunner {
 	r.initKc()
 	if r.err == nil {
+		defer r.kc.SetResponseTransformer(nil)
 		o, e := r.kc.Get(api)
 		if e == nil {
 			r.write(o)
@@ -49,9 +53,29 @@ func (r *runner) KcGetWithParams(api string, queryParams map[string]string) CmdR
 	return r.KcGet(api)
 }
 
+// Use to transform the response after Get
+// Get will reset the transformer to nil
+func (r *runner) KcTransformResponse(transformer kc.ResponseTransformer) CmdRunner {
+	if r.err != nil {
+		return r
+	}
+	r.initKc()
+	r.kc.SetResponseTransformer(transformer)
+	return r
+}
+
+func (r *runner) KcIgnoreNotFound() CmdRunner {
+	return r.KcTransformResponse(func(kc kc.Kc) (string, error) {
+		if kc.Status() == http.StatusNotFound {
+			return "", nil
+		}
+		return kc.Response(), kc.Err()
+	})
+}
+
 // Kube Get resource list asynchronously adding a separator
 // between each response with a worker pool size
-func (r *runner) KcGetAsync(apis []string, separator string, poolSize int, queryParams map[string]string) CmdRunner {
+func (r *runner) KcGetAsync(apis []string, separator string, poolSize int, queryParams map[string]string, transformer kc.ResponseTransformer) CmdRunner {
 	kcList := make([]kc.Kc, len(apis))
 	wg := waitgroup.NewWaitGroup(poolSize)
 	for i, api := range apis {
@@ -59,6 +83,7 @@ func (r *runner) KcGetAsync(apis []string, separator string, poolSize int, query
 		if queryParams != nil {
 			_kc.SetGetParams(queryParams)
 		}
+		_kc.SetResponseTransformer(transformer)
 		kcList[i] = _kc
 		wg.BlockAdd()
 		go func(api string) {
@@ -68,8 +93,11 @@ func (r *runner) KcGetAsync(apis []string, separator string, poolSize int, query
 	}
 	wg.Wait()
 	var sb strings.Builder
-	for i, v := range kcList {
-		sb.WriteString(v.Response())
+	for i, _kc := range kcList {
+		if _kc.Err() != nil || len(_kc.Response()) == 0 {
+			continue
+		}
+		sb.WriteString(_kc.Response())
 		if len(separator) > 0 && i+1 < len(kcList) {
 			sb.WriteString(separator)
 		}
@@ -83,7 +111,7 @@ func (r *runner) KcApiResources() CmdRunner {
 		wr.KcGet("/apis").
 			Yq(`.groups[].preferredVersion.groupVersion`).
 			Sed("s;^;/apis/;g").
-			Append().Echo("\n/api/" + wr.KcVersion()).
+			Append().Echo("\n/api/" + r.KcVersion()).
 			List()
 	if r.err = wr.Err(); r.err != nil {
 		return r
@@ -96,21 +124,32 @@ func (r *runner) KcApiResources() CmdRunner {
 		wg.BlockAdd()
 		go func(api string) {
 			defer wg.Done()
-			_kc.GetTransform(api, func(kcApi string, kcResp string, kcErr error) (string, error) {
-				if kcErr != nil {
-					kcResp = "- groupVersion: " + strings.TrimPrefix(kcApi, "/apis/") + "\n  available: false"
-					kcErr = nil
-				} else {
-					e := `.resources[] += {"groupVersion": .groupVersion} | .resources[] += {"available": true} | .resources[] | select(.singularName != "") | del(.storageVersionHash) | del(.singularName) | [.]`
-					kcResp, kcErr = yjq.YqEval(e, kcResp)
+			_kc.SetResponseTransformer(func(c kc.Kc) (string, error) {
+				unavailableApiResp := "- groupVersion: " + strings.TrimPrefix(c.Api(), "/apis/") + "\n  available: false"
+				if c.Err() != nil {
+					logger.Error("error resource entry", zap.String("api", c.Api()), zap.Error(c.Err()))
+					return unavailableApiResp, nil
 				}
-				return kcResp, kcErr
-			})
+				yqexpr := `.resources[] += {"groupVersion": .groupVersion} | .resources[] += {"available": true} | .resources[] | select(.singularName != "") | del(.storageVersionHash) | del(.singularName) | [.]`
+				r, e := yjq.YqEval(yqexpr, c.Response())
+				if e != nil {
+					logger.Error("yq", zap.String("api", c.Api()), zap.Error(e))
+					return unavailableApiResp, nil
+				}
+				if r == "[]" {
+					logger.Error("empty resource entry", zap.String("api", c.Api()))
+					return unavailableApiResp, nil
+				}
+				return r, e
+			}).Get(api)
 		}(api)
 	}
 	wg.Wait()
 	var sb strings.Builder
 	for i, _kc := range kcList {
+		if len(_kc.Response()) == 0 || _kc.Err() != nil {
+			continue
+		}
 		sb.WriteString(_kc.Response())
 		if i+1 < len(apiList) {
 			sb.WriteString("\n")
@@ -123,8 +162,7 @@ func (r *runner) KcNs() CmdRunner {
 	if r.err != nil {
 		return r
 	}
-	wr := NewCmdRunner()
-	return r.Copy(wr.KcGet("/api/" + wr.KcVersion() + "/namespaces").
+	return r.Copy(R().KcGet("/api/" + r.KcVersion() + "/namespaces").
 		Yq(DefaultCleaningYqQuery))
 }
 
@@ -139,7 +177,6 @@ func (r *runner) KcVersion() string {
 func (r *runner) KcDump(path string, poolSize int, progress func()) CmdRunner {
 	fsutil.Clean(path)
 	path = path + "/"
-	R().KcGet("/version").WriteFile(path + "version.yaml")
 	nsList := R().
 		KcNs().
 		WriteFile(path + "namespaces_" + r.KcVersion() + ".yaml").
@@ -174,13 +211,23 @@ func (r *runner) KcDump(path string, poolSize int, progress func()) CmdRunner {
 		}()
 	}
 	wg.Wait()
+	R().KcGet("/version").WriteFile(path + "version.yaml")
 	return r
 }
 
 func writeResourceList(path string, baseName string, name string, gv string, namespaced bool, progress func()) {
 	fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
 	fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
-	r := R().KcGet(baseName + gv + "/" + name).Yq(DefaultCleaningYqQuery)
+	r := R().KcTransformResponse(func(kc kc.Kc) (string, error) {
+		if kc.Status() == http.StatusNotFound || kc.Status() == http.StatusMethodNotAllowed {
+			return "", nil
+		}
+		return kc.Response(), kc.Err()
+	}).KcGet(baseName + gv + "/" + name)
+	if r.Empty() {
+		return
+	}
+	r.Yq(DefaultCleaningYqQuery)
 	if name == "secrets" {
 		r.Yq(`.items[].data.[] = ""`)
 	}
@@ -193,7 +240,7 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 				Yq(`.items = [.items[] | select(.metadata.namespace=="` + ns + `")]`).
 				WriteFile(nsPath + fileName)
 			if name == "pods" {
-				podNameContainerExpr := `.items[].metadata.name + ";" + .items[].spec.containers[].name`
+				podNameContainerExpr := `.items[] | .metadata.name + ";" + .spec.containers[].name`
 				for _, p := range nsr.Yq(podNameContainerExpr).List() {
 					_p := strings.Split(p, ";")
 					podName := _p[0]
@@ -201,7 +248,7 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 					fileName := podName + "-" + containerName + ".log"
 					qp := map[string]string{"container": containerName}
 					apiFormat := "%s%s/namespaces/%s/pods/%s/log"
-					R().KcGetWithParams(fmt.Sprintf(apiFormat, baseName, gv, ns, podName), qp).
+					R().KcIgnoreNotFound().KcGetWithParams(fmt.Sprintf(apiFormat, baseName, gv, ns, podName), qp).
 						WriteFile(nsPath + "log/" + fileName)
 				}
 			}
@@ -212,9 +259,10 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 	}
 }
 
-func (r *runner) initKc() {
+func (r *runner) initKc() CmdRunner {
 	if r.kc == nil {
 		r.kc = kc.NewKc()
 		logger.Debug("kcVersion=" + r.kc.Version())
 	}
+	return r
 }

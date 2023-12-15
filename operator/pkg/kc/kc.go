@@ -24,9 +24,7 @@ const (
 	queryContextForUserAuth = `(%s as $c | .contexts[] | select (.name == $c)).context as $ctx | $ctx | parent | parent | parent | .users[] | select(.name == $ctx.user) | .user.%s`
 )
 
-var (
-	logger = log.Logger().Named("hcr.kc")
-)
+var logger = log.Logger().Named("hcr.kc")
 
 type (
 	// Kc represents a kubernetes client
@@ -38,17 +36,18 @@ type (
 		SetYamlOutput() Kc
 		PrettyPrintJson() Kc
 		Get(apiCall string) (string, error)
-		GetTransform(apiCall string, transformer ResponseTransformer) (string, error)
 		Apply(apiCall string, body string) (string, error)
 		Create(apiCall string, body string) (string, error)
 		Replace(apiCall string, body string) (string, error)
 		Delete(apiCall string, ignoreNotFound bool) (string, error)
 		SetGetParams(queryParams map[string]string) Kc
 		SetGetParam(name string, value string) Kc
+		SetResponseTransformer(transformer ResponseTransformer) Kc
 		Version() string
 		Response() string
 		Err() error
 		Status() int
+		Api() string
 		setCert(cert []byte, key []byte)
 		response(resp *resty.Response) (string, error)
 		send(method string, apiCall string, body string) (string, error)
@@ -58,17 +57,19 @@ type (
 		client          *resty.Client
 		yamlOutput      bool
 		prettyPrintJson bool
-		version         string
 		readOnly        bool
+		api             string
 		resp            string
 		err             error
+		version         string
 		status          int
+		transformer     ResponseTransformer
 	}
 	// Optional transformer function to Get methods
 	//
 	// parameters are ('api called', 'response', 'error') in this order.
 	// returns ('transformed response', 'transformed error')
-	ResponseTransformer func(string, string, error) (string, error)
+	ResponseTransformer func(Kc) (string, error)
 )
 
 func NewKc() Kc {
@@ -182,7 +183,9 @@ func newKc() Kc {
 	kc := kc{}
 	kc.client = resty.New().
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
-		SetTimeout(55 * time.Second)
+		SetTimeout(5 * time.Minute).
+		SetRetryCount(5).
+		SetRetryWaitTime(250 * time.Millisecond)
 	kc.yamlOutput = true
 	kc.prettyPrintJson = false
 	kc.readOnly = false
@@ -222,6 +225,11 @@ func (kc *kc) PrettyPrintJson() Kc {
 	return kc
 }
 
+func (kc *kc) SetResponseTransformer(transformer ResponseTransformer) Kc {
+	kc.transformer = transformer
+	return kc
+}
+
 func (kc *kc) Response() string {
 	return kc.resp
 }
@@ -234,11 +242,12 @@ func (kc *kc) Status() int {
 	return kc.status
 }
 
-func (kc *kc) Get(apiCall string) (string, error) {
-	return kc.GetTransform(apiCall, nil)
+func (kc *kc) Api() string {
+	return kc.api
 }
 
-func (kc *kc) GetTransform(apiCall string, transformer ResponseTransformer) (string, error) {
+func (kc *kc) Get(apiCall string) (string, error) {
+	kc.api = apiCall
 	resp, err := kc.client.R().Get(apiCall)
 	if err != nil {
 		return "", err
@@ -246,8 +255,8 @@ func (kc *kc) GetTransform(apiCall string, transformer ResponseTransformer) (str
 	logResponse(apiCall, resp)
 	kc.resp, kc.err = kc.response(resp)
 	kc.status = resp.StatusCode()
-	if transformer != nil {
-		kc.resp, kc.err = transformer(apiCall, kc.resp, kc.err)
+	if kc.transformer != nil {
+		kc.resp, kc.err = kc.transformer(kc)
 	}
 	return kc.resp, kc.err
 }
@@ -268,6 +277,7 @@ func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
 	if kc.readOnly {
 		return "", errors.New("trying to delete in read only mode")
 	}
+	kc.api = apiCall
 	resp, err := kc.client.R().Delete(apiCall)
 	if err != nil {
 		return "", err
@@ -281,10 +291,11 @@ func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
 
 func (kc *kc) Version() string {
 	if kc.version == "" {
-		kc.version, kc.err = kc.GetTransform("/api", func(a string, r string, e error) (string, error) {
-			return yjq.YqEval(".versions[-1]", r)
-		})
-		if kc.err != nil {
+		kc.Get("/api")
+		if kc.err == nil {
+			kc.version, kc.err = yjq.YqEval(`.versions[-1] // ""`, kc.Response())
+		}
+		if kc.err != nil || kc.version == "" {
 			logger.Error("unable to get version", zap.Error(kc.err))
 		}
 	}
@@ -349,6 +360,7 @@ func (kc *kc) send(method string, apiCall string, body string) (string, error) {
 	if kc.readOnly {
 		return "", errors.New("trying to write in read only mode")
 	}
+	kc.api = apiCall
 	var (
 		req = kc.client.R().SetBody(body).SetHeader("Content-Type", "application/yaml")
 		res *resty.Response

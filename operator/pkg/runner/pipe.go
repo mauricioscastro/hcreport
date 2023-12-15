@@ -166,7 +166,7 @@ func (r *runner) writeBytes(data []byte) {
 func (r *runner) error(e error, msg ...string) {
 	if e != nil {
 		r.err = fmt.Errorf("%s\n%s", strings.Join(msg, " "), e.Error())
-		logger.Debug("CmdRunner error:", zap.Error(r.err))
+		logger.Error("cmdRunner", zap.Error(r.err))
 	}
 	r.append = false
 }

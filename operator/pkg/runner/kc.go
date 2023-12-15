@@ -248,8 +248,12 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 					fileName := podName + "-" + containerName + ".log"
 					qp := map[string]string{"container": containerName}
 					apiFormat := "%s%s/namespaces/%s/pods/%s/log"
-					R().KcIgnoreNotFound().KcGetWithParams(fmt.Sprintf(apiFormat, baseName, gv, ns, podName), qp).
-						WriteFile(nsPath + "log/" + fileName)
+					logRunner := R().
+						KcIgnoreNotFound().
+						KcGetWithParams(fmt.Sprintf(apiFormat, baseName, gv, ns, podName), qp)
+					if !logRunner.Empty() {
+						logRunner.WriteFile(nsPath + "log/" + fileName)
+					}
 				}
 			}
 		}

@@ -118,14 +118,14 @@ func (r *runner) IgnoreError(regex ...string) CmdRunner {
 	if r.err != nil {
 		if len(regex) == 0 {
 			r.err = nil
-		} else {
-			for _, expr := range regex {
-				if m, e := regexp.MatchString(expr, r.err.Error()); e == nil && m {
-					r.err = nil
-					break
-				} else if e != nil {
-					r.error(e)
-				}
+			return r
+		}
+		for _, expr := range regex {
+			if m, e := regexp.MatchString(expr, r.err.Error()); e == nil && m {
+				r.err = nil
+				break
+			} else if e != nil {
+				r.error(e)
 			}
 		}
 	}

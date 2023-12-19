@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/go-resty/resty/v2"
@@ -24,7 +25,10 @@ const (
 	queryContextForUserAuth = `(%s as $c | .contexts[] | select (.name == $c)).context as $ctx | $ctx | parent | parent | parent | .users[] | select(.name == $ctx.user) | .user.%s`
 )
 
-var logger = log.Logger().Named("hcr.kc")
+var (
+	logger = log.Logger().Named("hcr.kc")
+	cache  sync.Map
+)
 
 type (
 	// Kc represents a kubernetes client
@@ -58,30 +62,35 @@ type (
 		yamlOutput      bool
 		prettyPrintJson bool
 		readOnly        bool
+		cluster         string
 		api             string
 		resp            string
 		err             error
-		version         string
 		status          int
 		transformer     ResponseTransformer
 	}
 	// Optional transformer function to Get methods
-	//
-	// parameters are ('api called', 'response', 'error') in this order.
-	// returns ('transformed response', 'transformed error')
+	// should return ('transformed response', 'transformed error')
 	ResponseTransformer func(Kc) (string, error)
+	cacheEntry          struct {
+		version string
+	}
 )
+
+func init() {
+	cache = sync.Map{} //currently only caching api version
+}
 
 func NewKc() Kc {
 	token, err := os.ReadFile(TokenPath)
 	if err != nil {
-		logger.Info("could not read default sa token. skipping to kubeconfig", zap.Error(err))
+		logger.Debug("could not read default sa token. skipping to kubeconfig", zap.Error(err))
 	} else {
 		logger.Debug("", zap.String("token from sa account", "XXX"))
 		host := os.Getenv("KUBERNETES_SERVICE_HOST")
 		port := os.Getenv("KUBERNETES_SERVICE_PORT_HTTPS")
 		if host != "" && port != "" {
-			logger.Info("kc will auth with token and env KUBERNETES_SERVICE_...")
+			logger.Debug("kc will auth with token and env KUBERNETES_SERVICE_...")
 			logger.Debug("", zap.String("host:port from env", host+":"+port))
 			return NewKcWithToken(host+":"+port, string(token))
 		}
@@ -156,7 +165,7 @@ func NewKcWithConfigContext(config string, context string) Kc {
 		logger.Debug("", zap.String("token from kube config", "XXX"))
 		kc.SetToken(token)
 	}
-	logger.Info("kc will auth with kube config")
+	logger.Debug("kc will auth with kube config")
 	return kc
 }
 
@@ -185,7 +194,7 @@ func newKc() Kc {
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
 		SetTimeout(5 * time.Minute).
 		SetRetryCount(5).
-		SetRetryWaitTime(250 * time.Millisecond)
+		SetRetryWaitTime(500 * time.Millisecond)
 	kc.yamlOutput = true
 	kc.prettyPrintJson = false
 	kc.readOnly = false
@@ -194,7 +203,9 @@ func newKc() Kc {
 }
 
 func (kc *kc) SetCluster(cluster string) Kc {
+	kc.cluster = cluster
 	kc.client.SetBaseURL(cluster)
+	cache.Store(cluster, cacheEntry{""})
 	return kc
 }
 
@@ -254,7 +265,6 @@ func (kc *kc) Get(apiCall string) (string, error) {
 	}
 	logResponse(apiCall, resp)
 	kc.resp, kc.err = kc.response(resp)
-	kc.status = resp.StatusCode()
 	if kc.transformer != nil {
 		kc.resp, kc.err = kc.transformer(kc)
 	}
@@ -275,31 +285,38 @@ func (kc *kc) Replace(apiCall string, body string) (string, error) {
 
 func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
 	if kc.readOnly {
-		return "", errors.New("trying to delete in read only mode")
+		kc.resp, kc.err = "", errors.New("trying to write in read only mode")
+		return kc.resp, kc.err
 	}
 	kc.api = apiCall
 	resp, err := kc.client.R().Delete(apiCall)
 	if err != nil {
-		return "", err
+		kc.resp, kc.err = "", err
+		return kc.resp, kc.err
 	}
 	logResponse(apiCall, resp)
 	if resp.StatusCode() == http.StatusNotFound && ignoreNotFound {
-		return "", nil
+		kc.resp, kc.err = "", nil
+		return kc.resp, kc.err
 	}
 	return kc.response(resp)
 }
 
 func (kc *kc) Version() string {
-	if kc.version == "" {
+	c, _ := cache.Load(kc.cluster)
+	ce := c.(cacheEntry)
+	if ce.version == "" {
 		kc.Get("/api")
 		if kc.err == nil {
-			kc.version, kc.err = yjq.YqEval(`.versions[-1] // ""`, kc.Response())
+			ce.version, kc.err = yjq.YqEval(`.versions[-1] // ""`, kc.resp)
 		}
-		if kc.err != nil || kc.version == "" {
+		if kc.err != nil || ce.version == "" {
 			logger.Error("unable to get version", zap.Error(kc.err))
+		} else {
+			cache.Store(kc.cluster, ce)
 		}
 	}
-	return kc.version
+	return ce.version
 }
 
 func (kc *kc) SetGetParams(queryParams map[string]string) Kc {
@@ -332,6 +349,7 @@ func logResponse(api string, resp *resty.Response) {
 }
 
 func (kc *kc) response(resp *resty.Response) (string, error) {
+	kc.status = resp.StatusCode()
 	contentType := strings.ToLower(resp.Header().Get("Content-Type"))
 	body := string(resp.Body())
 	if resp.StatusCode() >= 400 {
@@ -358,7 +376,8 @@ func (kc *kc) response(resp *resty.Response) (string, error) {
 
 func (kc *kc) send(method string, apiCall string, body string) (string, error) {
 	if kc.readOnly {
-		return "", errors.New("trying to write in read only mode")
+		kc.resp, kc.err = "", errors.New("trying to write in read only mode")
+		return kc.resp, kc.err
 	}
 	kc.api = apiCall
 	var (

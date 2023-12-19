@@ -18,7 +18,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"sync/atomic"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -34,6 +36,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
+	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
@@ -57,21 +60,23 @@ func init() {
 
 func main() {
 
-	// r, e := util.GitClone("git@github.com:mauricioscastro/hcreports.git", "/tmp/git", "/home/macastro/.ssh/github-robot")
+	// e := util.GitClone("git@github.com:mauricioscastro/hcreports.git", "/tmp/git", "/home/macastro/.ssh/github-robot")
 	// if e != nil {
 	// 	fmt.Println("error: " + e.Error())
 	// } else {
-	// 	fmt.Println(r.Config())
+	// 	fmt.Println("done")
 	// }
+	// fmt.Print(x)
+	// fmt.Println(runner.R().KcGetWithParams("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample?watch=1&resourceVersion=993863", map[string]string{"resourceVersion": "993863"}).String())
 
-	// tot := runner.R().KcApiResources().Yq(".resources | length").String()
-	// var c atomic.Int32
-	// runner.R().KcDump("/tmp/_data", 0, func() {
-	// 	c.Add(1)
-	// 	fmt.Printf("%d/%s\r", c.Load(), tot)
-	// })
+	tot := runner.R().KcApiResources().Yq(".resources | length").String()
+	var c atomic.Int32
+	runner.R().KcDump("/tmp/_data", 0, func() {
+		c.Add(1)
+		fmt.Printf("%d/%s\r", c.Load(), tot)
+	})
 
-	// os.Exit(0)
+	os.Exit(0)
 
 	logger.Info("hcreport running...")
 	var metricsAddr string

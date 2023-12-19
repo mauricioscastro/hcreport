@@ -174,6 +174,11 @@ func (r *runner) KcVersion() string {
 	return r.kc.Version()
 }
 
+// Dumps whole cluster information to path. each api resource listed with
+// KcApiResources is treated in a separate thread. The pool size for the
+// the threads can be expressed through poolsize (0 or -1 to unbound it).
+// progress will be called at the end. You need to add thread safety mechanisms
+// to the code inside progress func().
 func (r *runner) KcDump(path string, poolSize int, progress func()) CmdRunner {
 	fsutil.Clean(path)
 	path = path + "/"

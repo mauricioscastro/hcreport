@@ -4,3 +4,4 @@ metadata:
   name: config-sample
 spec: 
   logLevel: info
+  dummy: friday

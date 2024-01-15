@@ -36,10 +36,8 @@ type (
 		SetToken(token string) Kc
 		SetCert(cert tls.Certificate) Kc
 		SetCluster(cluster string) Kc
-		SetJsonOutput() Kc
-		SetYamlOutput() Kc
-		PrettyPrintJson() Kc
 		Get(apiCall string) (string, error)
+		GetJson(apiCall string) (string, error)
 		Apply(apiCall string, body string) (string, error)
 		Create(apiCall string, body string) (string, error)
 		Replace(apiCall string, body string) (string, error)
@@ -53,21 +51,21 @@ type (
 		Status() int
 		Api() string
 		setCert(cert []byte, key []byte)
-		response(resp *resty.Response) (string, error)
+		response(resp *resty.Response, yamlOutput bool) (string, error)
 		send(method string, apiCall string, body string) (string, error)
+		get(apiCall string, yamlOutput bool) (string, error)
+		setResourceVersion(apiCall string, newResource string) (string, error)
 	}
 
 	kc struct {
-		client          *resty.Client
-		yamlOutput      bool
-		prettyPrintJson bool
-		readOnly        bool
-		cluster         string
-		api             string
-		resp            string
-		err             error
-		status          int
-		transformer     ResponseTransformer
+		client      *resty.Client
+		readOnly    bool
+		cluster     string
+		api         string
+		resp        string
+		err         error
+		status      int
+		transformer ResponseTransformer
 	}
 	// Optional transformer function to Get methods
 	// should return ('transformed response', 'transformed error')
@@ -116,6 +114,7 @@ func NewKcWithConfigContext(config string, context string) Kc {
 	if context != CurrentContext {
 		context = `"` + context + `"`
 	}
+	logger.Debug("context " + context)
 	kcfg, err := os.ReadFile(config)
 	if err != nil {
 		logger.Error("reading config file", zap.Error(err))
@@ -123,6 +122,7 @@ func NewKcWithConfigContext(config string, context string) Kc {
 	}
 	kubeCfg := string(kcfg)
 	cluster, err := yjq.YqEval(fmt.Sprintf(queryContextForCluster, context), kubeCfg)
+	logger.Debug("query for server " + fmt.Sprintf(queryContextForCluster, context))
 	if err != nil {
 		logger.Error("reading cluster info for context", zap.Error(err))
 		return kc
@@ -131,7 +131,7 @@ func NewKcWithConfigContext(config string, context string) Kc {
 		logger.Error("empty cluster info reading context")
 		return kc
 	}
-	logger.Debug("", zap.String("cluster", cluster))
+	logger.Debug("", zap.String("context cluster", cluster))
 	kc.SetCluster(cluster)
 	token, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `token // ""`), kubeCfg)
 	if err != nil {
@@ -195,8 +195,6 @@ func newKc() Kc {
 		SetTimeout(5 * time.Minute).
 		SetRetryCount(5).
 		SetRetryWaitTime(500 * time.Millisecond)
-	kc.yamlOutput = true
-	kc.prettyPrintJson = false
 	kc.readOnly = false
 	yjq.SilenceYqLogs()
 	return &kc
@@ -216,23 +214,6 @@ func (kc *kc) SetToken(token string) Kc {
 
 func (kc *kc) SetCert(cert tls.Certificate) Kc {
 	kc.client.SetCertificates(cert)
-	return kc
-}
-
-func (kc *kc) SetJsonOutput() Kc {
-	kc.yamlOutput = false
-	kc.prettyPrintJson = false
-	return kc
-}
-
-func (kc *kc) SetYamlOutput() Kc {
-	kc.yamlOutput = true
-	return kc
-}
-
-func (kc *kc) PrettyPrintJson() Kc {
-	kc.yamlOutput = false
-	kc.prettyPrintJson = true
 	return kc
 }
 
@@ -257,14 +238,22 @@ func (kc *kc) Api() string {
 	return kc.api
 }
 
+func (kc *kc) GetJson(apiCall string) (string, error) {
+	return kc.get(apiCall, false)
+}
+
 func (kc *kc) Get(apiCall string) (string, error) {
+	return kc.get(apiCall, true)
+}
+
+func (kc *kc) get(apiCall string, yamlOutput bool) (string, error) {
 	kc.api = apiCall
 	resp, err := kc.client.R().Get(apiCall)
 	if err != nil {
 		return "", err
 	}
 	logResponse(apiCall, resp)
-	kc.resp, kc.err = kc.response(resp)
+	kc.resp, kc.err = kc.response(resp, yamlOutput)
 	if kc.transformer != nil {
 		kc.resp, kc.err = kc.transformer(kc)
 	}
@@ -299,16 +288,16 @@ func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
 		kc.resp, kc.err = "", nil
 		return kc.resp, kc.err
 	}
-	return kc.response(resp)
+	return kc.response(resp, true)
 }
 
 func (kc *kc) Version() string {
 	c, _ := cache.Load(kc.cluster)
 	ce := c.(cacheEntry)
 	if ce.version == "" {
-		kc.Get("/api")
+		kc.GetJson("/api")
 		if kc.err == nil {
-			ce.version, kc.err = yjq.YqEval(`.versions[-1] // ""`, kc.resp)
+			ce.version, kc.err = yjq.JqEval(`.versions[-1] // ""`, kc.resp)
 		}
 		if kc.err != nil || ce.version == "" {
 			logger.Error("unable to get version", zap.Error(kc.err))
@@ -330,6 +319,9 @@ func (kc *kc) SetGetParam(name string, value string) Kc {
 }
 
 func logResponse(api string, resp *resty.Response) {
+	if logger.Level() != zapcore.DebugLevel {
+		return
+	}
 	zapFields := []zap.Field{
 		zap.String("req", api),
 		zap.Int("status code", resp.StatusCode()),
@@ -338,22 +330,20 @@ func logResponse(api string, resp *resty.Response) {
 		zap.Int64("time", resp.Time().Milliseconds()),
 		zap.Time("received at", resp.ReceivedAt()),
 	}
-	if logger.Level() == zapcore.DebugLevel {
-		for name, values := range resp.Header() {
-			for _, value := range values {
-				zapFields = append(zapFields, zap.String(name, value))
-			}
+	for name, values := range resp.Header() {
+		for _, value := range values {
+			zapFields = append(zapFields, zap.String(name, value))
 		}
 	}
 	logger.Debug("http resp", zapFields...)
 }
 
-func (kc *kc) response(resp *resty.Response) (string, error) {
+func (kc *kc) response(resp *resty.Response, yamlOutput bool) (string, error) {
 	kc.status = resp.StatusCode()
 	contentType := strings.ToLower(resp.Header().Get("Content-Type"))
 	body := string(resp.Body())
 	if resp.StatusCode() >= 400 {
-		if strings.Contains(contentType, "json") && kc.yamlOutput {
+		if strings.Contains(contentType, "json") && yamlOutput {
 			if ymlBody, err := yjq.J2Y(body); err == nil {
 				body = ymlBody
 			}
@@ -362,10 +352,8 @@ func (kc *kc) response(resp *resty.Response) (string, error) {
 	}
 	if strings.Contains(contentType, "json") {
 		var err error
-		if kc.yamlOutput {
+		if yamlOutput {
 			body, err = yjq.J2Y(body)
-		} else if kc.prettyPrintJson {
-			body, err = yjq.J2JP(body)
 		}
 		if err != nil {
 			return "", err
@@ -380,30 +368,47 @@ func (kc *kc) send(method string, apiCall string, body string) (string, error) {
 		return kc.resp, kc.err
 	}
 	kc.api = apiCall
-	var (
-		req = kc.client.R().SetBody(body).SetHeader("Content-Type", "application/yaml")
-		res *resty.Response
-	)
+	var res *resty.Response
 	switch {
 	case http.MethodPatch == method:
-		res, kc.err = req.SetQueryParam("fieldManager", "skc-client-side-apply").
+		res, kc.err = kc.client.R().
+			SetBody(body).
+			SetQueryParam("fieldManager", "skc-client-side-apply").
 			SetHeader("Content-Type", "application/apply-patch+yaml").
 			Patch(apiCall)
 	case http.MethodPost == method:
-		res, kc.err = req.Post(apiCall)
+		res, kc.err = kc.client.R().
+			SetBody(body).
+			SetHeader("Content-Type", "application/yaml").
+			Post(apiCall)
 	case http.MethodPut == method:
-		r, _ := kc.Get(apiCall)
-		if rv, err := yjq.YqEval(`.metadata.resourceVersion`, r); err == nil && kc.err == nil {
-			if body, kc.err = yjq.YqEval(`.metadata.resourceVersion = "`+rv+`"`, body); kc.err == nil {
-				res, kc.err = req.SetBody(body).Put(apiCall)
-			}
-		} else if err != nil {
-			kc.err = err
+		body, kc.err = kc.setResourceVersion(apiCall, body)
+		if kc.err == nil {
+			res, kc.err = kc.client.R().
+				SetBody(body).
+				SetHeader("Content-Type", "application/yaml").
+				Put(apiCall)
 		}
 	}
 	if kc.err == nil {
 		logResponse(apiCall, res)
-		kc.resp, kc.err = kc.response(res)
+		kc.resp, kc.err = kc.response(res, true)
 	}
 	return kc.resp, kc.err
+}
+
+func (kc *kc) setResourceVersion(apiCall string, newResource string) (string, error) {
+	r, err := kc.GetJson(apiCall)
+	if err != nil {
+		return "", err
+	}
+	rv, err := yjq.JqEval(`.metadata.resourceVersion`, r)
+	if err != nil {
+		return "", err
+	}
+	nr, err := yjq.YqEvalJ2Y(`.metadata.resourceVersion = "`+rv+`"`, newResource)
+	if err != nil {
+		return "", err
+	}
+	return nr, nil
 }

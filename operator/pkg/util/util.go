@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
+	"github.com/rwtodd/Go.Sed/sed"
 	"github.com/santhosh-tekuri/jsonschema/v5"
 	"gopkg.in/yaml.v3"
 )
@@ -41,4 +42,16 @@ func GetEnv(k string, d string) string {
 	} else {
 		return env
 	}
+}
+
+func Sed(expr string, input string) (string, error) {
+	r, e := sed.New(strings.NewReader(expr))
+	if e != nil {
+		return "", e
+	}
+	s, e := r.RunString(input)
+	if e != nil {
+		return "", e
+	}
+	return s, e
 }

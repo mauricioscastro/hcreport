@@ -18,9 +18,7 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
-	"sync/atomic"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -36,7 +34,6 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
@@ -51,7 +48,6 @@ var (
 
 func init() {
 	yjq.SilenceYqLogs()
-	// util.SetLoggerLevel("info")
 
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(hcrv1.AddToScheme(scheme))
@@ -69,14 +65,46 @@ func main() {
 	// fmt.Print(x)
 	// fmt.Println(runner.R().KcGetWithParams("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample?watch=1&resourceVersion=993863", map[string]string{"resourceVersion": "993863"}).String())
 
-	tot := runner.R().KcApiResources().Yq(".resources | length").String()
-	var c atomic.Int32
-	runner.R().KcDump("/tmp/_data", 0, func() {
-		c.Add(1)
-		fmt.Printf("%d/%s\r", c.Load(), tot)
-	})
+	// tot := runner.R().KcApiResources().Yq(".resources | length").String()
+	// var c atomic.Int32
+	// runner.R().KcDump("/tmp/_data", 0, func() {
+	// 	c.Add(1)
+	// 	fmt.Printf("%d/%s\r", c.Load(), tot)
+	// })
 
-	os.Exit(0)
+	// fmt.Println(runner.R().KcGet("/apis/batch/v1/cronjobs").ToJson().JqPretty(`.items = [.items[] | del(.metadata.managedFields) | del(.metadata.uid) | del (.metadata.creationTimestamp) | del (.metadata.generation) | del(.metadata.resourceVersion) | del (.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])] | del(.metadata)`).String())
+	//fmt.Print(runner.R().KcGet("/api").ToJson().Jq(`.versions[-1] // ""`).String())
+
+	// fmt.Print(runner.R().KcNs().String())
+	// runner.R().KcDump("/tmp/_data", 0, nil)
+	// s, e := kc.ApiResources()
+	// s, _ := kc.NewKc().GetJson("/apis")
+	// _, e := kc.NewKc().GetJson("/apis")
+	// s, e := kc.Ns()
+	// s, _ := kc.Ns()
+	// kc.ApiResources()
+	// fmt.Println(fmt.Sprintf("ccc\n"))
+	// fmt.Println(s)
+
+	// e := ".items[].metadata.name"
+
+	// j, _ := fsutil.ReadTextFile("/tmp/t.json")
+	// j := `[{"groupVersion": "gv", "available": false, "error": "l;aksd\nhello world\nyes"}]`
+	// j = `1.098`
+	// // j = `{"page": 1, "fruits": ["apple", "peach"]}`
+	// // s, _ := yjq.JqEval(e, j)
+	// fmt.Println(s)
+	// // fmt.Println("-=-=-=-=-=-")
+	// s, e := yjq.JqEval2Y(".", j)
+	// fmt.Print(s)
+	// e := kc.Dump("/tmp/_data", 0, nil)
+
+	// s, e := yjq.JqEval(`[{"groupVersion": "%s", "available": false, "error": "%s"}]`, "", "gv", "errou!")
+	// fmt.Print(s)
+
+	// fmt.Print(e)
+
+	// os.Exit(0)
 
 	logger.Info("hcreport running...")
 	var metricsAddr string

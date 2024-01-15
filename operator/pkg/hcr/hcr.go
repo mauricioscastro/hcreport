@@ -2,14 +2,17 @@ package hcr
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"strings"
 	"sync"
 
 	fsutil "github.com/coreybutler/go-fsutil"
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
-	"github.com/mauricioscastro/hcreport/pkg/runner"
+
+	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
+	"github.com/mauricioscastro/hcreport/pkg/yjq"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -20,11 +23,7 @@ import (
 const (
 	reportPath       = "/_data/"
 	apiResourcesFile = "api_resources.yaml"
-	status           = `
-    phase: ""
-    diskUsage: ""
-    transitions: []
-  `
+	status           = `{"phase": "", "diskUsage": "", "transitions": []}`
 )
 
 var (
@@ -41,15 +40,10 @@ type reconciler struct {
 type Reconciler interface {
 	Run() (ctrl.Result, error)
 	extract() error
-	statusCheck()
-	setLogLevel()
+	setLogLevel() error
 	statusAddPhase(phase string) error
 	statusAddDiskUsage() error
 	updateStatus(jqExpr string) error
-}
-
-func SetLoggerLevel(level string) {
-	logger = log.ResetLoggerLevel(logger, level)
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
@@ -58,18 +52,19 @@ func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1
 }
 
 func (rec *reconciler) Run() (ctrl.Result, error) {
-	rec.statusCheck()
-	err := rec.statusAddPhase("extracting")
-	if err != nil {
+	if len(rec.cfg.Status) == 0 {
+		rec.cfg.Status = json.RawMessage(status)
+	}
+	if err := rec.statusAddPhase("extracting"); err != nil {
 		return ctrl.Result{}, err
 	}
-	rec.setLogLevel()
-	err = rec.extract()
-	if err != nil {
+	if err := rec.setLogLevel(); err != nil {
 		return ctrl.Result{}, err
 	}
-	err = rec.statusAddPhase("building")
-	if err != nil {
+	if err := rec.extract(); err != nil {
+		return ctrl.Result{}, err
+	}
+	if err := rec.statusAddPhase("building"); err != nil {
 		return ctrl.Result{}, err
 	}
 	return ctrl.Result{}, nil
@@ -77,27 +72,21 @@ func (rec *reconciler) Run() (ctrl.Result, error) {
 
 func (rec *reconciler) extract() error {
 	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
-	return runner.Run().KcDump(reportHome, 0, func() {
+	return kc.Dump(reportHome, 0, func() {
 		duLock.Lock()
 		defer duLock.Unlock()
 		rec.statusAddDiskUsage()
-	}).Err()
+	})
 }
 
-func (rec *reconciler) statusCheck() {
-	if len(rec.cfg.Status) == 0 {
-		rec.cfg.Status = runner.NewCmdRunner().Echo(status).ToJson().Bytes()
+func (rec *reconciler) setLogLevel() error {
+	if s, e := yjq.JqEval(`.logLevel // ""`, string(rec.cfg.Spec)); e != nil {
+		return e
+	} else {
+		logger.Debug("setting log level", zap.String("level", s))
+		logger = log.ResetLoggerLevel(logger, s)
 	}
-}
-
-func (rec *reconciler) setLogLevel() {
-	cmd := runner.NewCmdRunner()
-	cmd.Echo(rec.cfg.Spec).Yq(`.logLevel // ""`)
-	if cmd.Err() == nil && !cmd.Empty() {
-		logger.Debug("setting log level", zap.String("level", cmd.String()))
-		SetLoggerLevel(cmd.String())
-		runner.SetLoggerLevel(cmd.String())
-	}
+	return nil
 }
 
 func (rec *reconciler) statusAddPhase(phase string) error {
@@ -113,15 +102,15 @@ func (rec *reconciler) statusAddDiskUsage() error {
 }
 
 func (rec *reconciler) updateStatus(jqExpr string) error {
-	cmd := runner.NewCmdRunner()
-	if cmd.Echo(rec.cfg.Status).Jq(jqExpr).Err() == nil {
-		rec.cfg.Status = cmd.Bytes()
-		if err := rec.srw.Update(rec.ctx, rec.cfg); err != nil && !strings.Contains(err.Error(), "try again") {
-			logger.Debug("unable to update status", zap.Error(err))
-			return err
-		}
+	if s, e := yjq.JqEval(jqExpr, string(rec.cfg.Status)); e != nil {
+		logger.Error("hcr reconciler updateStatus", zap.Error(e))
+		return e
 	} else {
-		logger.Debug("cmd runner error", zap.Error(cmd.Err()))
+		rec.cfg.Status = json.RawMessage(s)
+		if e = rec.srw.Update(rec.ctx, rec.cfg); e != nil && !strings.Contains(e.Error(), "try again") {
+			logger.Warn("unable to update status", zap.Error(e))
+			return e
+		}
 	}
-	return cmd.Err()
+	return nil
 }

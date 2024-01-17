@@ -80,7 +80,7 @@ func (rec *reconciler) extract() error {
 }
 
 func (rec *reconciler) setLogLevel() error {
-	if s, e := yjq.JqEval(`.logLevel // ""`, string(rec.cfg.Spec)); e != nil {
+	if s, e := yjq.JqEval(`.logLevel // "info"`, string(rec.cfg.Spec)); e != nil {
 		return e
 	} else {
 		logger.Debug("setting log level", zap.String("level", s))

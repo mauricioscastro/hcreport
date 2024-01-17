@@ -274,7 +274,7 @@ func (kc *kc) Replace(apiCall string, body string) (string, error) {
 
 func (kc *kc) Delete(apiCall string, ignoreNotFound bool) (string, error) {
 	if kc.readOnly {
-		kc.resp, kc.err = "", errors.New("trying to write in read only mode")
+		kc.resp, kc.err = "", errors.New("trying to delete in read only mode")
 		return kc.resp, kc.err
 	}
 	kc.api = apiCall

@@ -48,7 +48,6 @@ var (
 
 func init() {
 	yjq.SilenceYqLogs()
-
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(hcrv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme

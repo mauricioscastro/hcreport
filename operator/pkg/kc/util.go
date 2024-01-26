@@ -83,7 +83,6 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 	} else {
 		resp, err = yjq.JqEval2Y(`.resources[] += {"groupVersion": .groupVersion} | .resources[] += {"available": true} | [.resources[] | select(.name | contains("/") | not) | del(.storageVersionHash) | del(.singularName)]`, kc.Response())
 		if err != nil {
-			fmt.Println(kc.Response())
 			logger.Warn("ApiResources JqEval2Y", zap.String("api", kc.Api()), zap.Error(err))
 			resp, err = yjq.JqEval2Y(unavailableApiResp, "", api, err.Error())
 		} else if resp == "[]" {

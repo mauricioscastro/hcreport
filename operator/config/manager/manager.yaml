@@ -44,7 +44,7 @@ spec:
       volumes:
       - name: work
         emptyDir:
-          sizeLimit: 5Gi        
+          sizeLimit: 10Gi        
       containers:
       - command:
         - /manager

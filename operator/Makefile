@@ -10,6 +10,8 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
+yq_set_whook_only_query='select(.kind == "Deployment").spec.template.spec.containers.[0].env[0].value = "true"'
+
 # CONTAINER_TOOL defines the container tool to be used for building images.
 # Be aware that the target commands are only tested with Docker which is
 # scaffolded by default. However, you might want to replace it to use other
@@ -135,6 +137,16 @@ deploy-show:
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KUSTOMIZE) build config/default
 
+.PHONY: deploy-webhook-only
+deploy-webhook-only: yq
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} 
+	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query) | $(KUBECTL) apply -f -
+
+.PHONY: deploy-webhook-only-show
+deploy-webhook-only-show: yq
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} 
+	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query)
+
 .PHONY: undeploy
 undeploy: ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
@@ -175,3 +187,7 @@ $(CONTROLLER_GEN): $(LOCALBIN)
 envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
+
+.PHONY: yq
+yq:
+	@GO111MODULE=on go install github.com/mikefarah/yq/v4

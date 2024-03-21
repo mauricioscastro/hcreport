@@ -18,7 +18,9 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"os"
+	"path/filepath"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -34,6 +36,7 @@ import (
 
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
+	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
@@ -44,6 +47,16 @@ import (
 var (
 	scheme = runtime.NewScheme()
 	logger = log.Logger().Named("hcr")
+
+	metricsAddr          string
+	enableLeaderElection bool
+	probeAddr            string
+	kcdump               bool
+	gzip                 bool
+	nologs               bool
+	ns                   bool
+	gkv                  bool
+	//TODO: add -config (file) + -context + -xns (exclude ns regex list) + -xgkv (exclude gk,v regex list)
 )
 
 func init() {
@@ -54,77 +67,43 @@ func init() {
 }
 
 func main() {
-
-	// e := util.GitClone("git@github.com:mauricioscastro/hcreports.git", "/tmp/git", "/home/macastro/.ssh/github-robot")
-	// if e != nil {
-	// 	fmt.Println("error: " + e.Error())
-	// } else {
-	// 	fmt.Println("done")
-	// }
-	// fmt.Print(x)
-	// fmt.Println(runner.R().KcGetWithParams("/apis/hcreport.csa.latam.redhat.com/v1/configs/config-sample?watch=1&resourceVersion=993863", map[string]string{"resourceVersion": "993863"}).String())
-
-	// tot := runner.R().KcApiResources().Yq(".resources | length").String()
-	// var c atomic.Int32
-	// runner.R().KcDump("/tmp/_data", 0, func() {
-	// 	c.Add(1)
-	// 	fmt.Printf("%d/%s\r", c.Load(), tot)
-	// })
-
-	// fmt.Println(runner.R().KcGet("/apis/batch/v1/cronjobs").ToJson().JqPretty(`.items = [.items[] | del(.metadata.managedFields) | del(.metadata.uid) | del (.metadata.creationTimestamp) | del (.metadata.generation) | del(.metadata.resourceVersion) | del (.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])] | del(.metadata)`).String())
-	//fmt.Print(runner.R().KcGet("/api").ToJson().Jq(`.versions[-1] // ""`).String())
-
-	// fmt.Print(runner.R().KcNs().String())
-	// runner.R().KcDump("/tmp/_data", 0, nil)
-	// s, e := kc.ApiResources()
-	// s, _ := kc.NewKc().GetJson("/apis")
-	// _, e := kc.NewKc().GetJson("/apis")
-	// s, e := kc.Ns()
-	// s, _ := kc.Ns()
-	// kc.ApiResources()
-	// fmt.Println(fmt.Sprintf("ccc\n"))
-	// fmt.Println(s)
-
-	// e := ".items[].metadata.name"
-
-	// j, _ := fsutil.ReadTextFile("/tmp/t.json")
-	// j := `[{"groupVersion": "gv", "available": false, "error": "l;aksd\nhello world\nyes"}]`
-	// j = `1.098`
-	// // j = `{"page": 1, "fruits": ["apple", "peach"]}`
-	// // s, _ := yjq.JqEval(e, j)
-	// fmt.Println(s)
-	// // fmt.Println("-=-=-=-=-=-")
-	// s, e := yjq.JqEval2Y(".", j)
-	// fmt.Print(s)
-	// e := kc.Dump("/tmp/_data", 0, nil)
-
-	// s, e := yjq.JqEval(`[{"groupVersion": "%s", "available": false, "error": "%s"}]`, "", "gv", "errou!")
-	// fmt.Print(s)
-
-	// fmt.Print(e)
-
-	// os.Exit(0)
-
-	logger.Info("hcreport running...")
-	var metricsAddr string
-	var enableLeaderElection bool
-	var probeAddr string
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
 	flag.BoolVar(&enableLeaderElection,
 		"leader-elect", false,
 		"Enable leader election for controller manager. "+
 			"Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(&kcdump,
+		"kcdump", false,
+		"use manager as cli tool to dump the cluster")
+	flag.BoolVar(&nologs,
+		"nologs", false,
+		"do not output pod's logs")
+	flag.BoolVar(&gzip,
+		"gzip", false,
+		"gzip output")
+	flag.BoolVar(&ns, "ns", false, "print namespaces  list")
+	flag.BoolVar(&gkv, "gkv", false, "print group version kind with format 'gv,k'")
+
 	opts := z.Options{
 		Development: true,
 	}
+
 	if loggerEnv := os.Getenv("LOGGER_ENV"); loggerEnv == "prod" {
 		opts.Development = false
 	}
+
 	opts.BindFlags(flag.CommandLine)
 	flag.Parse()
 
+	if filepath.Base(os.Args[0]) == "kcdump" || kcdump {
+		log.SetLoggerLevelFatal()
+		os.Exit(dump())
+	}
+
 	ctrlRuntime.SetLogger(z.New(z.UseFlagOptions(&opts)))
+
+	logger.Info("hcreport running...")
 
 	mgr, err := ctrlRuntime.NewManager(ctrlRuntime.GetConfigOrDie(), ctrlRuntime.Options{
 		Scheme:                 scheme,
@@ -175,4 +154,38 @@ func main() {
 		logger.Error("problem running manager", zap.Error(err))
 		os.Exit(1)
 	}
+}
+
+func dump() int {
+	if ns {
+		n, e := kc.Ns()
+		if e != nil {
+			return 1
+		}
+		ny, e := yjq.YqEval("[.items[].metadata.name] | sort | .[]", n)
+		if e != nil {
+			return 2
+		}
+		fmt.Println(ny)
+	}
+	if gkv {
+		g, e := kc.ApiResources()
+		if e != nil {
+			return 3
+		}
+		gy, e := yjq.YqEval(`[.items[].groupVersion + "," + .items[].kind] | unique | sort | .[]`, g)
+		if e != nil {
+			return 4
+		}
+		if ns {
+			fmt.Println()
+		}
+		fmt.Println(gy)
+	}
+	if !ns && !gkv {
+		fmt.Println(filepath.Base(os.Args[0]))
+		fmt.Println(gzip)
+		fmt.Println(nologs)
+	}
+	return 0
 }

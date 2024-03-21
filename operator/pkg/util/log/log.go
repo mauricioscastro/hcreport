@@ -11,23 +11,6 @@ import (
 var logger *zap.Logger
 var loggerCfg zap.Config
 
-// func SilenceKcLogs() {
-// 	zc := zap.NewProductionConfig()
-// 	zc.OutputPaths = []string{os.DevNull}
-// 	z, err := zc.Build()
-// 	if err != nil {
-// 		fmt.Println(err)
-// 		os.Exit(1)
-// 	}
-// 	klog.SetLogger(zapr.NewLogger(z))
-// }
-
-// func SilenceYqLogs() {
-// 	bke := logging.NewLogBackend(io.Discard, "", 0)
-// 	bkel := logging.AddModuleLevel(bke)
-// 	yqlib.GetLogger().SetBackend(bkel)
-// }
-
 func Logger() *zap.Logger {
 	if logger == nil {
 		if conf := os.Getenv("LOGGER_ENV"); conf == "prod" {
@@ -62,6 +45,10 @@ func SetLoggerLevelInfo() {
 
 func SetLoggerLevelDebug() {
 	loggerCfg.Level.SetLevel(zapcore.DebugLevel)
+}
+
+func SetLoggerLevelFatal() {
+	loggerCfg.Level.SetLevel(zapcore.FatalLevel)
 }
 
 func ResetLoggerLevel(log *zap.Logger, level string) *zap.Logger {

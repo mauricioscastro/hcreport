@@ -56,7 +56,7 @@ func ApiResources() (string, error) {
 	}
 	wg.Wait()
 	var sb strings.Builder
-	sb.WriteString("kind: APIResourceList\nresources:\n")
+	sb.WriteString("kind: APIResourceList\nitems:\n")
 	for i, _kc := range kcList {
 		if len(_kc.Response()) == 0 || _kc.Err() != nil {
 			continue
@@ -106,6 +106,7 @@ func Dump(path string, poolSize int, progress func()) error {
 	if err != nil {
 		return err
 	}
+	//TODO: filter ns: del(.items[] | select(.metadata.name | test("kube-.*")))
 	if err = fsutil.WriteTextFile(path+"namespaces_"+kc.Version()+".yaml", ns); err != nil {
 		return err
 	}
@@ -120,10 +121,11 @@ func Dump(path string, poolSize int, progress func()) error {
 	if err != nil {
 		return err
 	}
+	//TODO: filter out api: del(.items[] | select(.groupVersion | test("cert-manager.io/v1") and .kind | test(".*ssuer.*")))
 	if err = fsutil.WriteTextFile(path+"api_resources.yaml", apis); err != nil {
 		return err
 	}
-	apiList, err := yjq.Eval2List(yjq.YqEval, `with(.resources[]; .verbs = (.verbs | to_entries)) | .resources[] | select(.available and .verbs[].value == "get") | .name + ";" + .groupVersion + ";" + .namespaced`, apis)
+	apiList, err := yjq.Eval2List(yjq.YqEval, `with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | .name + ";" + .groupVersion + ";" + .namespaced`, apis)
 	if err != nil {
 		return err
 	}
@@ -203,6 +205,7 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		if err != nil {
 			return writeResourceListLog("get ns "+logLine, err)
 		}
+		//TODO: filter ns:
 		for _, ns := range nsList {
 			nsPath := path + strings.ReplaceAll(ns, "-", "_") + "/"
 			apiByNs, err := yjq.YqEval(`.items = [.items[] | select(.metadata.namespace=="%s")]`, apiResources, ns)

@@ -1,0 +1,290 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+metadata:
+  annotations:
+    alm-examples: '[]'
+    capabilities: Basic Install
+    createdAt: "2024-03-16T13:43:17Z"
+    operators.operatorframework.io/builder: operator-sdk-v1.34.1
+    operators.operatorframework.io/project_layout: go.kubebuilder.io/v4
+  name: operator.v0.0.1
+  namespace: placeholder
+spec:
+  apiservicedefinitions: {}
+  customresourcedefinitions:
+    owned:
+    - kind: Config
+      name: configs.hcreport.csa.latam.redhat.com
+      version: v1
+  description: Operator description. TODO.
+  displayName: Operator
+  icon:
+  - base64data: ""
+    mediatype: ""
+  install:
+    spec:
+      clusterPermissions:
+      - rules:
+        - apiGroups:
+          - hcreport.csa.latam.redhat.com
+          resources:
+          - configs
+          verbs:
+          - create
+          - delete
+          - get
+          - list
+          - patch
+          - update
+          - watch
+        - apiGroups:
+          - hcreport.csa.latam.redhat.com
+          resources:
+          - configs/finalizers
+          verbs:
+          - update
+        - apiGroups:
+          - hcreport.csa.latam.redhat.com
+          resources:
+          - configs/status
+          verbs:
+          - get
+          - patch
+          - update
+        - apiGroups:
+          - authentication.k8s.io
+          resources:
+          - tokenreviews
+          verbs:
+          - create
+        - apiGroups:
+          - authorization.k8s.io
+          resources:
+          - subjectaccessreviews
+          verbs:
+          - create
+        - apiGroups:
+          - '*'
+          resources:
+          - '*'
+          verbs:
+          - get
+          - list
+          - watch
+        serviceAccountName: hcr-controller-manager
+      deployments:
+      - label:
+          app.kubernetes.io/component: manager
+          app.kubernetes.io/created-by: operator
+          app.kubernetes.io/instance: controller-manager
+          app.kubernetes.io/managed-by: kustomize
+          app.kubernetes.io/name: deployment
+          app.kubernetes.io/part-of: operator
+          control-plane: controller-manager
+        name: hcr-controller-manager
+        spec:
+          replicas: 1
+          selector:
+            matchLabels:
+              control-plane: controller-manager
+          strategy: {}
+          template:
+            metadata:
+              annotations:
+                kubectl.kubernetes.io/default-container: manager
+              labels:
+                control-plane: controller-manager
+            spec:
+              automountServiceAccountToken: true
+              containers:
+              - args:
+                - --health-probe-bind-address=:8081
+                - --metrics-bind-address=127.0.0.1:8080
+                - --leader-elect
+                command:
+                - /manager
+                env:
+                - name: HCR_WEBHOOK_ONLY
+                  value: "false"
+                image: controller:latest
+                livenessProbe:
+                  httpGet:
+                    path: /healthz
+                    port: 8081
+                  initialDelaySeconds: 15
+                  periodSeconds: 20
+                name: manager
+                ports:
+                - containerPort: 9443
+                  name: webhook-server
+                  protocol: TCP
+                readinessProbe:
+                  httpGet:
+                    path: /readyz
+                    port: 8081
+                  initialDelaySeconds: 5
+                  periodSeconds: 10
+                resources:
+                  limits:
+                    memory: 256Mi
+                  requests:
+                    cpu: 100m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                volumeMounts:
+                - mountPath: /tmp/k8s-webhook-server/serving-certs
+                  name: webhook-cert
+                  readOnly: true
+                - mountPath: /_data
+                  name: work
+              - args:
+                - --secure-listen-address=0.0.0.0:8443
+                - --upstream=http://127.0.0.1:8080/
+                - --logtostderr=true
+                - --v=0
+                image: gcr.io/kubebuilder/kube-rbac-proxy:v0.14.1
+                name: kube-rbac-proxy
+                ports:
+                - containerPort: 8443
+                  name: https
+                  protocol: TCP
+                resources:
+                  limits:
+                    cpu: 500m
+                    memory: 128Mi
+                  requests:
+                    cpu: 5m
+                    memory: 64Mi
+                securityContext:
+                  allowPrivilegeEscalation: false
+                  capabilities:
+                    drop:
+                    - ALL
+                  runAsNonRoot: true
+              securityContext:
+                runAsNonRoot: true
+                seccompProfile:
+                  type: RuntimeDefault
+              serviceAccountName: hcr-controller-manager
+              terminationGracePeriodSeconds: 10
+              volumes:
+              - name: webhook-cert
+                secret:
+                  secretName: webhook-server-cert
+              - emptyDir:
+                  sizeLimit: 10Gi
+                name: work
+      permissions:
+      - rules:
+        - apiGroups:
+          - ""
+          resources:
+          - configmaps
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - coordination.k8s.io
+          resources:
+          - leases
+          verbs:
+          - get
+          - list
+          - watch
+          - create
+          - update
+          - patch
+          - delete
+        - apiGroups:
+          - ""
+          resources:
+          - events
+          verbs:
+          - create
+          - patch
+        serviceAccountName: hcr-controller-manager
+    strategy: deployment
+  installModes:
+  - supported: false
+    type: OwnNamespace
+  - supported: false
+    type: SingleNamespace
+  - supported: false
+    type: MultiNamespace
+  - supported: true
+    type: AllNamespaces
+  keywords:
+  - operator
+  links:
+  - name: hcreport
+    url: https://github.com/mauricioscastro/hcreport
+  maintainers:
+  - email: macastro@redhat.com
+    name: Mauricio Santiago de Castro
+  maturity: alpha
+  provider:
+    name: Provider Name
+    url: https://your.domain
+  version: 0.0.1
+  webhookdefinitions:
+  - admissionReviewVersions:
+    - v1
+    containerPort: 443
+    conversionCRDs:
+    - configs.hcreport.csa.latam.redhat.com
+    deploymentName: hcr-controller-manager
+    generateName: cconfigs.kb.io
+    sideEffects: None
+    targetPort: 9443
+    type: ConversionWebhook
+    webhookPath: /convert
+  - admissionReviewVersions:
+    - v1
+    containerPort: 443
+    deploymentName: hcr-controller-manager
+    failurePolicy: Fail
+    generateName: mconfig.kb.io
+    rules:
+    - apiGroups:
+      - hcreport.csa.latam.redhat.com
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      resources:
+      - configs
+    sideEffects: None
+    targetPort: 9443
+    type: MutatingAdmissionWebhook
+    webhookPath: /mutate-hcreport-csa-latam-redhat-com-v1-config
+  - admissionReviewVersions:
+    - v1
+    containerPort: 443
+    deploymentName: hcr-controller-manager
+    failurePolicy: Fail
+    generateName: vconfig.kb.io
+    rules:
+    - apiGroups:
+      - hcreport.csa.latam.redhat.com
+      apiVersions:
+      - v1
+      operations:
+      - CREATE
+      - UPDATE
+      - DELETE
+      resources:
+      - configs
+    sideEffects: None
+    targetPort: 9443
+    type: ValidatingAdmissionWebhook
+    webhookPath: /validate-hcreport-csa-latam-redhat-com-v1-config

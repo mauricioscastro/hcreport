@@ -365,7 +365,7 @@ func FormatCodeFromString(format string) (int, error) {
 	case "json_lines_wrapped":
 		return JSON_LINES_WRAPPED, nil
 	default:
-		return -1, fmt.Errorf("unknown string format %s", format)
+		return -1, fmt.Errorf("unknown string coded format %s. please use one of 'yaml', 'json', json_lines', 'json_lines_wrapped'", format)
 	}
 }
 

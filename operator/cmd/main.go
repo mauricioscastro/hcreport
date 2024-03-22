@@ -208,7 +208,7 @@ func dump() int {
 	if !ns && !gvk {
 		outputfmt, e := kc.FormatCodeFromString(format)
 		if e != nil {
-			fmt.Fprintf(os.Stderr, "unknown output format %s. please use one of 'yaml', 'json', json_lines', 'json_lines_wrapped'\n", format)
+			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 			return 7
 		}
 		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, outputfmt, 0, nil); e != nil {

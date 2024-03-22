@@ -21,6 +21,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -44,6 +45,9 @@ import (
 	//+kubebuilder:scaffold:imports
 )
 
+type nsExcludeList []string
+type gvkExcludeList []string
+
 var (
 	scheme = runtime.NewScheme()
 	logger = log.Logger().Named("hcr")
@@ -51,12 +55,18 @@ var (
 	metricsAddr          string
 	enableLeaderElection bool
 	probeAddr            string
-	kcdump               bool
-	gzip                 bool
-	nologs               bool
-	ns                   bool
-	gkv                  bool
-	//TODO: add -config (file) + -context + -xns (exclude ns regex list) + -xgkv (exclude gk,v regex list)
+
+	// cli dump options
+	kcdump    bool
+	gzip      bool
+	nologs    bool
+	ns        bool
+	gvk       bool
+	xns       nsExcludeList
+	xgvk      gvkExcludeList
+	targetDir string
+	format    string
+	//TODO: add -config (file) + -context
 )
 
 func init() {
@@ -69,21 +79,21 @@ func init() {
 func main() {
 	flag.StringVar(&metricsAddr, "metrics-bind-address", ":8080", "The address the metric endpoint binds to.")
 	flag.StringVar(&probeAddr, "health-probe-bind-address", ":8081", "The address the probe endpoint binds to.")
-	flag.BoolVar(&enableLeaderElection,
-		"leader-elect", false,
-		"Enable leader election for controller manager. "+
-			"Enabling this will ensure there is only one active controller manager.")
-	flag.BoolVar(&kcdump,
-		"kcdump", false,
-		"use manager as cli tool to dump the cluster")
-	flag.BoolVar(&nologs,
-		"nologs", false,
-		"do not output pod's logs")
-	flag.BoolVar(&gzip,
-		"gzip", false,
-		"gzip output")
+	flag.BoolVar(&enableLeaderElection, "leader-elect", false, "Enable leader election for controller manager. Enabling this will ensure there is only one active controller manager.")
+	flag.BoolVar(&kcdump, "kcdump", false, "use manager as cli tool to dump the cluster")
+	flag.BoolVar(&nologs, "nologs", false, "do not output pod's logs")
+	flag.BoolVar(&gzip, "gzip", false, "gzip output")
 	flag.BoolVar(&ns, "ns", false, "print namespaces  list")
-	flag.BoolVar(&gkv, "gkv", false, "print group version kind with format 'gv,k'")
+	flag.BoolVar(&gvk, "gvk", false, "print group version kind with format 'gv,k'")
+	flag.Var(&xns, "xns", "regex to match and exclude unwanted namespaces. can be used multiple times.")
+	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*")
+	flag.StringVar(&targetDir, "targetDir", ".kcdump", "target directory where the extracted cluster data goes. directory will be recreated from scratch.")
+	flag.StringVar(&format, "format", "yaml", "output format. one of 'yaml', 'json', json_lines', 'json_lines_wrapped'. default is yaml")
+	flag.Parse()
+
+	if filepath.Base(os.Args[0]) == "kcdump" || kcdump {
+		os.Exit(dump())
+	}
 
 	opts := z.Options{
 		Development: true,
@@ -94,12 +104,6 @@ func main() {
 	}
 
 	opts.BindFlags(flag.CommandLine)
-	flag.Parse()
-
-	if filepath.Base(os.Args[0]) == "kcdump" || kcdump {
-		log.SetLoggerLevelFatal()
-		os.Exit(dump())
-	}
 
 	ctrlRuntime.SetLogger(z.New(z.UseFlagOptions(&opts)))
 
@@ -157,35 +161,77 @@ func main() {
 }
 
 func dump() int {
+	log.SetLoggerLevelFatal()
 	if ns {
 		n, e := kc.Ns()
 		if e != nil {
 			return 1
 		}
-		ny, e := yjq.YqEval("[.items[].metadata.name] | sort | .[]", n)
-		if e != nil {
-			return 2
+		for _, re := range xns {
+			n, e = yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, n, re)
+			if e != nil {
+				return 2
+			}
 		}
-		fmt.Println(ny)
-	}
-	if gkv {
-		g, e := kc.ApiResources()
+		n, e = yjq.YqEval("[.items[].metadata.name] | sort | .[]", n)
 		if e != nil {
 			return 3
 		}
-		gy, e := yjq.YqEval(`[.items[].groupVersion + "," + .items[].kind] | unique | sort | .[]`, g)
+		fmt.Println("namespace")
+		fmt.Println(n)
+	}
+	if gvk {
+		g, e := kc.ApiResources()
 		if e != nil {
 			return 4
+		}
+		for _, re := range xgvk {
+			r := strings.Split(re, ",")
+			if len(r) == 1 {
+				r = append(r, ".*")
+			}
+			g, e = yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, g, r[0], r[1])
+			if e != nil {
+				return 5
+			}
+		}
+		g, e = yjq.YqEval(`with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | [.groupVersion + "," + .kind] | sort | .[]`, g)
+		if e != nil {
+			return 6
 		}
 		if ns {
 			fmt.Println()
 		}
-		fmt.Println(gy)
+		fmt.Println("groupVersion,kind")
+		fmt.Println(g)
 	}
-	if !ns && !gkv {
-		fmt.Println(filepath.Base(os.Args[0]))
-		fmt.Println(gzip)
-		fmt.Println(nologs)
+	if !ns && !gvk {
+		outputfmt, e := kc.FormatCodeFromString(format)
+		if e != nil {
+			fmt.Fprintf(os.Stderr, "unknown output format %s. please use one of 'yaml', 'json', json_lines', 'json_lines_wrapped'\n", format)
+			return 7
+		}
+		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, outputfmt, 0, nil); e != nil {
+			return 8
+		}
 	}
 	return 0
+}
+
+func (i *nsExcludeList) String() string {
+	return fmt.Sprint(*i)
+}
+
+func (i *nsExcludeList) Set(value string) error {
+	*i = append(*i, value)
+	return nil
+}
+
+func (i *gvkExcludeList) String() string {
+	return fmt.Sprint(*i)
+}
+
+func (i *gvkExcludeList) Set(value string) error {
+	*i = append(*i, value)
+	return nil
 }

@@ -65,14 +65,20 @@ func YqEval(expr string, yaml string, param ...any) (string, error) {
 	return yqEval(expr, yaml, yamlEncoder, yamlDecoder, param...)
 }
 
+func YqEval2JC(expr string, yaml string, param ...any) (string, error) {
+	yamlDecoder := yqlib.NewYamlDecoder(yamlPrefs)
+	compactJsonEncoder := yqlib.NewJSONEncoder(-1, false, true)
+	return yqEval(expr, yaml, compactJsonEncoder, yamlDecoder, param...)
+}
+
 func YqEvalJ2JC(expr string, json string, param ...any) (string, error) {
 	compactJsonEncoder := yqlib.NewJSONEncoder(-1, false, true)
-	return yqEval(expr, json, compactJsonEncoder, yqlib.NewJSONDecoder())
+	return yqEval(expr, json, compactJsonEncoder, yqlib.NewJSONDecoder(), param...)
 }
 
 func YqEvalJ2JP(expr string, json string, param ...any) (string, error) {
 	prettyJsonEncoder := yqlib.NewJSONEncoder(2, false, true)
-	return yqEval(expr, json, prettyJsonEncoder, yqlib.NewJSONDecoder())
+	return yqEval(expr, json, prettyJsonEncoder, yqlib.NewJSONDecoder(), param...)
 }
 
 func YqEvalJ2Y(expr string, json string, param ...any) (string, error) {

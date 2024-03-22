@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -102,7 +103,7 @@ func NewKcWithContext(context string) Kc {
 		logger.Error("reading home info", zap.Error(err))
 		return newKc()
 	}
-	return NewKcWithConfigContext(home+"/.kube/config", context)
+	return NewKcWithConfigContext(filepath.FromSlash(home+"/.kube/config"), context)
 }
 
 func NewKcWithConfig(config string) Kc {

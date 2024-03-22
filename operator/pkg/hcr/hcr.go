@@ -72,7 +72,12 @@ func (rec *reconciler) Run() (ctrl.Result, error) {
 
 func (rec *reconciler) extract() error {
 	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
-	return kc.Dump(reportHome, 0, func() {
+	nslist := []string{}
+	gvklist := []string{}
+	nologs := false
+	gz := false
+	format := kc.YAML
+	return kc.Dump(reportHome, nslist, gvklist, nologs, gz, format, 0, func() {
 		duLock.Lock()
 		defer duLock.Unlock()
 		rec.statusAddDiskUsage()

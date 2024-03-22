@@ -1,9 +1,13 @@
 package kc
 
 import (
+	gz "compress/gzip"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync/atomic"
@@ -12,6 +16,13 @@ import (
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 	"github.com/pieterclaerhout/go-waitgroup"
 	"go.uber.org/zap"
+)
+
+const (
+	YAML               int = 0
+	JSON               int = 1
+	JSON_LINES         int = 2
+	JSON_LINES_WRAPPED int = 3
 )
 
 var (
@@ -98,16 +109,22 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // the threads can be expressed through poolsize (0 or -1 to unbound it).
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
-func Dump(path string, poolSize int, progress func()) error {
+func Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error {
 	kc := NewKc()
-	fsutil.Clean(path)
+	fsutil.Clean(filepath.FromSlash(path))
 	path = path + "/"
 	ns, err := Ns()
 	if err != nil {
 		return err
 	}
-	//TODO: filter ns: del(.items[] | select(.metadata.name | test("kube-.*")))
-	if err = fsutil.WriteTextFile(path+"namespaces_"+kc.Version()+".yaml", ns); err != nil {
+	// filter out ns based on regex list
+	for _, re := range nsExclusionList {
+		ns, err = yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, ns, re)
+		if err != nil {
+			return err
+		}
+	}
+	if err = writeTextFile(path+"namespaces_"+kc.Version()+".yaml", ns, gz, format); err != nil {
 		return err
 	}
 	nsList, err := yjq.Eval2List(yjq.YqEval, ".items[].metadata.name", ns)
@@ -115,14 +132,30 @@ func Dump(path string, poolSize int, progress func()) error {
 		return err
 	}
 	for _, n := range nsList {
-		fsutil.Mkdirp(path + strings.ReplaceAll(n, "-", "_") + "/log")
+		fsutil.Mkdirp(filepath.FromSlash(path + strings.ReplaceAll(n, "-", "_") + "/log"))
 	}
 	apis, err := ApiResources()
 	if err != nil {
 		return err
 	}
-	//TODO: filter out api: del(.items[] | select(.groupVersion | test("cert-manager.io/v1") and .kind | test(".*ssuer.*")))
-	if err = fsutil.WriteTextFile(path+"api_resources.yaml", apis); err != nil {
+	// filter out gvk based on regex list
+	for _, re := range gvkExclusionList {
+		r := strings.Split(re, ",")
+		if len(r) == 1 {
+			r = append(r, ".*")
+		}
+		if len(r[0]) == 0 {
+			r[0] = ".*"
+		}
+		if len(r[1]) == 0 {
+			r[1] = ".*"
+		}
+		apis, err = yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, apis, r[0], r[1])
+		if err != nil {
+			return err
+		}
+	}
+	if err = writeTextFile(path+"api_resources.yaml", apis, gz, format); err != nil {
 		return err
 	}
 	apiList, err := yjq.Eval2List(yjq.YqEval, `with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | .name + ";" + .groupVersion + ";" + .namespaced`, apis)
@@ -147,7 +180,7 @@ func Dump(path string, poolSize int, progress func()) error {
 		wg.BlockAdd()
 		go func() {
 			defer wg.Done()
-			writeResourceList(path, baseName, name, gv, namespaced, progress)
+			writeResourceList(path, baseName, name, gv, namespaced, nologs, gz, format, progress)
 		}()
 	}
 	wg.Wait()
@@ -155,7 +188,7 @@ func Dump(path string, poolSize int, progress func()) error {
 	if err != nil {
 		return err
 	}
-	if err = fsutil.WriteTextFile(path+"version.yaml", version); err != nil {
+	if err = writeTextFile(path+"version.yaml", version, gz, format); err != nil {
 		return err
 	}
 	if len(dumpWorkerErrors.Load().([]error)) > 0 {
@@ -169,7 +202,7 @@ func Dump(path string, poolSize int, progress func()) error {
 	return nil
 }
 
-func writeResourceList(path string, baseName string, name string, gv string, namespaced bool, progress func()) error {
+func writeResourceList(path string, baseName string, name string, gv string, namespaced bool, nologs bool, gz bool, format int, progress func()) error {
 	if progress != nil {
 		defer progress()
 	}
@@ -197,25 +230,29 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		}
 	}
 	if !namespaced {
-		if err = fsutil.WriteTextFile(path+fileName, apiResources); err != nil {
+		if err = writeTextFile(path+fileName, apiResources, gz, format); err != nil {
 			return writeResourceListLog("write resource "+logLine, err)
 		}
 	} else {
 		nsList, err := yjq.Eval2List(yjq.YqEval, "[.items[].metadata.namespace] | unique | .[]", apiResources)
 		if err != nil {
-			return writeResourceListLog("get ns "+logLine, err)
+			return writeResourceListLog("read ns list from apiResources"+logLine, err)
 		}
-		//TODO: filter ns:
 		for _, ns := range nsList {
 			nsPath := path + strings.ReplaceAll(ns, "-", "_") + "/"
+			// skip unwanted ns as per nsExclusionList in kcDump
+			if !fsutil.Exists(filepath.FromSlash(nsPath)) {
+				continue
+			}
 			apiByNs, err := yjq.YqEval(`.items = [.items[] | select(.metadata.namespace=="%s")]`, apiResources, ns)
 			if err != nil {
 				return writeResourceListLog("apiByNs "+logLine, err)
 			}
-			if err = fsutil.WriteTextFile(nsPath+fileName, apiByNs); err != nil {
+			if err = writeTextFile(nsPath+fileName, apiByNs, gz, format); err != nil {
 				return writeResourceListLog("write resource "+logLine, err)
 			}
-			if name == "pods" && gv == kc.Version() {
+			// get pods' logs or no
+			if !nologs && name == "pods" && gv == kc.Version() {
 				podContainerList, err := yjq.Eval2List(yjq.YqEval, `.items[] | .metadata.name + ";" + .spec.containers[].name`, apiByNs)
 				if err != nil {
 					return writeResourceListLog("podContainerList "+logLine, err)
@@ -235,7 +272,7 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 						return writeResourceListLog("get pod log "+logLine, err)
 					}
 					if len(log) > 0 {
-						if err = fsutil.WriteTextFile(nsPath+"log/"+fileName, log); err != nil {
+						if err = writeTextFile(nsPath+"log/"+fileName, log, gz, format); err != nil {
 							return writeResourceListLog("writing pod log "+logLine, err)
 						}
 					}
@@ -257,4 +294,90 @@ func writeResourceListLog(msg string, err error) error {
 	dumpWorkerErrors.Store(append(dumpWorkerErrors.Load().([]error), fmt.Errorf("%s %w", msg, err)))
 	logger.Error("writeResourceList "+msg, zap.Error(err))
 	return err
+}
+
+func writeTextFile(path string, contents string, gz bool, format int) error {
+	var err error
+	switch format {
+	case YAML:
+		path = rewriteFileSuffix(path, "yaml")
+	case JSON:
+		if contents, err = yjq.Y2JC(contents); err != nil {
+			return err
+		}
+		path = rewriteFileSuffix(path, "json")
+	case JSON_LINES:
+		if contents, err = yjq.YqEval2JC(".items[]", contents); err != nil {
+			return err
+		}
+		path = rewriteFileSuffix(path, "json")
+	case JSON_LINES_WRAPPED:
+		if contents, err = yjq.YqEval2JC(`{"_": .items[]}`, contents); err != nil {
+			return err
+		}
+		path = rewriteFileSuffix(path, "json")
+	default:
+		return fmt.Errorf("writeTextFile unknown output format requested")
+	}
+	if err = fsutil.WriteTextFile(path, contents); err != nil {
+		return err
+	}
+	if gz {
+		return gzip(path)
+	}
+	return nil
+}
+
+func gzip(file string) error {
+	originalFile, err := os.Open(file)
+	if err != nil {
+		return err
+	}
+	defer originalFile.Close()
+
+	gzippedFile, err := os.Create(file + ".gz")
+	if err != nil {
+		return err
+	}
+	defer gzippedFile.Close()
+
+	gzipWriter := gz.NewWriter(gzippedFile)
+	defer gzipWriter.Close()
+
+	_, err = io.Copy(gzipWriter, originalFile)
+	if err != nil {
+		return err
+	}
+
+	gzipWriter.Flush()
+	os.Remove(file)
+	return nil
+}
+
+func FormatCodeFromString(format string) (int, error) {
+	switch format {
+	case "yaml":
+		return YAML, nil
+	case "json":
+		return JSON, nil
+	case "json_lines":
+		return JSON_LINES, nil
+	case "json_lines_wrapped":
+		return JSON_LINES_WRAPPED, nil
+	default:
+		return -1, fmt.Errorf("unknown string format %s", format)
+	}
+}
+
+func rewriteFileSuffix(path string, suffix string) string {
+	d := filepath.Dir(path)
+	f := filepath.Base(path)
+	p := strings.Split(f, ".")
+	if len(p) == 1 {
+		p = append(p, suffix)
+	} else {
+		p[len(p)-1] = suffix
+	}
+	f = strings.Join(p, ".")
+	return filepath.FromSlash(d + "/" + f)
 }

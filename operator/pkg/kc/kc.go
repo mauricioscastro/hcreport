@@ -51,6 +51,9 @@ type (
 		Err() error
 		Status() int
 		Api() string
+		Ns() (string, error)
+		ApiResources() (string, error)
+		Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error
 		setCert(cert []byte, key []byte)
 		response(resp *resty.Response, yamlOutput bool) (string, error)
 		send(method string, apiCall string, body string) (string, error)
@@ -119,46 +122,46 @@ func NewKcWithConfigContext(config string, context string) Kc {
 	kcfg, err := os.ReadFile(config)
 	if err != nil {
 		logger.Error("reading config file", zap.Error(err))
-		return kc
+		return nil
 	}
 	kubeCfg := string(kcfg)
 	cluster, err := yjq.YqEval(fmt.Sprintf(queryContextForCluster, context), kubeCfg)
 	logger.Debug("query for server " + fmt.Sprintf(queryContextForCluster, context))
 	if err != nil {
 		logger.Error("reading cluster info for context", zap.Error(err))
-		return kc
+		return nil
 	}
 	if len(cluster) == 0 {
 		logger.Error("empty cluster info reading context")
-		return kc
+		return nil
 	}
 	logger.Debug("", zap.String("context cluster", cluster))
 	kc.SetCluster(cluster)
 	token, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `token // ""`), kubeCfg)
 	if err != nil {
 		logger.Error("reading token info for context", zap.Error(err))
-		return kc
+		return nil
 	}
 	if len(token) == 0 {
 		logger.Debug("empty user token info reading context. trying user cert...")
 		cert, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `client-certificate-data // "" | @base64d`), kubeCfg)
 		if err != nil {
 			logger.Error("reading user cert info for context", zap.Error(err))
-			return kc
+			return nil
 		}
 		if len(cert) == 0 {
 			logger.Error("empty user cert info reading context. nothing else to try for auth. returning...")
-			return kc
+			return nil
 		}
 		logger.Debug("", zap.String("cert", cert))
 		key, err := yjq.YqEval(fmt.Sprintf(queryContextForUserAuth, context, `client-key-data // "" | @base64d`), kubeCfg)
 		if err != nil {
 			logger.Error("reading user cert key info for context", zap.Error(err))
-			return kc
+			return nil
 		}
 		if len(key) == 0 {
 			logger.Error("empty user cert key info reading context. nothing else to try for auth. returning...")
-			return kc
+			return nil
 		}
 		logger.Debug("", zap.String("key", "XXX"))
 		kc.setCert([]byte(cert), []byte(key))

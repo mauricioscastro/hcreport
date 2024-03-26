@@ -30,8 +30,7 @@ var (
 	dumpWorkerErrors     atomic.Value
 )
 
-func Ns() (string, error) {
-	kc := NewKc()
+func (kc *kc) Ns() (string, error) {
 	r, e := kc.GetJson("/api/" + kc.Version() + "/namespaces")
 	if e != nil {
 		return r, e
@@ -43,13 +42,12 @@ func Ns() (string, error) {
 	return r, e
 }
 
-func ApiResources() (string, error) {
-	kc := NewKc()
+func (kc *kc) ApiResources() (string, error) {
 	r, e := kc.GetJson("/apis")
 	if e != nil {
 		return "", e
 	}
-	apisList, e := yjq.Eval2List(yjq.JqEval, `["/api/v1", "/apis/" + .groups[].preferredVersion.groupVersion] | .[]`, r)
+	apisList, e := yjq.Eval2List(yjq.JqEval, `["/api/%s", "/apis/" + .groups[].preferredVersion.groupVersion] | .[]`, r, kc.Version())
 	if e != nil {
 		return "", e
 	}
@@ -109,11 +107,10 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // the threads can be expressed through poolsize (0 or -1 to unbound it).
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
-func Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error {
-	kc := NewKc()
+func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error {
 	fsutil.Clean(filepath.FromSlash(path))
 	path = path + "/"
-	ns, err := Ns()
+	ns, err := kc.Ns()
 	if err != nil {
 		return err
 	}
@@ -132,9 +129,13 @@ func Dump(path string, nsExclusionList []string, gvkExclusionList []string, nolo
 		return err
 	}
 	for _, n := range nsList {
-		fsutil.Mkdirp(filepath.FromSlash(path + strings.ReplaceAll(n, "-", "_") + "/log"))
+		ns_dir_name := strings.ReplaceAll(n, "-", "_")
+		fsutil.Mkdirp(filepath.FromSlash(path + ns_dir_name))
+		if !nologs {
+			fsutil.Mkdirp(filepath.FromSlash(path + ns_dir_name + "/log"))
+		}
 	}
-	apis, err := ApiResources()
+	apis, err := kc.ApiResources()
 	if err != nil {
 		return err
 	}

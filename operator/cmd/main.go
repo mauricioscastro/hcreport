@@ -38,6 +38,7 @@ import (
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 	ctrl "github.com/mauricioscastro/hcreport/internal/controller"
 	"github.com/mauricioscastro/hcreport/pkg/kc"
+	kcli "github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
 
@@ -51,6 +52,7 @@ type gvkExcludeList []string
 var (
 	scheme = runtime.NewScheme()
 	logger = log.Logger().Named("hcr")
+	home   string
 
 	metricsAddr          string
 	enableLeaderElection bool
@@ -66,7 +68,8 @@ var (
 	xgvk      gvkExcludeList
 	targetDir string
 	format    string
-	//TODO: add -config (file) + -context
+	config    string
+	context   string
 )
 
 func init() {
@@ -74,6 +77,12 @@ func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 	utilruntime.Must(hcrv1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
+	var err error
+	home, err = os.UserHomeDir()
+	if err != nil {
+		logger.Error("reading home info", zap.Error(err))
+		os.Exit(-1)
+	}
 }
 
 func main() {
@@ -89,6 +98,8 @@ func main() {
 	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*")
 	flag.StringVar(&targetDir, "targetDir", ".kcdump", "target directory where the extracted cluster data goes. directory will be recreated from scratch.")
 	flag.StringVar(&format, "format", "yaml", "output format. one of 'yaml', 'json', json_lines', 'json_lines_wrapped'. default is yaml")
+	flag.StringVar(&config, "config", filepath.FromSlash(home+"/.kube/config"), "kube config file")
+	flag.StringVar(&context, "context", kc.CurrentContext, "kube config context to use")
 	flag.Parse()
 
 	if filepath.Base(os.Args[0]) == "kcdump" || kcdump {
@@ -162,6 +173,11 @@ func main() {
 
 func dump() int {
 	log.SetLoggerLevelFatal()
+	kc := kcli.NewKcWithConfigContext(config, context)
+	if kc == nil {
+		fmt.Fprintf(os.Stderr, "unable to start k8s client from config file '%s' and context '%s'\n", config, context)
+		os.Exit(-1)
+	}
 	if ns {
 		n, e := kc.Ns()
 		if e != nil {
@@ -206,7 +222,7 @@ func dump() int {
 		fmt.Println(g)
 	}
 	if !ns && !gvk {
-		outputfmt, e := kc.FormatCodeFromString(format)
+		outputfmt, e := kcli.FormatCodeFromString(format)
 		if e != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 			return 7

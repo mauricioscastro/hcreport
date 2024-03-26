@@ -10,7 +10,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-yq_set_whook_only_query='select(.kind == "Deployment").spec.template.spec.containers.[0].env[0].value = "true"'
+yq_set_whook_only_query='with(select(.kind == "Deployment").spec.template.spec.containers.[] | select(.name == "manager").env.[] | select(.name == "HCR_WEBHOOK_ONLY"); .value = "true")'
 
 # CONTAINER_TOOL defines the container tool to be used for building images.
 # Be aware that the target commands are only tested with Docker which is

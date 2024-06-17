@@ -1,6 +1,7 @@
 package kc
 
 import (
+	"archive/tar"
 	gz "compress/gzip"
 	"errors"
 	"fmt"
@@ -23,6 +24,7 @@ const (
 	JSON               int = 1
 	JSON_LINES         int = 2
 	JSON_LINES_WRAPPED int = 3
+	JSON_PRETTY        int = 4
 )
 
 var (
@@ -107,8 +109,11 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // the threads can be expressed through poolsize (0 or -1 to unbound it).
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
-func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error {
+func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, format int, poolSize int, progress func()) error {
 	fsutil.Clean(filepath.FromSlash(path))
+	if tgz {
+		gz = false
+	}
 	path = path + "/"
 	ns, err := kc.Ns()
 	if err != nil {
@@ -198,7 +203,21 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 			collectedErrors.WriteString(e.Error())
 			collectedErrors.WriteString("\n")
 		}
-		return errors.New(collectedErrors.String())
+		if collectedErrors.Len() > 0 {
+			return errors.New(collectedErrors.String())
+		}
+	}
+	if tgz {
+		tgzName := strings.Replace(kc.cluster, "https://", "", -1)
+		tgzName = strings.Replace(tgzName, ":", ".", -1) + ".tar"
+		logger.Sugar().Info(tgzName)
+		if err = archive(path, path+tgzName); err != nil {
+			logger.Error("tape archiving error", zap.Error(err))
+			return err
+		}
+		if err = gzip(path + tgzName); err != nil {
+			logger.Error("gzip error", zap.Error(err))
+		}
 	}
 	return nil
 }
@@ -218,7 +237,9 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		return writeResourceListLog("get "+logLine, err)
 	}
 	if len(apiResources) == 0 {
-		return writeResourceListLog("empty "+logLine, errors.New("empty list"))
+		logger.Info("empty api resource list " + logLine)
+		return nil
+		// return writeResourceListLog("empty "+logLine, errors.New("empty list"))
 	}
 	apiResources, err = yjq.YqEval(DefaultCleaningQuery, apiResources)
 	if err != nil {
@@ -273,8 +294,13 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 						return writeResourceListLog("get pod log "+logLine, err)
 					}
 					if len(log) > 0 {
-						if err = writeTextFile(nsPath+"log/"+fileName, log, gz, format); err != nil {
+						if err = fsutil.WriteTextFile(nsPath+"log/"+fileName, log); err != nil {
 							return writeResourceListLog("writing pod log "+logLine, err)
+						}
+						if gz {
+							if err = gzip(nsPath + "log/" + fileName); err != nil {
+								return writeResourceListLog("gzipping pod log "+logLine, err)
+							}
 						}
 					}
 				}
@@ -317,6 +343,11 @@ func writeTextFile(path string, contents string, gz bool, format int) error {
 			return err
 		}
 		path = rewriteFileSuffix(path, "json")
+	case JSON_PRETTY:
+		if contents, err = yjq.Y2JP(contents); err != nil {
+			return err
+		}
+		path = rewriteFileSuffix(path, "json")
 	default:
 		return fmt.Errorf("writeTextFile unknown output format requested")
 	}
@@ -355,6 +386,67 @@ func gzip(file string) error {
 	return nil
 }
 
+func archive(source string, target string) error {
+	var err error
+
+	if _, err = os.Stat(source); err != nil {
+		return fmt.Errorf("inexistent tar source: %v", err.Error())
+	}
+
+	outFile, err := os.Create(target)
+	if err != nil {
+		return err
+	}
+	defer outFile.Close()
+
+	tw := tar.NewWriter(outFile)
+	defer tw.Close()
+
+	return filepath.Walk(source, func(file string, fi os.FileInfo, err error) error {
+
+		if err != nil {
+			return err
+		}
+
+		if !fi.Mode().IsRegular() {
+			return nil
+		}
+
+		if strings.Contains(target, fi.Name()) {
+			return nil
+		}
+
+		// create a new dir/file header
+		header, err := tar.FileInfoHeader(fi, fi.Name())
+		if err != nil {
+			return err
+		}
+
+		// update the name to correctly reflect the desired destination when untaring
+		header.Name = strings.TrimPrefix(strings.Replace(file, source, "", -1), string(filepath.Separator))
+
+		// write the header
+		if err := tw.WriteHeader(header); err != nil {
+			return err
+		}
+
+		// open files for taring
+		f, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+
+		// copy file data into tar writer
+		if _, err := io.Copy(tw, f); err != nil {
+			return err
+		}
+
+		f.Close()
+
+		return nil
+	})
+}
+
 func FormatCodeFromString(format string) (int, error) {
 	switch format {
 	case "yaml":
@@ -365,8 +457,10 @@ func FormatCodeFromString(format string) (int, error) {
 		return JSON_LINES, nil
 	case "json_lines_wrapped":
 		return JSON_LINES_WRAPPED, nil
+	case "json_pretty":
+		return JSON_PRETTY, nil
 	default:
-		return -1, fmt.Errorf("unknown string coded format %s. please use one of 'yaml', 'json', json_lines', 'json_lines_wrapped'", format)
+		return -1, fmt.Errorf("unknown string coded format %s. please use one of 'yaml', 'json', 'json_pretty', 'json_lines', 'json_lines_wrapped'", format)
 	}
 }
 

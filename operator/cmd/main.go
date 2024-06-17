@@ -61,6 +61,7 @@ var (
 	// cli dump options
 	kcdump    bool
 	gzip      bool
+	tgz       bool
 	nologs    bool
 	ns        bool
 	gvk       bool
@@ -70,6 +71,7 @@ var (
 	format    string
 	config    string
 	context   string
+	logLevel  string
 )
 
 func init() {
@@ -92,14 +94,17 @@ func main() {
 	flag.BoolVar(&kcdump, "kcdump", false, "use manager as cli tool to dump the cluster")
 	flag.BoolVar(&nologs, "nologs", false, "do not output pod's logs")
 	flag.BoolVar(&gzip, "gzip", false, "gzip output")
+	flag.BoolVar(&tgz, "tgz", false, "gzip output")
 	flag.BoolVar(&ns, "ns", false, "print namespaces  list")
 	flag.BoolVar(&gvk, "gvk", false, "print group version kind with format 'gv,k'")
 	flag.Var(&xns, "xns", "regex to match and exclude unwanted namespaces. can be used multiple times.")
 	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*")
 	flag.StringVar(&targetDir, "targetDir", ".kcdump", "target directory where the extracted cluster data goes. directory will be recreated from scratch.")
-	flag.StringVar(&format, "format", "yaml", "output format. one of 'yaml', 'json', json_lines', 'json_lines_wrapped'. default is yaml")
-	flag.StringVar(&config, "config", filepath.FromSlash(home+"/.kube/config"), "kube config file")
+	flag.StringVar(&format, "format", "yaml", "output format. one of 'yaml', 'json', 'json_pretty', 'json_lines', 'json_lines_wrapped'. default is yaml")
+	flag.StringVar(&config, "config", filepath.FromSlash(home+"/.kube/config"), "kube config file or read from stdin.")
 	flag.StringVar(&context, "context", kc.CurrentContext, "kube config context to use")
+	flag.StringVar(&logLevel, "logLevel", "fatal", "use one of: info, warn, ")
+
 	flag.Parse()
 
 	if filepath.Base(os.Args[0]) == "kcdump" || kcdump {
@@ -172,7 +177,7 @@ func main() {
 }
 
 func dump() int {
-	log.SetLoggerLevelFatal()
+	log.SetLoggerLevel(logLevel)
 	kc := kcli.NewKcWithConfigContext(config, context)
 	if kc == nil {
 		fmt.Fprintf(os.Stderr, "unable to start k8s client from config file '%s' and context '%s'\n", config, context)
@@ -193,7 +198,7 @@ func dump() int {
 		if e != nil {
 			return 3
 		}
-		fmt.Println("namespace")
+		// fmt.Println("namespace")
 		fmt.Println(n)
 	}
 	if gvk {
@@ -218,7 +223,7 @@ func dump() int {
 		if ns {
 			fmt.Println()
 		}
-		fmt.Println("groupVersion,kind")
+		// fmt.Println("groupVersion,kind")
 		fmt.Println(g)
 	}
 	if !ns && !gvk {
@@ -227,7 +232,7 @@ func dump() int {
 			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 			return 7
 		}
-		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, outputfmt, 0, nil); e != nil {
+		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, tgz, outputfmt, 0, nil); e != nil {
 			return 8
 		}
 	}

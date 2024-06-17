@@ -51,6 +51,14 @@ func SetLoggerLevelFatal() {
 	loggerCfg.Level.SetLevel(zapcore.FatalLevel)
 }
 
+func SetLoggerLevel(level string) {
+	l, e := zapcore.ParseLevel(level)
+	if e != nil {
+		l = zapcore.FatalLevel
+	}
+	loggerCfg.Level.SetLevel(l)
+}
+
 func ResetLoggerLevel(log *zap.Logger, level string) *zap.Logger {
 	zlevel, err := zapcore.ParseLevel(level)
 	if err != nil {

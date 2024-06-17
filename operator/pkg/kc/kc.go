@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -53,7 +54,7 @@ type (
 		Api() string
 		Ns() (string, error)
 		ApiResources() (string, error)
-		Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, format int, poolSize int, progress func()) error
+		Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, format int, poolSize int, progress func()) error
 		setCert(cert []byte, key []byte)
 		response(resp *resty.Response, yamlOutput bool) (string, error)
 		send(method string, apiCall string, body string) (string, error)
@@ -121,8 +122,14 @@ func NewKcWithConfigContext(config string, context string) Kc {
 	logger.Debug("context " + context)
 	kcfg, err := os.ReadFile(config)
 	if err != nil {
-		logger.Error("reading config file", zap.Error(err))
-		return nil
+		logger.Error("reading config file. will try reading from stdin...", zap.Error(err))
+		stdin, stdinerr := io.ReadAll(os.Stdin)
+		if stdinerr != nil {
+			logger.Error("reading config from stdin also failed.", zap.Error(err))
+			return nil
+		} else {
+			kcfg = stdin
+		}
 	}
 	kubeCfg := string(kcfg)
 	cluster, err := yjq.YqEval(fmt.Sprintf(queryContextForCluster, context), kubeCfg)

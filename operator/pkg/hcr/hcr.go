@@ -75,9 +75,10 @@ func (rec *reconciler) extract() error {
 	nslist := []string{}
 	gvklist := []string{}
 	nologs := false
+	tgz := false
 	gz := false
 	format := kc.YAML
-	return kc.NewKc().Dump(reportHome, nslist, gvklist, nologs, gz, format, 0, func() {
+	return kc.NewKc().Dump(reportHome, nslist, gvklist, nologs, gz, tgz, format, 0, func() {
 		duLock.Lock()
 		defer duLock.Unlock()
 		rec.statusAddDiskUsage()

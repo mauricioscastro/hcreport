@@ -233,6 +233,7 @@ func dump() int {
 			return 7
 		}
 		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, tgz, outputfmt, 0, nil); e != nil {
+			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 			return 8
 		}
 	}

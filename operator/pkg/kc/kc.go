@@ -51,6 +51,7 @@ type (
 		Response() string
 		Err() error
 		Status() int
+		Cluster() string
 		Api() string
 		Ns() (string, error)
 		ApiResources() (string, error)
@@ -216,6 +217,10 @@ func (kc *kc) SetCluster(cluster string) Kc {
 	kc.client.SetBaseURL(cluster)
 	cache.Store(cluster, cacheEntry{""})
 	return kc
+}
+
+func (kc *kc) Cluster() string {
+	return kc.cluster
 }
 
 func (kc *kc) SetToken(token string) Kc {

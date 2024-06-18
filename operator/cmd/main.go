@@ -21,7 +21,6 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
 	// to ensure that exec-entrypoint and run can make use of them.
@@ -85,6 +84,9 @@ func init() {
 		logger.Error("reading home info", zap.Error(err))
 		os.Exit(-1)
 	}
+	if home == "/" {
+		home = ""
+	}
 }
 
 func main() {
@@ -94,16 +96,16 @@ func main() {
 	flag.BoolVar(&kcdump, "kcdump", false, "use manager as cli tool to dump the cluster")
 	flag.BoolVar(&nologs, "nologs", false, "do not output pod's logs")
 	flag.BoolVar(&gzip, "gzip", false, "gzip output")
-	flag.BoolVar(&tgz, "tgz", false, "gzip output")
-	flag.BoolVar(&ns, "ns", false, "print namespaces  list")
+	flag.BoolVar(&tgz, "tgz", false, "a gzipped tar file is created inside targetDir with its contents")
+	flag.BoolVar(&ns, "ns", false, "print namespaces list")
 	flag.BoolVar(&gvk, "gvk", false, "print group version kind with format 'gv,k'")
 	flag.Var(&xns, "xns", "regex to match and exclude unwanted namespaces. can be used multiple times.")
-	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*")
-	flag.StringVar(&targetDir, "targetDir", ".kcdump", "target directory where the extracted cluster data goes. directory will be recreated from scratch.")
+	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*. can be used multiple times.")
+	flag.StringVar(&targetDir, "targetDir", filepath.FromSlash(home+"/.kube/kcdump/cluster.info.port"), "target directory where the extracted cluster data goes. directory will be recreated from scratch.")
 	flag.StringVar(&format, "format", "yaml", "output format. one of 'yaml', 'json', 'json_pretty', 'json_lines', 'json_lines_wrapped'. default is yaml")
 	flag.StringVar(&config, "config", filepath.FromSlash(home+"/.kube/config"), "kube config file or read from stdin.")
 	flag.StringVar(&context, "context", kc.CurrentContext, "kube config context to use")
-	flag.StringVar(&logLevel, "logLevel", "fatal", "use one of: info, warn, ")
+	flag.StringVar(&logLevel, "logLevel", "fatal", "use one of: info, warn, error, debug, panic, fatal")
 
 	flag.Parse()
 
@@ -179,6 +181,7 @@ func main() {
 func dump() int {
 	log.SetLoggerLevel(logLevel)
 	kc := kcli.NewKcWithConfigContext(config, context)
+	// fmt.Println(kc.Cluster())
 	if kc == nil {
 		fmt.Fprintf(os.Stderr, "unable to start k8s client from config file '%s' and context '%s'\n", config, context)
 		os.Exit(-1)
@@ -188,11 +191,9 @@ func dump() int {
 		if e != nil {
 			return 1
 		}
-		for _, re := range xns {
-			n, e = yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, n, re)
-			if e != nil {
-				return 2
-			}
+		n, e = kcli.FilterNS(n, xns)
+		if e != nil {
+			return 2
 		}
 		n, e = yjq.YqEval("[.items[].metadata.name] | sort | .[]", n)
 		if e != nil {
@@ -206,15 +207,9 @@ func dump() int {
 		if e != nil {
 			return 4
 		}
-		for _, re := range xgvk {
-			r := strings.Split(re, ",")
-			if len(r) == 1 {
-				r = append(r, ".*")
-			}
-			g, e = yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, g, r[0], r[1])
-			if e != nil {
-				return 5
-			}
+		g, e = kcli.FilterApiResources(g, xgvk)
+		if e != nil {
+			return 5
 		}
 		g, e = yjq.YqEval(`with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | [.groupVersion + "," + .kind] | sort | .[]`, g)
 		if e != nil {

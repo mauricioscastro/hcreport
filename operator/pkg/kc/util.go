@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"sync/atomic"
 
 	"github.com/coreybutler/go-fsutil"
@@ -28,8 +29,9 @@ const (
 )
 
 var (
-	DefaultCleaningQuery = `.items = [.items[] | del(.metadata.managedFields) | del(.metadata.uid) | del (.metadata.creationTimestamp) | del (.metadata.generation) | del(.metadata.resourceVersion) | del (.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])] | del(.metadata)`
-	dumpWorkerErrors     atomic.Value
+	DefaultCleaningQuery  = `.items = [.items[] | del(.metadata.managedFields) | del(.metadata.uid) | del (.metadata.creationTimestamp) | del (.metadata.generation) | del(.metadata.resourceVersion) | del (.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"])] | del(.metadata)`
+	apiAvailableListQuery = `with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | .name + ";" + .groupVersion + ";" + .namespaced`
+	dumpWorkerErrors      atomic.Value
 )
 
 func (kc *kc) Ns() (string, error) {
@@ -54,14 +56,13 @@ func (kc *kc) ApiResources() (string, error) {
 		return "", e
 	}
 	var kcList []Kc
-	wg := waitgroup.NewWaitGroup(0)
+	var wg sync.WaitGroup
 	for _, api := range apisList {
 		_kc := NewKc()
-		wg.BlockAdd()
+		wg.Add(1)
 		go func(api string) {
 			defer wg.Done()
-			_kc.SetResponseTransformer(apiResourcesResponseTransformer).
-				GetJson(api)
+			_kc.SetResponseTransformer(apiResourcesResponseTransformer).GetJson(api)
 		}(api)
 		kcList = append(kcList, _kc)
 	}
@@ -110,21 +111,21 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
 func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, format int, poolSize int, progress func()) error {
-	fsutil.Clean(filepath.FromSlash(path))
 	if tgz {
 		gz = false
 	}
+	dumpDir := strings.Replace(kc.cluster, "https://", "", -1)
+	dumpDir = strings.Replace(dumpDir, ":", ".", -1)
+	path = path + "/" + dumpDir
+	fsutil.Clean(filepath.FromSlash(path))
 	path = path + "/"
 	ns, err := kc.Ns()
 	if err != nil {
 		return err
 	}
 	// filter out ns based on regex list
-	for _, re := range nsExclusionList {
-		ns, err = yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, ns, re)
-		if err != nil {
-			return err
-		}
+	if ns, err = FilterNS(ns, nsExclusionList); err != nil {
+		return err
 	}
 	if err = writeTextFile(path+"namespaces_"+kc.Version()+".yaml", ns, gz, format); err != nil {
 		return err
@@ -145,26 +146,13 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		return err
 	}
 	// filter out gvk based on regex list
-	for _, re := range gvkExclusionList {
-		r := strings.Split(re, ",")
-		if len(r) == 1 {
-			r = append(r, ".*")
-		}
-		if len(r[0]) == 0 {
-			r[0] = ".*"
-		}
-		if len(r[1]) == 0 {
-			r[1] = ".*"
-		}
-		apis, err = yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, apis, r[0], r[1])
-		if err != nil {
-			return err
-		}
+	if apis, err = FilterApiResources(apis, gvkExclusionList); err != nil {
+		return err
 	}
 	if err = writeTextFile(path+"api_resources.yaml", apis, gz, format); err != nil {
 		return err
 	}
-	apiList, err := yjq.Eval2List(yjq.YqEval, `with(.items[]; .verbs = (.verbs | to_entries)) | .items[] | select(.available and .verbs[].value == "get") | .name + ";" + .groupVersion + ";" + .namespaced`, apis)
+	apiList, err := yjq.Eval2List(yjq.YqEval, apiAvailableListQuery, apis)
 	if err != nil {
 		return err
 	}
@@ -208,14 +196,12 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		}
 	}
 	if tgz {
-		tgzName := strings.Replace(kc.cluster, "https://", "", -1)
-		tgzName = strings.Replace(tgzName, ":", ".", -1) + ".tar"
-		logger.Sugar().Info(tgzName)
-		if err = archive(path, path+tgzName); err != nil {
+		tgzpath := path + dumpDir + ".tar"
+		if err = archive(path, tgzpath); err != nil {
 			logger.Error("tape archiving error", zap.Error(err))
 			return err
 		}
-		if err = gzip(path + tgzName); err != nil {
+		if err = gzip(tgzpath); err != nil {
 			logger.Error("gzip error", zap.Error(err))
 		}
 	}
@@ -226,7 +212,8 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 	if progress != nil {
 		defer progress()
 	}
-	logLine := fmt.Sprintf("baseName=%s name=%s namespaced=%s gv=%t", baseName, name, gv, namespaced)
+	logLine := fmt.Sprintf("writeResourceList: baseName=%s name=%s  gv=%s namespaced=%t", baseName, name, gv, namespaced)
+	logger.Debug(logLine)
 	kc := NewKc()
 	fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
 	fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
@@ -475,4 +462,34 @@ func rewriteFileSuffix(path string, suffix string) string {
 	}
 	f = strings.Join(p, ".")
 	return filepath.FromSlash(d + "/" + f)
+}
+
+func FilterApiResources(apis string, gvkExclusionList []string) (string, error) {
+	for _, re := range gvkExclusionList {
+		r := strings.Split(re, ",")
+		if len(r) == 1 {
+			r = append(r, ".*")
+		}
+		if len(r[0]) == 0 {
+			r[0] = ".*"
+		}
+		if len(r[1]) == 0 {
+			r[1] = ".*"
+		}
+		apis, err := yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, apis, r[0], r[1])
+		if err != nil {
+			return apis, err
+		}
+	}
+	return apis, nil
+}
+
+func FilterNS(ns string, nsExclusionList []string) (string, error) {
+	for _, re := range nsExclusionList {
+		ns, err := yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, ns, re)
+		if err != nil {
+			return ns, err
+		}
+	}
+	return ns, nil
 }

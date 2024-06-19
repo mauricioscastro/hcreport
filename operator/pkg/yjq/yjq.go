@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"reflect"
+	"strconv"
 	"strings"
 
 	gjs "github.com/goccy/go-json"
@@ -92,6 +93,14 @@ func yqEval(expr string, input string, encoder yqlib.Encoder, decoder yqlib.Deco
 		res = strings.TrimSuffix(res, "\n")
 	}
 	return res, err
+}
+
+func Eval2Int(evalFunc EvalFunc, expr string, input string, param ...any) (int, error) {
+	if l, e := evalFunc(expr, input, param...); e != nil {
+		return -1, e
+	} else {
+		return strconv.Atoi(l)
+	}
 }
 
 func Eval2List(evalFunc EvalFunc, expr string, input string, param ...any) ([]string, error) {

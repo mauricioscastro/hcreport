@@ -213,7 +213,7 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		defer progress()
 	}
 	logLine := fmt.Sprintf("writeResourceList: baseName=%s name=%s  gv=%s namespaced=%t", baseName, name, gv, namespaced)
-	logger.Debug(logLine)
+	logger.Info(logLine)
 	kc := NewKc()
 	fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
 	fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
@@ -227,6 +227,10 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		logger.Info("empty api resource list " + logLine)
 		return nil
 		// return writeResourceListLog("empty "+logLine, errors.New("empty list"))
+	}
+	if totItems, err := yjq.Eval2Int(yjq.YqEval, ".items | length", apiResources); err != nil || totItems < 1 {
+		logger.Info("api resource list with zero items " + logLine)
+		return nil
 	}
 	apiResources, err = yjq.YqEval(DefaultCleaningQuery, apiResources)
 	if err != nil {

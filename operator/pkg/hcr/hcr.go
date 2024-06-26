@@ -21,9 +21,9 @@ import (
 )
 
 const (
-	reportPath       = "/_data/"
-	apiResourcesFile = "api_resources.yaml"
-	status           = `{"phase": "", "diskUsage": "", "transitions": []}`
+	reportPath = "/_data/"
+	// apiResourcesFile = "api_resources.yaml"
+	status = `{"phase": "", "diskUsage": "", "transitions": []}`
 )
 
 var (

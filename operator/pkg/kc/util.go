@@ -110,7 +110,7 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // the threads can be expressed through poolsize (0 or -1 to unbound it).
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
-func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, format int, poolSize int, progress func()) error {
+func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, prune bool, splitns bool, format int, poolSize int, progress func()) error {
 	if tgz {
 		gz = false
 	}
@@ -118,28 +118,33 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 	dumpDir = strings.Replace(dumpDir, ":", ".", -1)
 	path = path + "/" + dumpDir
 	fsutil.Clean(filepath.FromSlash(path))
+	os.Remove(path + ".tar.gz")
 	path = path + "/"
 	ns, err := kc.Ns()
 	if err != nil {
 		return err
 	}
 	// filter out ns based on regex list
-	if ns, err = FilterNS(ns, nsExclusionList); err != nil {
+	if ns, err = FilterNS(ns, nsExclusionList, true); err != nil {
 		return err
 	}
-	if err = writeTextFile(path+"namespaces_"+kc.Version()+".yaml", ns, gz, format); err != nil {
+	if err = writeTextFile(path+"namespaces."+kc.Version()+".yaml", ns, gz, format); err != nil {
 		return err
 	}
-	nsList, err := yjq.Eval2List(yjq.YqEval, ".items[].metadata.name", ns)
-	if err != nil {
-		return err
-	}
-	for _, n := range nsList {
-		ns_dir_name := strings.ReplaceAll(n, "-", "_")
-		fsutil.Mkdirp(filepath.FromSlash(path + ns_dir_name))
-		if !nologs {
-			fsutil.Mkdirp(filepath.FromSlash(path + ns_dir_name + "/log"))
+	if splitns {
+		nsList, err := yjq.Eval2List(yjq.YqEval, ".items[].metadata.name", ns)
+		if err != nil {
+			return err
 		}
+		for _, n := range nsList {
+			// ns_dir_name := strings.ReplaceAll(n, "-", "_")
+			fsutil.Mkdirp(filepath.FromSlash(path + n))
+			if !nologs {
+				fsutil.Mkdirp(filepath.FromSlash(path + n + "/log"))
+			}
+		}
+	} else if !nologs {
+		fsutil.Mkdirp(filepath.FromSlash(path + "/log"))
 	}
 	apis, err := kc.ApiResources()
 	if err != nil {
@@ -174,12 +179,15 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		wg.BlockAdd()
 		go func() {
 			defer wg.Done()
-			writeResourceList(path, baseName, name, gv, namespaced, nologs, gz, format, progress)
+			writeResourceList(path, baseName, name, gv, namespaced, splitns, nsExclusionList, nologs, gz, format, progress)
 		}()
 	}
 	wg.Wait()
 	version, err := kc.Get("/version")
 	if err != nil {
+		return err
+	}
+	if version, err = yjq.YqEval(`{"items": [.]}`, version); err != nil {
 		return err
 	}
 	if err = writeTextFile(path+"version.yaml", version, gz, format); err != nil {
@@ -196,7 +204,7 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		}
 	}
 	if tgz {
-		tgzpath := path + dumpDir + ".tar"
+		tgzpath := path[:len(path)-1] + ".tar"
 		if err = archive(path, tgzpath); err != nil {
 			logger.Error("tape archiving error", zap.Error(err))
 			return err
@@ -204,19 +212,24 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		if err = gzip(tgzpath); err != nil {
 			logger.Error("gzip error", zap.Error(err))
 		}
+		if prune {
+			os.RemoveAll(path)
+		}
 	}
 	return nil
 }
 
-func writeResourceList(path string, baseName string, name string, gv string, namespaced bool, nologs bool, gz bool, format int, progress func()) error {
+func writeResourceList(path string, baseName string, name string, gv string, namespaced bool, splitns bool, nsExclusionList []string, nologs bool, gz bool, format int, progress func()) error {
 	if progress != nil {
 		defer progress()
 	}
 	logLine := fmt.Sprintf("writeResourceList: baseName=%s name=%s  gv=%s namespaced=%t", baseName, name, gv, namespaced)
 	logger.Info(logLine)
 	kc := NewKc()
-	fileName := name + "_" + strings.ReplaceAll(gv, "/", "_")
-	fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
+	gvName := strings.ReplaceAll(gv, "/", "_")
+	gvName = strings.ReplaceAll(gvName, ".", "_")
+	fileName := name + "." + gvName + ".yaml"
+	// fileName = strings.ReplaceAll(fileName, ".", "_") + ".yaml"
 	apiResources, err := kc.
 		SetResponseTransformer(apiIgnoreNotFoundResponseTransformer).
 		Get(baseName + gv + "/" + name)
@@ -228,12 +241,20 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		return nil
 		// return writeResourceListLog("empty "+logLine, errors.New("empty list"))
 	}
-	if totItems, err := yjq.Eval2Int(yjq.YqEval, ".items | length", apiResources); err != nil || totItems < 1 {
-		logger.Info("api resource list with zero items " + logLine)
+	if nsExclusionList != nil {
+		if apiResources, err = FilterNS(apiResources, nsExclusionList, false); err != nil {
+			return writeResourceListLog("FilterNS from api resources "+logLine, err)
+		}
+	}
+	if totItems, err := yjq.Eval2Int(yjq.YqEval, ".items | length", apiResources); totItems < 1 {
+		e := ""
+		if err != nil {
+			e = " error converting to integer: " + err.Error()
+		}
+		logger.Info(fileName + " api resource list with zero items " + logLine + e)
 		return nil
 	}
-	apiResources, err = yjq.YqEval(DefaultCleaningQuery, apiResources)
-	if err != nil {
+	if apiResources, err = yjq.YqEval(DefaultCleaningQuery, apiResources); err != nil {
 		return writeResourceListLog("DefaultCleaningQuery "+logLine, err)
 	}
 	if name == "secrets" {
@@ -242,9 +263,14 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 			return writeResourceListLog("secrets "+logLine, err)
 		}
 	}
-	if !namespaced {
+	if !namespaced || !splitns {
 		if err = writeTextFile(path+fileName, apiResources, gz, format); err != nil {
 			return writeResourceListLog("write resource "+logLine, err)
+		}
+		if !nologs && name == "pods" && gv == kc.Version() {
+			if err = writeLogs(kc, path+"log/", apiResources, baseName, gv, gz, splitns, logLine); err != nil {
+				return writeResourceListLog("write logs "+logLine, err)
+			}
 		}
 	} else {
 		nsList, err := yjq.Eval2List(yjq.YqEval, "[.items[].metadata.namespace] | unique | .[]", apiResources)
@@ -252,11 +278,8 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 			return writeResourceListLog("read ns list from apiResources"+logLine, err)
 		}
 		for _, ns := range nsList {
-			nsPath := path + strings.ReplaceAll(ns, "-", "_") + "/"
-			// skip unwanted ns as per nsExclusionList in kcDump
-			if !fsutil.Exists(filepath.FromSlash(nsPath)) {
-				continue
-			}
+			// nsPath := path + strings.ReplaceAll(ns, "-", "_") + "/"
+			nsPath := path + ns + "/"
 			apiByNs, err := yjq.YqEval(`.items = [.items[] | select(.metadata.namespace=="%s")]`, apiResources, ns)
 			if err != nil {
 				return writeResourceListLog("apiByNs "+logLine, err)
@@ -266,34 +289,49 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 			}
 			// get pods' logs or no
 			if !nologs && name == "pods" && gv == kc.Version() {
-				podContainerList, err := yjq.Eval2List(yjq.YqEval, `.items[] | .metadata.name + ";" + .spec.containers[].name`, apiByNs)
-				if err != nil {
-					return writeResourceListLog("podContainerList "+logLine, err)
+				if err = writeLogs(kc, nsPath+"log/", apiByNs, baseName, gv, gz, splitns, logLine); err != nil {
+					return writeResourceListLog("write logs "+logLine, err)
 				}
-				for _, p := range podContainerList {
-					_p := strings.Split(p, ";")
-					podName := _p[0]
-					containerName := _p[1]
-					fileName := podName + "-" + containerName + ".log"
-					qp := map[string]string{"container": containerName}
-					logApi := fmt.Sprintf("%s%s/namespaces/%s/pods/%s/log", baseName, gv, ns, podName)
-					log, err := kc.
-						SetResponseTransformer(apiIgnoreNotFoundResponseTransformer).
-						SetGetParams(qp).
-						Get(logApi)
-					if err != nil {
-						return writeResourceListLog("get pod log "+logLine, err)
-					}
-					if len(log) > 0 {
-						if err = fsutil.WriteTextFile(nsPath+"log/"+fileName, log); err != nil {
-							return writeResourceListLog("writing pod log "+logLine, err)
-						}
-						if gz {
-							if err = gzip(nsPath + "log/" + fileName); err != nil {
-								return writeResourceListLog("gzipping pod log "+logLine, err)
-							}
-						}
-					}
+			}
+		}
+	}
+	return nil
+}
+
+func writeLogs(kc Kc, path string, apis string, baseName string, gv string, gz bool, splitns bool, logLine string) error {
+	podContainerList, err := yjq.Eval2List(yjq.YqEval, `.items[] | .metadata.name + ";" + .spec.containers[].name + ";" + .metadata.namespace`, apis)
+	if err != nil {
+		// return writeResourceListLog("podContainerList "+logLine, err)
+		return err
+	}
+	for _, p := range podContainerList {
+		_p := strings.Split(p, ";")
+		podName := _p[0]
+		containerName := _p[1]
+		ns := _p[2]
+		fileName := podName + "." + containerName + ".log"
+		qp := map[string]string{"container": containerName}
+		logApi := fmt.Sprintf("%s%s/namespaces/%s/pods/%s/log", baseName, gv, ns, podName)
+		if !splitns {
+			fileName = strings.ReplaceAll(ns, "-", "_") + "." + fileName
+		}
+		log, err := kc.
+			SetResponseTransformer(apiIgnoreNotFoundResponseTransformer).
+			SetGetParams(qp).
+			Get(logApi)
+		if err != nil {
+			// return writeResourceListLog("get pod log "+logLine, err)
+			return err
+		}
+		if len(log) > 0 {
+			if err = fsutil.WriteTextFile(path+fileName, log); err != nil {
+				// return writeResourceListLog("writing pod log "+logLine, err)
+				return err
+			}
+			if gz {
+				if err = gzip(path + fileName); err != nil {
+					// return writeResourceListLog("gzipping pod log "+logLine, err)
+					return err
 				}
 			}
 		}
@@ -468,7 +506,12 @@ func rewriteFileSuffix(path string, suffix string) string {
 	return filepath.FromSlash(d + "/" + f)
 }
 
+// TODO: use OR in yq query to avoid loop. not top of the list since filtering is not common
 func FilterApiResources(apis string, gvkExclusionList []string) (string, error) {
+	var (
+		filteredApis = apis
+		err          error
+	)
 	for _, re := range gvkExclusionList {
 		r := strings.Split(re, ",")
 		if len(r) == 1 {
@@ -480,20 +523,29 @@ func FilterApiResources(apis string, gvkExclusionList []string) (string, error) 
 		if len(r[1]) == 0 {
 			r[1] = ".*"
 		}
-		apis, err := yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, apis, r[0], r[1])
+		filteredApis, err = yjq.YqEval(`del(.items[] | select(.groupVersion | test("%s") and .kind | test("%s")))`, filteredApis, r[0], r[1])
 		if err != nil {
 			return apis, err
 		}
 	}
-	return apis, nil
+	return filteredApis, nil
 }
 
-func FilterNS(ns string, nsExclusionList []string) (string, error) {
+// TODO: use OR in yq query to avoid loop. not top of the list since filtering is not common
+func FilterNS(apis string, nsExclusionList []string, resourceIsNs bool) (string, error) {
+	var (
+		selectItem   = ".metadata.namespace"
+		filteredApis = apis
+		err          error
+	)
+	if resourceIsNs {
+		selectItem = ".metadata.name"
+	}
 	for _, re := range nsExclusionList {
-		ns, err := yjq.YqEval(`del(.items[] | select(.metadata.name | test("%s")))`, ns, re)
+		filteredApis, err = yjq.YqEval(`del(.items[] | select(%s | test("%s")))`, filteredApis, selectItem, re)
 		if err != nil {
-			return ns, err
+			return apis, err
 		}
 	}
-	return ns, nil
+	return filteredApis, nil
 }

@@ -319,7 +319,7 @@ func writeLogs(kc Kc, path string, apis string, baseName string, gv string, gz b
 			SetResponseTransformer(apiIgnoreNotFoundResponseTransformer).
 			SetGetParams(qp).
 			Get(logApi)
-		if err != nil {
+		if err != nil && !(strings.Contains(err.Error(), "container") && strings.Contains(err.Error(), "terminated")) {
 			// return writeResourceListLog("get pod log "+logLine, err)
 			return err
 		}

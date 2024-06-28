@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -358,26 +359,32 @@ func writeResourceListLog(msg string, err error) error {
 
 func writeTextFile(path string, contents string, gz bool, format int) error {
 	var err error
+	// filter wrapped json contest in strings
+	if slices.Contains([]int{JSON, JSON_LINES, JSON_PRETTY, JSON_LINES_WRAPPED}, format) {
+		if contents, err = yjq.Y2JC(contents); err != nil {
+			return err
+		}
+		if contents, err = yjq.JqEval(`(.. | strings) |= gsub("\"";"'") | (.. | strings) |= gsub("\n\\s*";"") | (.. | strings) |= gsub("\\\\";"") | (.. | strings) |= gsub("\t";"  ")`, contents); err != nil {
+			return err
+		}
+	}
 	switch format {
 	case YAML:
 		path = rewriteFileSuffix(path, "yaml")
 	case JSON:
-		if contents, err = yjq.Y2JC(contents); err != nil {
-			return err
-		}
 		path = rewriteFileSuffix(path, "json")
 	case JSON_LINES:
-		if contents, err = yjq.YqEval2JC(".items[]", contents); err != nil {
+		if contents, err = yjq.JqEval(".items[]", contents); err != nil {
 			return err
 		}
 		path = rewriteFileSuffix(path, "json")
 	case JSON_LINES_WRAPPED:
-		if contents, err = yjq.YqEval2JC(`{"_": .items[]}`, contents); err != nil {
+		if contents, err = yjq.JqEval(`{"_": .items[]}`, contents); err != nil {
 			return err
 		}
 		path = rewriteFileSuffix(path, "json")
 	case JSON_PRETTY:
-		if contents, err = yjq.Y2JP(contents); err != nil {
+		if contents, err = yjq.J2JP(contents); err != nil {
 			return err
 		}
 		path = rewriteFileSuffix(path, "json")

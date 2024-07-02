@@ -14,6 +14,7 @@ import (
 	"strings"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/coreybutler/go-fsutil"
 	"github.com/mauricioscastro/hcreport/pkg/yjq"
@@ -69,7 +70,8 @@ func (kc *kc) ApiResources() (string, error) {
 	}
 	wg.Wait()
 	var sb strings.Builder
-	sb.WriteString("kind: APIResourceList\nitems:\n")
+	apisHeader := fmt.Sprintf("kind: APIResourceList\napiVersion: %s\nitems:\n", kc.Version())
+	sb.WriteString(apisHeader)
 	for i, _kc := range kcList {
 		if len(_kc.Response()) == 0 || _kc.Err() != nil {
 			continue
@@ -111,16 +113,44 @@ func apiResourcesResponseTransformer(kc Kc) (string, error) {
 // the threads can be expressed through poolsize (0 or -1 to unbound it).
 // progress will be called at the end. You need to add thread safety mechanisms
 // to the code inside progress func().
-func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, prune bool, splitns bool, format int, poolSize int, progress func()) error {
-	if tgz {
-		gz = false
+func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []string, nologs bool, gz bool, tgz bool, prune bool, splitns bool, splitgv bool, format int, poolSize int, progress func()) error {
+	_gz := gz
+	if tgz || !splitgv { // only gzip in the end after archiving or after concatenating
+		_gz = false
+	}
+	if !splitgv {
+		if format != YAML && format != JSON_LINES {
+			return fmt.Errorf("not splitting gv needs format to be 'yaml' or 'json_lines'\n")
+		}
+		splitns = false
+		if format == JSON_LINES {
+			format = JSON // trick the file writer and put the whole list in one line or else do not extract items.
+		}
 	}
 	dumpDir := strings.Replace(kc.cluster, "https://", "", -1)
 	dumpDir = strings.Replace(dumpDir, ":", ".", -1)
+	dumpDir = strings.Replace(dumpDir, ".", "_", -1)
 	path = path + "/" + dumpDir
 	fsutil.Clean(filepath.FromSlash(path))
 	os.Remove(path + ".tar.gz")
 	path = path + "/"
+	//
+	// retrieve gvk list and write
+	//
+	apis, err := kc.ApiResources()
+	if err != nil {
+		return err
+	}
+	// filter out gvk based on regex list
+	if apis, err = FilterApiResources(apis, gvkExclusionList); err != nil {
+		return err
+	}
+	if err = writeTextFile(path+"api_resources.yaml", apis, _gz, format); err != nil {
+		return err
+	}
+	//
+	// retrieve ns list and write
+	//
 	ns, err := kc.Ns()
 	if err != nil {
 		return err
@@ -129,7 +159,8 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 	if ns, err = FilterNS(ns, nsExclusionList, true); err != nil {
 		return err
 	}
-	if err = writeTextFile(path+"namespaces."+kc.Version()+".yaml", ns, gz, format); err != nil {
+	// append api name
+	if ns, err = yjq.YqEval(`with(.items[]; .metadata.annotations += {"apiResourceName": "%s"})`, ns, "namespaces"); err != nil {
 		return err
 	}
 	if splitns {
@@ -147,17 +178,12 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 	} else if !nologs {
 		fsutil.Mkdirp(filepath.FromSlash(path + "/log"))
 	}
-	apis, err := kc.ApiResources()
-	if err != nil {
+	if err = writeTextFile(path+"namespaces."+kc.Version()+".yaml", ns, _gz, format); err != nil {
 		return err
 	}
-	// filter out gvk based on regex list
-	if apis, err = FilterApiResources(apis, gvkExclusionList); err != nil {
-		return err
-	}
-	if err = writeTextFile(path+"api_resources.yaml", apis, gz, format); err != nil {
-		return err
-	}
+	//
+	// retrieve everything else in parallel
+	//
 	apiList, err := yjq.Eval2List(yjq.YqEval, apiAvailableListQuery, apis)
 	if err != nil {
 		return err
@@ -180,7 +206,7 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		wg.BlockAdd()
 		go func() {
 			defer wg.Done()
-			writeResourceList(path, baseName, name, gv, namespaced, splitns, nsExclusionList, nologs, gz, format, progress)
+			writeResourceList(path, baseName, name, gv, namespaced, splitns, nsExclusionList, nologs, _gz, format, progress)
 		}()
 	}
 	wg.Wait()
@@ -188,10 +214,10 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 	if err != nil {
 		return err
 	}
-	if version, err = yjq.YqEval(`{"items": [.]}`, version); err != nil {
+	if version, err = yjq.YqEval(`. += {"hcrDate": "%s"}`, version, time.Now().Format(time.RFC3339)); err != nil {
 		return err
 	}
-	if err = writeTextFile(path+"version.yaml", version, gz, format); err != nil {
+	if err = writeTextFile(path+"version.yaml", version, _gz, format); err != nil {
 		return err
 	}
 	if len(dumpWorkerErrors.Load().([]error)) > 0 {
@@ -215,6 +241,51 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 		}
 		if prune {
 			os.RemoveAll(path)
+		}
+	}
+	if !splitgv {
+		bigFileName := dumpDir
+		if format == YAML {
+			bigFileName = bigFileName + ".yaml"
+		} else {
+			bigFileName = bigFileName + ".json"
+		}
+		bigFilePath := strings.Replace(path, dumpDir+"/", "", -1) + bigFileName
+		separator := "\n"
+		if format == YAML {
+			separator = "\n---\n"
+		}
+		bigFile, err := os.OpenFile(bigFilePath, os.O_TRUNC|os.O_CREATE|os.O_WRONLY, 0644)
+		if err != nil {
+			return err
+		}
+		l, err := fsutil.ListFiles(path, false)
+		if err != nil {
+			return err
+		}
+		for fi, f := range l {
+			fcontent, err := fsutil.ReadTextFile(f)
+			if err != nil {
+				return err
+			}
+			if fi > 0 {
+				if _, err := bigFile.WriteString(separator); err != nil {
+					return err
+				}
+			}
+			if _, err := bigFile.WriteString(fcontent); err != nil {
+				return err
+			}
+			os.Remove(f)
+		}
+		bigFile.Close()
+		if gz {
+			if err = gzip(bigFilePath); err != nil {
+				logger.Error("gzip error", zap.Error(err))
+			}
+		}
+		if nologs {
+			os.Remove(path)
 		}
 	}
 	return nil
@@ -263,6 +334,10 @@ func writeResourceList(path string, baseName string, name string, gv string, nam
 		if err != nil {
 			return writeResourceListLog("secrets "+logLine, err)
 		}
+	}
+	// append api name
+	if apiResources, err = yjq.YqEval(`with(.items[]; .metadata.annotations += {"apiResourceName": "%s"})`, apiResources, name); err != nil {
+		return err
 	}
 	if !namespaced || !splitns {
 		if err = writeTextFile(path+fileName, apiResources, gz, format); err != nil {
@@ -359,7 +434,7 @@ func writeResourceListLog(msg string, err error) error {
 
 func writeTextFile(path string, contents string, gz bool, format int) error {
 	var err error
-	// filter wrapped json contest in strings
+	// filter wrapped json content in strings
 	if slices.Contains([]int{JSON, JSON_LINES, JSON_PRETTY, JSON_LINES_WRAPPED}, format) {
 		if contents, err = yjq.Y2JC(contents); err != nil {
 			return err

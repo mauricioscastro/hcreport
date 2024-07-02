@@ -65,6 +65,7 @@ var (
 	nologs      bool
 	ns          bool
 	dontsplitns bool
+	dontsplitgv bool
 	gvk         bool
 	xns         nsExcludeList
 	xgvk        gvkExcludeList
@@ -98,10 +99,11 @@ func main() {
 	flag.BoolVar(&kcdump, "kcdump", false, "use manager as cli tool to dump the cluster")
 	flag.BoolVar(&nologs, "nologs", false, "do not output pod's logs")
 	flag.BoolVar(&gzip, "gzip", false, "gzip output")
-	flag.BoolVar(&tgz, "tgz", false, "a gzipped tar file is created at targetDir level with its contents. will turn off gz option.")
+	flag.BoolVar(&tgz, "tgz", false, "a gzipped tar file is created at targetDir level with its contents. will turn off gzip option.")
 	flag.BoolVar(&prune, "prune", false, "prunes targetDir after archiving. implies tgz option. if tgz option is not used it does nothing.")
 	flag.BoolVar(&ns, "ns", false, "print namespaces list")
 	flag.BoolVar(&dontsplitns, "dontSplitns", false, "do not split namespaced items into directories with their namespace name")
+	flag.BoolVar(&dontsplitgv, "dontSplitgv", false, "do not split groupVersion in separate files. implies -dontSplitns and -format 'yaml' or 'json_lines'. ignores -tgz. a big file is created with everything inside.")
 	flag.BoolVar(&gvk, "gvk", false, "print group version kind with format 'gv,k'")
 	flag.Var(&xns, "xns", "regex to match and exclude unwanted namespaces. can be used multiple times.")
 	flag.Var(&xgvk, "xgvk", "regex to match and exclude unwanted groupVersion and kind. format is 'gv,k' where gv is regex to capture gv and k is regex to capture kind. ex: -xgvk metrics.*,Pod.*. can be used multiple times.")
@@ -231,9 +233,9 @@ func dump() int {
 			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
 			return 7
 		}
-		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, tgz, prune, !dontsplitns, outputfmt, 0, nil); e != nil {
+		if e = kc.Dump(targetDir, xns, xgvk, nologs, gzip, tgz, prune, !dontsplitns, !dontsplitgv, outputfmt, 0, nil); e != nil {
 			fmt.Fprintf(os.Stderr, "%s\n", e.Error())
-			return 8
+			return 9
 		}
 	}
 	return 0

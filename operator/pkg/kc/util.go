@@ -132,7 +132,12 @@ func (kc *kc) Dump(path string, nsExclusionList []string, gvkExclusionList []str
 	dumpDir = strings.Replace(dumpDir, ".", "_", -1)
 	path = path + "/" + dumpDir
 	fsutil.Clean(filepath.FromSlash(path))
+	// also remove possible old files from different options scenarios
 	os.Remove(path + ".tar.gz")
+	os.Remove(path + ".json")
+	os.Remove(path + ".yaml")
+	os.Remove(path + ".json.gz")
+	os.Remove(path + ".yaml.gz")
 	path = path + "/"
 	//
 	// retrieve gvk list and write

@@ -204,9 +204,10 @@ func newKc() Kc {
 	kc := kc{}
 	kc.client = resty.New().
 		SetTLSClientConfig(&tls.Config{InsecureSkipVerify: true}).
-		SetTimeout(5 * time.Minute).
+		SetTimeout(5*time.Minute).
 		SetRetryCount(5).
-		SetRetryWaitTime(500 * time.Millisecond)
+		SetRetryWaitTime(500*time.Millisecond).
+		SetHeader("User-Agent", "hcr")
 	kc.readOnly = false
 	yjq.SilenceYqLogs()
 	return &kc

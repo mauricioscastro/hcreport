@@ -35,7 +35,7 @@ declare
     v record;
 begin
     for v in
-       select schemaname, matviewname from pg_matviews
+       select schemaname, matviewname from pg_matviews where matviewname not in ('api_resources', 'version')
     loop
         execute format('drop materialized view %s.%s', v.schemaname, v.matviewname);
     end loop;

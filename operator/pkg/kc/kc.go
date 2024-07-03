@@ -207,7 +207,7 @@ func newKc() Kc {
 		SetTimeout(5*time.Minute).
 		SetRetryCount(5).
 		SetRetryWaitTime(500*time.Millisecond).
-		SetHeader("User-Agent", "kc")
+		SetHeader("User-Agent", "kc/v.0.0.0")
 	kc.readOnly = false
 	yjq.SilenceYqLogs()
 	return &kc

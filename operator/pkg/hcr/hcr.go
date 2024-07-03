@@ -74,10 +74,10 @@ func (rec *reconciler) extract() error {
 	reportHome := reportPath + strings.ReplaceAll(rec.cfg.Name, "-", "_") + "/"
 	nslist := []string{}
 	gvklist := []string{}
-	nologs := false
+	nologs := true
 	tgz := false
 	gz := false
-	format := kc.YAML
+	format := kc.JSON_LINES
 	splitns := false
 	splitgv := false
 	prune := false

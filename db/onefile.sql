@@ -73,7 +73,7 @@ declare
     apir record;
 begin
     for cdata in
-        select * from f.ls_cluster_data('/kcdump')
+        select * from f.ls_cluster_data(dir)
     loop
         execute format('create schema if not exists %s;', cdata.cluster);
         execute format('set search_path to %s;', cdata.cluster);

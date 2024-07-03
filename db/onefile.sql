@@ -42,8 +42,6 @@ begin
 end;
 $$;
 
-select clean_views();
-
 drop function if exists ls_cluster_data;
 drop type if exists cluster_data;
 
@@ -72,6 +70,7 @@ declare
     cdata f.cluster_data;
     apir record;
 begin
+    perform f.clean_views();
     for cdata in
         select * from f.ls_cluster_data(dir)
     loop

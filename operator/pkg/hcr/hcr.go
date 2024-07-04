@@ -10,9 +10,9 @@ import (
 	fsutil "github.com/coreybutler/go-fsutil"
 	hcrv1 "github.com/mauricioscastro/hcreport/api/v1"
 
-	"github.com/mauricioscastro/hcreport/pkg/kc"
 	"github.com/mauricioscastro/hcreport/pkg/util/log"
-	"github.com/mauricioscastro/hcreport/pkg/yjq"
+	"github.com/mauricioscastro/kcdump/pkg/kc"
+	"github.com/mauricioscastro/kcdump/pkg/yjq"
 	"go.uber.org/zap"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"

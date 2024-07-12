@@ -22,8 +22,7 @@ import (
 
 const (
 	reportPath = "/_data/"
-	// apiResourcesFile = "api_resources.yaml"
-	status = `{"phase": "", "diskUsage": "", "transitions": []}`
+	status     = `{"phase": "", "diskUsage": "", "transitions": []}`
 )
 
 var (
@@ -76,7 +75,7 @@ func (rec *reconciler) extract() error {
 	gvklist := []string{}
 	nologs := true
 	tgz := false
-	gz := false
+	gz := true
 	format := kc.JSON_LINES
 	splitns := false
 	splitgv := false

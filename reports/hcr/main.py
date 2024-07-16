@@ -19,6 +19,7 @@ def define_env(env):
         return psycopg2.connect(dbname=conn.dbname, user=conn.user, password=conn.password, host=conn.host, port=conn.port)
       except Exception as e:
         logger.error(e)
+      return None
 
     @env.macro
     def hello(hello_str):

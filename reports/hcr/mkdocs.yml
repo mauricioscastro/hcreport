@@ -91,7 +91,7 @@ markdown_extensions:
 plugins:
   - search
   - tags
-  - toggle-sidebar  
+  # - toggle-sidebar  
   - minify:
       minify_html: true
       minify_js: true
@@ -113,22 +113,29 @@ plugins:
           build: true  
           admonition_translations:
             tip: Dica
-            warning: Atenção          
+            warning: Atenção    
+          nav_translations:
+            Home: Minha Casa    
+            Hello: Olá    
         - locale: es
           name: Español
           build: true         
           admonition_translations:
             tip: Consejo
             warning: Atención     
+          nav_translations:
+            Home: Mi Casa     
+            Hello: Hola       
   - with-pdf:
+      output_path: site.pdf
       custom_template_path: withpdf
       cover_logo: img/hcreport.png
       cover_subtitle: Red Hat - LATAM - Launch Team
       toc_level: 3
-      # enabled_if_env: ENABLE_PDF_EXPORT      
+      enabled_if_env: ENABLE_PDF_EXPORT    
   - macros:
       include_yaml:
-        - sql: data/sql.yaml        
+        - sql: data/sql.yaml
 
 site_name: Health Check Report
 site_author: !ENV [SITE_AUTHOR, "John Doe"]
@@ -139,3 +146,11 @@ extra:
   xxx: ["eu", "você"]
   l1: "[hello](http://cnn.com)"
   l2: "http://cnn.com"
+  
+# https://ultrabug.github.io/mkdocs-static-i18n/setup/localizing-navigation/  
+nav:
+  - Home: 'index.md'
+  - 'Hello':
+    - 'Hello': 'hello/index.md'
+    - 'Test': 'hello/x.md'
+

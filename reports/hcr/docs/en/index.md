@@ -53,18 +53,20 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ## Table Examples
 
-### Table1
+### Table 1
 | Col 1 | Col 2 | Col 3 | Col 4 | Col 5 |
 | - | - | - | - | - |
 {% for r in queryddb(sql.query.version) -%}
 | {{ r[0] }} | {{ r[1] }} | {{ r[2] }} | {{ r[3] }} | {{ r[4] }} |
 {% endfor %}
 
-### Table2
+### Table 2
 | Col 1 | Col 2 | Col 3 | Col 4 | Col 5 | Col 6 | Col 7 |
 | - | - | - | - | - | - | - |
 {% for r in queryddb("select * from api_resources limit 25") -%}
 | {{ r[0] }} | {{ r[1] }} | {{ r[2] }} | {{ r[3] }} | {{ r[4] }} | {{ r[5] }} | {{ r[6] }} |
 {% endfor %}
 
+### Table 3
+{{ queryddb_mdtable(sql.query.version) }}
 

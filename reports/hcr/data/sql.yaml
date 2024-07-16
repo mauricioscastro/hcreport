@@ -1,3 +1,10 @@
+connection:
+  dbname: postgres
+  user: postgres
+  password: 
+  host: localhost
+  port: 5432
+
 query:
     example: |- 
       select cluster_id,

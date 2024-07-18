@@ -26,8 +26,8 @@ const (
 )
 
 var (
-	logger = log.Logger().Named("hcr.reconciler")
-	duLock *sync.Mutex
+	logger      = log.Logger().Named("hcr.reconciler")
+	progressLck *sync.Mutex
 )
 
 type reconciler struct {
@@ -46,7 +46,7 @@ type Reconciler interface {
 }
 
 func NewReconciler(srw client.SubResourceWriter, ctx context.Context, cfg *hcrv1.Config) Reconciler {
-	duLock = &sync.Mutex{}
+	progressLck = &sync.Mutex{}
 	return &reconciler{srw, ctx, cfg}
 }
 
@@ -81,16 +81,16 @@ func (rec *reconciler) extract() error {
 	splitgv := false
 	prune := false
 	return kc.NewKc().Dump(reportHome, nslist, gvklist, nologs, gz, tgz, prune, splitns, splitgv, format, 0, func() {
-		duLock.Lock()
+		progressLck.Lock()
 		rec.statusAddDiskUsage()
-		duLock.Unlock()
+		progressLck.Unlock()
 	})
 }
 
 func (rec *reconciler) setLogLevel() error {
 	if s, e := yjq.JqEval(`.logLevel // "info"`, string(rec.cfg.Spec)); e != nil {
 		return e
-	} else {
+	} else if s != "info" {
 		logger.Debug("setting log level", zap.String("level", s))
 		logger = log.ResetLoggerLevel(logger, s)
 	}

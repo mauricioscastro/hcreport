@@ -190,6 +190,7 @@ article#doc-toc {
 }
 
 @page :first {
+  margin: 0 !important;
   @bottom-right {
     font-size: 0 !important;
     content: '' !important;
@@ -199,7 +200,9 @@ article#doc-toc {
     content: '' !important;
   } 
   @bottom-left {
-    font-size: 0 !important;
-    content: '' !important;
+    font-size: 0;
+    content: '';
   } 
 }
+
+

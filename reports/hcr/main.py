@@ -1,7 +1,9 @@
+import os
 from easydict import EasyDict as edict 
 import logging
 import psycopg2
 import json  
+from datetime import datetime
 
 logger = logging.getLogger("hcr.macros")
 logger.setLevel(logging.DEBUG)
@@ -22,8 +24,12 @@ def define_env(env):
       return None
 
     @env.macro
-    def hello(hello_str):
-        return "Hello " + hello_str
+    def doc_env():
+      return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}  
+
+    @env.macro
+    def file_exists(file):
+      return os.path.exists(file_path)
 
     @env.macro
     def queryddb(query):
@@ -65,26 +71,35 @@ def define_env(env):
           conn.close()
         return ""
 
-
 # def on_pre_page_macros(env):
-#     print("+++")
-#     alternate = None
-#     try:
-#         alternate = env.variables.alternate
-#     except:
-#         pass
-#     print(alternate)  
-#     print("+++")
-#     print(env.variables.author)
-#     print("+++")
-#     print(env.page)
-#     print("+++")  
-#     print(env.config)
-#     print("+++")    
-#     print(env.conf.plugins['i18n'])
-#     print("+++")       
-#     print(json.dumps(env.conf.plugins, indent=2))
-#     print("+++")        
+#   print("+++")
+#   print(env.page)
+#   print(env.conf.extra['alternate'])
+  
+  # print(env.variables.alternate)  
+  # env.conf['pdf_present'] = os.path.exists(env.conf.site_dir + "/site.pdf")
+  # print(env.conf['pdf_present'])
+  # print(env.markdown)
+  # env.variables.extra['site_dir'] = env.conf.site_dir
+  # logger.info(env.conf.site_dir)
+    # print("+++")
+    # alternate = None
+    # try:
+    #     alternate = env.variables.alternate
+    # except:
+    #     pass
+    # print(alternate)  
+    # print("+++")
+    # print(env.variables.author)
+    # print("+++")
+    # print(env.page)
+    # print("+++")  
+    # print(env.config)
+    # print("+++")    
+    # print(env.conf.plugins['i18n'])
+    # print("+++")       
+    # print(json.dumps(env.conf.plugins, indent=2))
+    # print("+++")        
 
 
 # def on_post_page_macros(env):

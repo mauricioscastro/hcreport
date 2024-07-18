@@ -57,7 +57,11 @@
         {% include "partials/source.html" %}
       </div>
     {% endif %}
-    <a href="site.pdf"><img style="margin: 3px 5px 0px 5px;" src="/img/pdf.png" width="30" height="30"/></a>
+    {% set pdf_base = base_url %}
+    {% if page.url %}
+      {% set pdf_base = pdf_base ~ "/" ~ i18n_page_locale %}
+    {% endif %}
+    <a href="{{ pdf_base }}/site.pdf"><img style="margin: 3px 5px 0px 5px;" src="{{ base_url }}/img/pdf.png" width="30" height="30"/></a>
   </nav>
   {% if "navigation.tabs.sticky" in features %}
     {% if "navigation.tabs" in features %}

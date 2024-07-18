@@ -2,10 +2,6 @@
 
 {{ config.site_author }}
 
-{% for n in [1,2,3,4,5] %}
-  {{ hello(config.site_author) }}
-{% endfor %}
-
 ## Reported Clusters
 
 {{ clusters }}

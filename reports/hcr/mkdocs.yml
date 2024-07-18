@@ -71,7 +71,6 @@ markdown_extensions:
   - pymdownx.critic
   - pymdownx.details
   - pymdownx.emoji:
-      emoji_index: !!python/name:materialx.emoji.twemoji
       emoji_generator: !!python/name:materialx.emoji.to_svg
   - pymdownx.highlight:
       anchor_linenums: true
@@ -97,8 +96,11 @@ markdown_extensions:
 
 plugins:
   - search
+  - offline
+  - privacy:
+      enabled: true
+      cache: true
   - tags
-  # - toggle-sidebar  
   - minify:
       minify_html: true
       minify_js: true

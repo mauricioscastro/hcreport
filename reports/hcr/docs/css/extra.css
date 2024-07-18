@@ -81,6 +81,7 @@ table {
 	word-wrap: break-word !important;
 	border-radius: 10px !important;
 	width: 100% !important;
+	word-wrap: break-word !important;
 }
 
 /* .md-typeset__table table:not([class]) tr:hover {
@@ -140,6 +141,18 @@ th, td {
 /* dark mode alternating table bg colors */
 [data-md-color-scheme="slate"] .md-typeset__table tr:nth-child(even) {
 	background-color: #272727 !important;
+}
+
+.md-typeset__table {
+	margin: 0 !important;
+	border: 0 !important;
+	padding: 0 !important;
+}
+
+.md-typeset__scrollwrap {
+	margin: 0 !important;
+	border: 0 !important;
+	padding: 0 !important;	
 }
 
 @media screen and (min-width: 76.25em) {

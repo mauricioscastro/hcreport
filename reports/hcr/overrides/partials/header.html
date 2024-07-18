@@ -57,13 +57,15 @@
         {% include "partials/source.html" %}
       </div>
     {% endif %}
-    {% if page.title %}
-      {% set pdf_base = base_url %}
-      {% if page.url %}
-        {% set pdf_base = pdf_base ~ "/" ~ i18n_page_locale %}
-      {% endif %}
-      <a href="{{ pdf_base }}/site.pdf"><img style="margin: 3px 5px 0px 5px;" src="{{ base_url }}/img/pdf.png" width="30" height="30"/></a>
-      {% endif %}
+    {%- if i18n_config %}
+      {% set lc = namespace (locale_path = base_url ~ "/" ~ i18n_page_locale) %}
+      {%- for lang in i18n_config.languages %}
+        {%- if lang.default %}
+            {% set lc.locale_path = lc.locale_path | replace("/" ~ lang.locale, "") %}
+        {%- endif %}
+      {%- endfor %}
+      <a href="{{ lc.locale_path }}/site.pdf"><img style="margin: 3px 5px 0px 5px;" src="{{ base_url }}/img/pdf.png" width="30" height="30"/></a>
+    {%- endif %}   
   </nav>
   {% if "navigation.tabs.sticky" in features %}
     {% if "navigation.tabs" in features %}

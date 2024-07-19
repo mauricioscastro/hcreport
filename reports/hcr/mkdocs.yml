@@ -139,7 +139,7 @@ plugins:
       output_path: site.pdf
       custom_template_path: withpdf
       cover_logo: img/hcreport.png
-      cover_subtitle: Red Hat - LATAM - Launch Team
+      cover_subtitle: Company - LATAM - My Team
       toc_level: 3
       enabled_if_env: ENABLE_PDF_EXPORT    
       # verbose: true
@@ -149,7 +149,7 @@ plugins:
 
 site_name: Health Check Report
 site_author: !ENV [SITE_AUTHOR, "John Doe"]
-copyright: Copyright &copy; 2023 - 2024 Red Hat - CSA - LATAM
+copyright: Copyright &copy; 2023 - 2024 Company - Team - LATAM
 
 extra:
   site_build_date: !ENV [SITE_BUILD_DATE, "1970-01-01"]

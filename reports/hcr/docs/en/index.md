@@ -35,28 +35,16 @@
 ## Prefácio
 
 ### Confidencialidade, direitos autorais e responsabilidade
-
-Este documento contém informações confidenciais que são de uso exclusivo da Red Hat ©, Inc e Banco_Bradesco e não devem ser compartilhadas com pessoas que não pertençam a estas duas companhias. Este documento e quaisquer partes dele não pode ser copiado, reproduzido, fotocopiado, armazenado eletronicamente em um sistema de recuperação, ou transmitido sem o consentimento expresso por escrito da Red Hat. A Red Hat não garante que este documento esteja livre de erros ou omissões. A Red Hat Consulting se reserva o direito de fazer correções, atualizações, revisões ou alterações nas informações aqui contidas.
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ### Introdução
-
-O programa Cloud Success Architect (CSA) é um programa financiado pela Red Hat que fornece um compromisso flexível e de alto nível para ajudar os clientes na adoção das tecnologias de nuvem híbrida da Red Hat. O serviço é direcionado a clientes estratégicos que adquiriram subscrições de produtos Red Hat Cloud: OpenStack, OpenShift Container Platform, Ansible, CloudForms, Azure Red Hat OpenShift [ARO], Red Hat OpenShift on Services AWS [ROSA] e OpenShift Dedicated.
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ### Sobre este documento
-
-O objetivo deste documento é relatar os resultados da execução do healthcheck realizado na plataforma instalada no
-ambiente Azure.
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ### Público
-
-Este documento é destinado a administradores, arquitetos e desenvolvedores de sistemas do cliente: Banco_Bradesco.
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ### Lista de verificação de nomenclatura
-
-As imagens a seguir auxiliarão na revisão dos pontos de controle contemplados neste documento:
-
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 ### Outro Item de Teste
-
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 ## Table Examples

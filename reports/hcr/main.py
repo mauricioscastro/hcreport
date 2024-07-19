@@ -28,10 +28,6 @@ def define_env(env):
       return {name:getattr(env, name) for name in dir(env) if not name.startswith('_')}  
 
     @env.macro
-    def file_exists(file):
-      return os.path.exists(file_path)
-
-    @env.macro
     def queryddb(query):
         logger.debug("queryddb query: " + query)
         conn = postgres_connection()
@@ -43,7 +39,7 @@ def define_env(env):
         except Exception as e:          
           logger.error(e)          
         finally:
-            conn.close()
+          if conn: conn.close()
         return ()
 
     @env.macro
@@ -68,7 +64,7 @@ def define_env(env):
         except Exception as e:          
           logger.error(e)         
         finally:
-          conn.close()
+          if conn: conn.close()
         return ""
 
 # def on_pre_page_macros(env):

@@ -1,7 +1,7 @@
 # hcreport <img src="img/hcreport.png" alt="hcreport" style="height: 26px"/>
 ## A collection of Openshift and k8s health checks bundled in a operator 
 
-Our CSA LATAM team has been facing the challenge of reviewing Openshift clusters, managed or not, during too many of our engagements and the current set of scripts to collect and transform data into a nice report not sparsely faces execution problems by the customers so I decided to repack them into a operator.
+Our SAA LATAM team has been facing the challenge of reviewing Openshift clusters, managed or not, during too many of our engagements and the current set of scripts to collect and transform data into a nice report not sparsely faces execution problems by the customers so I decided to repack them into a operator.
 
 This would come as a personal exercise for understanding and using operators as much as getting to know [Go](https://go.dev/) better. 
 

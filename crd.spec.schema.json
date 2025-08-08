@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://raw.githubusercontent.com/mauricioscastro/kcdump/main/crd.spec.schema.json",
+  "title": "hcreport crd spec schema",
+  "type": "object",
+  "description": "this the json schema for the hcreport custom resource definition. \nexample using all options:\n  loglevel: error\n  rebuildAfter: never\n  kcdump:\n    ttlSecondsAfterFinished: 3600\n    memoryLimit: 640Mi\n    diskLimit: 3G\n    config:\n      loglevel: error\n      async-workers:\n      default-chunk-size:\n      xns: \n      - openshift-.*\n      - open-cluster.*\n      - default\n      xgvk: \n      - metrics.*:Pod.*\n      - .*:Event.*\n      async-chunk-map: \n        events.v1: 100\n        events.events.k8s.io/v1: 100\n      sync-chunk-map: \n        packagemanifests.packages.operators.coreos.com/v1: 1\n        apirequestcounts.apiserver.openshift.io/v1: 1\n        customresourcedefinitions.apiextensions.k8s.io/v1: 1\n        configmaps.v1: 1\n  docbase:\n    site_author: Red Hatter",
+  "additionalProperties": false,
+  "properties": {
+    "rebuildAfter": {
+      "description": "use the word never or time duration expression (NUMBER[m,s,h]) that will be used to calculate how long to wait before building the report again. all phases will be re-run, collect/dump, dumpdb load and report building",
+      "type": "string",
+      "pattern": "never|[0-9]+[mh]",
+      "default": "never"
+    },
+    "loglevel": {
+      "description": "how much log information wanted",
+      "enum": [
+        "info",
+        "debug",
+        "warn",
+        "error",
+        "fatal",
+        "panic"
+      ],
+      "default": "error"
+    },
+    "kcdump": {
+      "description": "configure how the dump job will behave and its configuration",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ttlSecondsAfterFinished": {
+          "description": "let the finished job live for how long seconds?",
+          "type": "integer",
+          "default": "3600"
+        },
+        "memoryLimit": {
+          "description": "limit memory for the dump process",
+          "type": "string",
+          "pattern": "[0-9]{1,3}[MG]i",
+          "default": "640Mi"
+        },
+        "diskLimit": {
+          "description": "emptyDir size where the cluster dump data will be written in the job pod",
+          "type": "string",
+          "pattern": "[0-9]{1,3}[MG]i",
+          "default": "3Gi"
+        },
+        "config": {
+          "description": "part of the kcdump app config as needed for the report custom resource definition",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "loglevel": {
+              "$ref": "#/properties/loglevel"
+            },
+            "async-workers": {
+              "description": "number of group version kind to process in parallel",
+              "type": "integer",
+              "default": 8
+            },
+            "default-chunk-size": {
+              "description": "number of list items to retrieve until finished for all async workers",
+              "type": "integer",
+              "default": 25
+            },
+            "xns": {
+              "description": "regex to match and exclude unwanted namespaces. ex: open-.*",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": "empty. all namespaces included in the dump"
+            },
+            "xgvk": {
+              "description": "regex to match and exclude unwanted groupVersion and kind. format is 'gv:k' where gv is regex to capture gv and k is regex to capture kind. ex: metrics.*:Pod.*",
+              "type": "array",
+              "items": {
+                "type": "string"
+              },
+              "default": "empty. all groupVersions and its kinds included in the dump"
+            },
+            "async-chunk-map": {
+              "description": "a map of string to int. 'name.gv' -> 'list chunk size'. for the resources acquired in parallel with the desired chunk size",
+              "type": "object",
+              "patternProperties": {
+                "^([^\\.]+\\.)*[^\\.]*(/[^\\.]+){0,1}$": {
+                  "type": "integer"
+                }
+              },
+              "default": "events.v1: 100\nevents.events.k8s.io/v1: 100"
+            },
+            "sync-chunk-map": {
+              "description": "a map of string to int. 'name.gv' -> 'list chunk size'. for the resources acquired one by one with the desired chunk size before anything else",
+              "$ref": "#/properties/kcdump/properties/config/properties/async-chunk-map",
+              "default": "packagemanifests.packages.operators.coreos.com/v1: 1\napirequestcounts.apiserver.openshift.io/v1: 1\ncustomresourcedefinitions.apiextensions.k8s.io/v1: 1\nconfigmaps.v1: 1"
+            }
+          }
+        }
+      }
+    },
+    "docbase": {
+      "description": "special config for the generated static site and pdf of the report",
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "site_author": {
+          "description": "for the pdf report output cover",
+          "type": "string"
+        }
+      }
+    }
+  }
+}

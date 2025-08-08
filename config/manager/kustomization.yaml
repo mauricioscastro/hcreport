@@ -6,3 +6,6 @@ images:
 - name: controller
   newName: controller
   newTag: latest
+- name: dumpdb
+  newName: dumpdb
+  newTag: latest

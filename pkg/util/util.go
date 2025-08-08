@@ -6,7 +6,7 @@ import (
 
 	"github.com/mauricioscastro/kcdump/pkg/yjq"
 	"github.com/rwtodd/Go.Sed/sed"
-	"github.com/santhosh-tekuri/jsonschema/v5"
+	"github.com/santhosh-tekuri/jsonschema/v6"
 	"gopkg.in/yaml.v3"
 )
 

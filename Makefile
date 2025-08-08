@@ -1,5 +1,7 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
+DDB ?= dumpdb:latest
+DOC ?= docbase:latest
 CONTAINER_FILE ?= Containerfile
 # ENVTEST_K8S_VERSION refers to the version of kubebuilder assets to be downloaded by envtest binary.
 ENVTEST_K8S_VERSION = 1.27.1
@@ -11,7 +13,7 @@ else
 GOBIN=$(shell go env GOBIN)
 endif
 
-yq_set_whook_only_query='with(select(.kind == "Deployment").spec.template.spec.containers.[] | select(.name == "manager").env.[] | select(.name == "HCR_WEBHOOK_ONLY"); .value = "true")'
+yq_set_whook_only_query='with(select(.kind == "Deployment").spec.template.spec.containers.[] | select(.name == "manager").env; . += [{"name": "HCR_WEBHOOK_ONLY", "value": "true"}])'
 
 # CONTAINER_TOOL defines the container tool to be used for building images.
 # Be aware that the target commands are only tested with Docker which is
@@ -74,7 +76,7 @@ vendor:
 #	go mod vendor
 
 .PHONY: build
-build: manifests generate fmt vet ## Build manager binary.
+build: manifests generate fmt vet yaml-to-json-schema ## Build manager binary.
 	go build -o bin/manager cmd/main.go
 
 .PHONY: run
@@ -125,27 +127,27 @@ uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified 
 
 .PHONY: deploy-dry
 deploy-dry: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} dumpdb=${DDB} 
 	$(KUSTOMIZE) build config/default
 
 .PHONY: deploy
 deploy: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} dumpdb=${DDB} 
 	$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: deploy-show
 deploy-show: 
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} dumpdb=${DDB} 
 	@$(KUSTOMIZE) build config/default
 
 .PHONY: deploy-webhook-only
 deploy-webhook-only: yq
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} 
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} dumpdb=${DDB} 
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query) | $(KUBECTL) apply -f -
 
 .PHONY: deploy-webhook-only-show
 deploy-webhook-only-show: yq
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} 
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} dumpdb=${DDB} 
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query)
 
 .PHONY: undeploy
@@ -189,6 +191,12 @@ envtest: $(ENVTEST) ## Download envtest-setup locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	test -s $(LOCALBIN)/setup-envtest || GOBIN=$(LOCALBIN) go install sigs.k8s.io/controller-runtime/tools/setup-envtest@latest
 
+.PHONY: yaml-to-json-schema
+yaml-to-json-schema: yq
+	@ yq '.data."crd.spec.schema.yaml"' config/manager/json_schema_configmap.yaml | yq > crd.spec.schema.yaml
+	@ yq -oj crd.spec.schema.yaml > crd.spec.schema.json
+
 .PHONY: yq
 yq:
+	@go get github.com/mikefarah/yq/v4/cmd
 	@GO111MODULE=on go install github.com/mikefarah/yq/v4

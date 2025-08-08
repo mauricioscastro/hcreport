@@ -3,5 +3,32 @@ kind: Config
 metadata:
   name: config-sample
 spec: 
-  logLevel: info
-  dummy: friday
+  loglevel: error
+  rebuildAfter: never
+  kcdump:
+    ttlSecondsAfterFinished: 3600
+    memoryLimit: 640Mi
+    diskLimit: 3G
+    config:
+      loglevel: error
+      async-workers:
+      default-chunk-size:
+      xns: 
+      - openshift-.*
+      - open-cluster.*
+      - default
+      xgvk: 
+      - metrics.*:Pod.*
+      - .*:Event.*
+      async-chunk-map: 
+        events.v1: 100
+        events.events.k8s.io/v1: 100
+      sync-chunk-map: 
+        packagemanifests.packages.operators.coreos.com/v1: 1
+        apirequestcounts.apiserver.openshift.io/v1: 1
+        customresourcedefinitions.apiextensions.k8s.io/v1: 1
+        configmaps.v1: 1
+  docbase:
+    site_author: Red Hatter
+
+

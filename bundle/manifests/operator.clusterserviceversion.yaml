@@ -139,7 +139,7 @@ spec:
                 - mountPath: /tmp/k8s-webhook-server/serving-certs
                   name: webhook-cert
                   readOnly: true
-                - mountPath: /_data
+                - mountPath: /data
                   name: work
               - args:
                 - --secure-listen-address=0.0.0.0:8443

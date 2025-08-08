@@ -3,6 +3,7 @@
 # It should be run by config/default
 resources:
 - bases/hcreport.csa.latam.redhat.com_configs.yaml
+- json_schema_configmap.yaml
 #+kubebuilder:scaffold:crdkustomizeresource
 
 patches:

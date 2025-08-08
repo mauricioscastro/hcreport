@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Namespace
 metadata:
   labels:
+    hcreport.csa.latam.redhat.com: "true"
     control-plane: controller-manager
     app.kubernetes.io/name: namespace
     app.kubernetes.io/instance: system
@@ -44,16 +45,39 @@ spec:
       volumes:
       - name: work
         emptyDir:
-          sizeLimit: 10Gi        
+          sizeLimit: 5Gi        
       containers:
+      - name: dumpdb
+        image: dumpdb
+        imagePullPolicy: Always
+        command: 
+        - postgres
+        ports:
+          - containerPort: 5432
+        volumeMounts:
+        - mountPath: /data
+          name: work
+          readOnly: false      
+        securityContext:
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+              - "ALL"
+        resources:
+          limits: 
+            memory: 256Mi
+          requests:
+            cpu: 500m
+            memory: 256Mi                  
       - command:
         - /manager
         args:
         - --leader-elect
         env:
-          - name: HCR_WEBHOOK_ONLY
-            value: "false"         
+          - name: LOGGER_LEVEL
+            value: debug
         image: controller
+        imagePullPolicy: Always
         name: manager
         securityContext:
           allowPrivilegeEscalation: false
@@ -73,13 +97,13 @@ spec:
           initialDelaySeconds: 5
           periodSeconds: 10
         resources:
-          limits:
-            memory: 256Mi
+          limits: 
+            memory: 128Mi
           requests:
-            cpu: 100m
-            memory: 64Mi
+            cpu: 250m
+            memory: 128Mi
         volumeMounts:
-        - mountPath: /_data
+        - mountPath: /data
           name: work
           readOnly: false            
       serviceAccountName: controller-manager

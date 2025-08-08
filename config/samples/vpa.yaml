@@ -1,0 +1,13 @@
+apiVersion: autoscaling.k8s.io/v1
+kind: VerticalPodAutoscaler
+metadata:
+  name: hcr
+  namespace: hcr
+spec:
+  targetRef:
+    apiVersion: "apps/v1"
+    kind: Deployment
+    name: hcr-controller-manager
+  updatePolicy:
+    updateMode: "Off"
+

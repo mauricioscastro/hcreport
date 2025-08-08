@@ -51,12 +51,12 @@ func SetLoggerLevel(level string) {
 //+kubebuilder:rbac:groups=hcreport.csa.latam.redhat.com,resources=configs/finalizers,verbs=update
 
 func (r *ConfigReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	logger.Info("reconcile...")
 	var cfg hcrv1.Config
+	logger.Info("req.Namespace=" + req.Namespace)
 	err := r.Get(ctx, types.NamespacedName{Name: req.Name, Namespace: req.Namespace}, &cfg)
 	if err != nil {
 		if apierr.IsNotFound(err) {
-			logger.Info("hcreport config resource not found")
+			logger.Warn("hcreport config resource not found")
 			return ctrl.Result{}, nil
 		}
 		logger.Error("can not go past this error. returning", zap.Error(err))

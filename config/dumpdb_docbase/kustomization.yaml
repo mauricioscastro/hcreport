@@ -1,0 +1,10 @@
+namespace: hcr
+resources:
+- dumpdb-docbase.yaml
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+images:
+- name: docbase
+  newName: quay.io/hcreport/docbase
+- name: dumpdb
+  newName: quay.io/hcreport/dumpdb

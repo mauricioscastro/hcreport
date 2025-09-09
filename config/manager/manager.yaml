@@ -30,10 +30,6 @@ spec:
         control-plane: controller-manager
         app.kubernetes.io/name: hcr
     spec:
-      securityContext:
-        runAsNonRoot: true
-        seccompProfile:
-          type: RuntimeDefault
       containers:
       - command:
         - /controller

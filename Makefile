@@ -122,11 +122,11 @@ run: manifests generate fmt vet ## Run a controller from your host.
 # More info: https://docs.docker.com/develop/develop-images/build_enhancements/
 .PHONY: container-build
 container-build: ## Build docker image with the manager.
-	$(CONTAINER_TOOL) build -t ${IMG} .
+	@$(CONTAINER_TOOL) build -t ${IMG} .
 
 .PHONY: container-push
 container-push: ## Push docker image with the manager.
-	$(CONTAINER_TOOL) push ${IMG}
+	@$(CONTAINER_TOOL) push ${IMG}
 
 # PLATFORMS defines the target platforms for the manager image be built to provide support to multiple
 # architectures. (i.e. make docker-buildx IMG=myregistry/mypoperator:0.0.1). To use this option you need to:
@@ -145,49 +145,65 @@ docker-buildx: ## Build and push docker image for the manager for cross-platform
 	- $(CONTAINER_TOOL) buildx rm hcr-builder
 	rm Dockerfile.cross
 
-.PHONY: build-installer
-build-installer: manifests generate kustomize ## Generate a consolidated YAML with CRDs and deployment.
-	mkdir -p dist
-	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
-	$(KUSTOMIZE) build config/default > dist/install.yaml
+# .PHONY: build-installer
+# build-installer: manifests generate kustomize ## Generate a consolidated YAML with CRDs and deployment.
+# 	mkdir -p dist
+# 	cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+# 	$(KUSTOMIZE) build config/default > dist/install.yaml
 
 ##@ Deployment
 
 ifndef ignore-not-found
-  ignore-not-found = false
+  ignore-not-found = true
 endif
 
-.PHONY: install
-install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
+# .PHONY: install
+# install: manifests kustomize ## Install CRDs into the K8s cluster specified in ~/.kube/config.
+# 	@$(KUSTOMIZE) build config/crd | $(KUBECTL) apply -f -
 
-.PHONY: uninstall
-uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+# .PHONY: uninstall
+# uninstall: manifests kustomize ## Uninstall CRDs from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+# 	@$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+
+.PHONY: deploy
+deploy: deploy-controller deploy-dumpdb-docbase 
 
 .PHONY: deploy-dry
-deploy-dry: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+deploy-dry: deploy-controller-dry deploy-dumpdb-docbase-dry 
+
+.PHONY: deploy-controller-dry
+deploy-controller-dry: manifests kustomize 
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} && cd ..
 	@$(KUSTOMIZE) build config/default
 
-.PHONY: deploy
-deploy: manifests kustomize deploy-dumpdb-docbase ## Deploy controller to the K8s cluster specified in ~/.kube/config.
+.PHONY: deploy-controller
+deploy-controller: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
-undeploy: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
-	$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+undeploy: undeploy-dumpdb-docbase undeploy-controller 
+
+.PHONY: undeploy-controller
+undeploy-controller: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
+	@$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy-webhook
-deploy-webhook: yq
+deploy-webhook: deploy-webhook-only deploy-dumpdb-docbase
+
+.PHONY: deploy-webhook-dry
+deploy-webhook-dry: deploy-webhook-only-dry deploy-dumpdb-docbase-dry
+
+.PHONY: deploy-webhook-only
+deploy-webhook-only: yq
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query) | $(KUBECTL) apply -f -
 
-.PHONY: deploy-webhook-dry
-deploy-webhook-dry: yq
+.PHONY: deploy-webhook-only-dry
+deploy-webhook-only-dry: yq
 	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query)
+	@$(MAKE) deploy-dumpdb-docbase-dry
 
 .PHONY: deploy-dumpdb-docbase
  deploy-dumpdb-docbase: kustomize
@@ -199,17 +215,10 @@ deploy-webhook-dry: yq
 	@cd config/dumpdb_docbase && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} docbase=${IMG_DOCBASE} && cd ..
 	@$(KUSTOMIZE) build config/dumpdb_docbase
 
-.PHONY: deploy-all-dry
-deploy-all-dry: deploy-dry deploy-dumpdb-docbase-dry 
-
-.PHONY: deploy-all
-deploy-all-dry: deploy deploy-dumpdb-docbase 
-
-.PHONY: deploy-all-webhook-dry
-deploy-all-webhook-dry: deploy-webhook-dry deploy-dumpdb-docbase-dry
-
-.PHONY: deploy-all-webhook
-deploy-all-webhook: deploy-webhook deploy-dumpdb-docbase
+.PHONY: undeploy-dumpdb-docbase
+ undeploy-dumpdb-docbase: kustomize
+	@cd config/dumpdb_docbase && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} docbase=${IMG_DOCBASE} && cd ..
+	@$(KUSTOMIZE) build config/dumpdb_docbase | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Dependencies
 

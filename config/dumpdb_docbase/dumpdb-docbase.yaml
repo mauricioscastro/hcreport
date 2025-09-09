@@ -43,7 +43,8 @@ spec:
           timeoutSeconds: 3
           failureThreshold: 1        
         securityContext:
-          runAsUser: 1001          
+          runAsUser: 1001        
+          runAsGroup: 1001  
       - name: docbase
         image: docbase
         ports:
@@ -72,6 +73,7 @@ spec:
           failureThreshold: 3
         securityContext:
           runAsUser: 1001
+          runAsGroup: 1001
 ---
 apiVersion: v1
 kind: Service

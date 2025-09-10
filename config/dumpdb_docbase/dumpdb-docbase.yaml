@@ -49,6 +49,9 @@ spec:
           runAsGroup: 1001  
       - name: docbase
         image: docbase
+        env:
+        - name: ENABLE_PDF_EXPORT
+          value: "1"        
         ports:
         - containerPort: 8089 
         resources:

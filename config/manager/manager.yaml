@@ -30,6 +30,11 @@ spec:
         control-plane: controller-manager
         app.kubernetes.io/name: hcr
     spec:
+      serviceAccountName: controller-manager
+      terminationGracePeriodSeconds: 10
+      automountServiceAccountToken: true    
+      securityContext:
+        fsGroup: 1001    
       containers:
       - command:
         - /controller
@@ -70,7 +75,5 @@ spec:
             memory: 64Mi
         volumeMounts: []
       volumes: []
-      serviceAccountName: controller-manager
-      terminationGracePeriodSeconds: 10
-      automountServiceAccountToken: true
+
 

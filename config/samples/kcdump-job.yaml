@@ -1,0 +1,48 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kcdump
+data: 
+  kcdump.yaml: |-
+    copy-to-pod: /dumpdb-docbase/dumpdb:/tmp/kcdump/
+    loglevel: info
+---    
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: kcdump
+spec:
+  ttlSecondsAfterFinished: 86400
+  template:
+    spec:
+      serviceAccountName: hcr-controller-manager
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1001
+        runAsGroup: 1001
+        fsGroup: 1001
+      restartPolicy: Never
+      backoffLimit: 0
+      containers:
+      - name: kcdump
+        env:
+        - name: KCD_NAME
+          value: "hcr_test---hcrcm_id-54321"
+        image: quay.io/hcreport/kcdump
+        imagePullPolicy: Always
+        volumeMounts:
+        - mountPath: /tmp/kcdump/.kube/kcdump
+          name: config
+          readOnly: true        
+      resources:
+        limits:
+          memory: 640Mi
+        requests:
+          cpu: 250m
+          memory: 640Mi
+      volumes:
+      - name: config
+        configMap:
+          name: kcdump   
+      terminationGracePeriodSeconds: 10
+

@@ -2,4 +2,13 @@ apiVersion: hcr.adoption.latam/v1
 kind: Config
 metadata:
   name: config-sample
-spec: {}
+spec: 
+  hcreport:
+    authors:
+    - Mauricio Castro
+    - Rafael Pecora
+    - Robson Watt
+    - Emmanuel Morales
+  dumpdb:
+    ttlSecondsAfterFinished: 3600
+

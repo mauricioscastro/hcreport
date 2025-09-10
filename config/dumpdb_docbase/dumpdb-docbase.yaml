@@ -17,6 +17,8 @@ spec:
         app: dumpdb-docbase
     spec:
       serviceAccountName: hcr-controller-manager
+      securityContext:
+        fsGroup: 1001
       containers:
       - name: dumpdb
         image: dumpdb  
@@ -24,10 +26,10 @@ spec:
         - containerPort: 5432 
         resources:
           requests:
-            memory: "128Mi"
+            memory: "512Mi"
             cpu: "200m"
           limits:
-            memory: "128Mi"
+            memory: "512Mi"
         livenessProbe:
           tcpSocket:
             port: 5432  

@@ -166,59 +166,58 @@ endif
 # 	@$(KUSTOMIZE) build config/crd | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy
-deploy: deploy-controller deploy-dumpdb-docbase 
+deploy: deploy-controller deploy-dumpdb 
 
 .PHONY: deploy-dry
-deploy-dry: deploy-controller-dry deploy-dumpdb-docbase-dry 
+deploy-dry: deploy-controller-dry deploy-dumpdb-dry 
 
 .PHONY: deploy-controller-dry
 deploy-controller-dry: manifests kustomize 
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} && cd ..
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} docbase=${IMG_DOCBASE} && cd ..
 	@$(KUSTOMIZE) build config/default
 
 .PHONY: deploy-controller
 deploy-controller: manifests kustomize ## Deploy controller to the K8s cluster specified in ~/.kube/config.
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} docbase=${IMG_DOCBASE}
 	@$(KUSTOMIZE) build config/default | $(KUBECTL) apply -f -
 
 .PHONY: undeploy
-undeploy: undeploy-dumpdb-docbase undeploy-controller 
+undeploy: undeploy-dumpdb undeploy-controller 
 
 .PHONY: undeploy-controller
 undeploy-controller: kustomize ## Undeploy controller from the K8s cluster specified in ~/.kube/config. Call with ignore-not-found=true to ignore resource not found errors during deletion.
 	@$(KUSTOMIZE) build config/default | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 .PHONY: deploy-webhook
-deploy-webhook: deploy-webhook-only deploy-dumpdb-docbase
+deploy-webhook: deploy-webhook-only deploy-dumpdb
 
 .PHONY: deploy-webhook-dry
-deploy-webhook-dry: deploy-webhook-only-dry deploy-dumpdb-docbase-dry
+deploy-webhook-dry: deploy-webhook-only-dry deploy-dumpdb-dry
 
 .PHONY: deploy-webhook-only
 deploy-webhook-only: yq
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} docbase=${IMG_DOCBASE}
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query) | $(KUBECTL) apply -f -
 
 .PHONY: deploy-webhook-only-dry
 deploy-webhook-only-dry: yq
-	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG}
+	@cd config/manager && $(KUSTOMIZE) edit set image controller=${IMG} docbase=${IMG_DOCBASE}
 	@$(KUSTOMIZE) build config/default | yq $(yq_set_whook_only_query)
-	@$(MAKE) deploy-dumpdb-docbase-dry
 
-.PHONY: deploy-dumpdb-docbase
- deploy-dumpdb-docbase: kustomize
-	@cd config/dumpdb_docbase && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} docbase=${IMG_DOCBASE} && cd ..
-	@$(KUSTOMIZE) build config/dumpdb_docbase | $(KUBECTL) apply -f -
+.PHONY: deploy-dumpdb
+ deploy-dumpdb: kustomize
+	@cd config/dumpdb && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} && cd ..
+	@$(KUSTOMIZE) build config/dumpdb | $(KUBECTL) apply -f -
 
-.PHONY: deploy-dumpdb-docbase-dry
- deploy-dumpdb-docbase-dry: kustomize
-	@cd config/dumpdb_docbase && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} docbase=${IMG_DOCBASE} && cd ..
-	@$(KUSTOMIZE) build config/dumpdb_docbase
-
-.PHONY: undeploy-dumpdb-docbase
- undeploy-dumpdb-docbase: kustomize
-	@cd config/dumpdb_docbase && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} docbase=${IMG_DOCBASE} && cd ..
-	@$(KUSTOMIZE) build config/dumpdb_docbase | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
+.PHONY: deploy-dumpdb-dry
+ deploy-dumpdb-dry: kustomize
+	@cd config/dumpdb && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} && cd ..
+	@$(KUSTOMIZE) build config/dumpdb
+	
+.PHONY: undeploy-dumpdb
+ undeploy-dumpdb: kustomize
+	@cd config/dumpdb && $(KUSTOMIZE) edit set image dumpdb=${IMG_DUMPDB} && cd ..
+	@$(KUSTOMIZE) build config/dumpdb | $(KUBECTL) delete --ignore-not-found=$(ignore-not-found) -f -
 
 ##@ Dependencies
 

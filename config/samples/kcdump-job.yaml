@@ -4,7 +4,7 @@ metadata:
   name: kcdump
 data: 
   kcdump.yaml: |-
-    copy-to-pod: /dumpdb-docbase/dumpdb:/tmp/kcdump/
+    copy-to-pod: /dumpdb/dumpdb:/tmp/kcdump/
     loglevel: info
 ---    
 apiVersion: batch/v1
@@ -15,7 +15,7 @@ spec:
   ttlSecondsAfterFinished: 86400
   template:
     spec:
-      serviceAccountName: hcr-controller-manager
+      serviceAccountName: hcr-controller
       securityContext:
         runAsNonRoot: true
         runAsUser: 1001

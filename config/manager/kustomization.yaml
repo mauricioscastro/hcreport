@@ -5,6 +5,8 @@ kind: Kustomization
 images:
 - name: controller
   newName: quay.io/hcreport/controller
+- name: docbase
+  newName: quay.io/hcreport/docbase
 - name: dumpdb
   newName: dumpdb
   newTag: latest

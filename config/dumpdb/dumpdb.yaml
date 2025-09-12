@@ -1,0 +1,97 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kcdump
+data: 
+  kcdump.yaml: |-
+    name: hcreport-example
+    targetdir: /tmp/kcdump    
+    loglevel: info
+    async-workers: 8
+    default-chunk-size: 25
+    sync-chunk-map:
+      apirequestcounts.apiserver.openshift.io/v1: 1
+      configmaps.v1: 1
+      customresourcedefinitions.apiextensions.k8s.io/v1: 1
+      packagemanifests.packages.operators.coreos.com/v1: 1
+    async-chunk-map:
+      events.events.k8s.io/v1: 100
+      events.v1: 100      
+    exclude-group-version-kind:
+      - packages.operators.coreos.com/v1:PackageManifest
+    exclude-namespace: []
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dumpdb
+  labels:
+    app: dumpdb
+  namespace: system
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: dumpdb
+  template:
+    metadata:
+      labels:
+        app: dumpdb
+    spec:
+      serviceAccountName: hcr-controller
+      securityContext:
+        fsGroup: 1001
+      volumes:
+        - name: kcdump-config
+          configMap:
+            name: kcdump
+      containers:
+      - name: dumpdb
+        image: dumpdb  
+        env:
+        - name: DUMP_AND_LOAD
+          value: "true"
+        ports:
+        - containerPort: 5432 
+        volumeMounts:
+          - name: kcdump-config
+            mountPath: /var/lib/pgsql/.kube/kcdump
+            readOnly: true 
+        resources:
+          requests:
+            memory: "640Mi"
+            cpu: "200m"
+        securityContext:
+          runAsUser: 1001        
+          runAsGroup: 1001  
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: dumpdb
+  namespace: system
+spec:
+  ports:
+    - port: 5432
+      targetPort: 5432
+  selector:
+    app: dumpdb
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: dumpdb
+  namespace: system
+spec:
+  podSelector:
+    matchLabels:
+      app: postgres
+  policyTypes:
+  - Ingress
+  ingress:
+  - from:
+    - podSelector: {}  
+    ports:
+    - protocol: TCP
+      port: 5432

@@ -1,7 +1,7 @@
 apiVersion: security.openshift.io/v1
 kind: SecurityContextConstraints
 metadata:
-  name: controller-manager
+  name: controller
 allowPrivilegedContainer: false
 runAsUser:
   type: MustRunAs
@@ -16,4 +16,4 @@ seLinuxContext:
 supplementalGroups:
   type: RunAsAny
 users:
-- system:serviceaccount:hcr:hcr-controller-manager
+- system:serviceaccount:hcr:hcr-controller

@@ -78,7 +78,9 @@ spec:
         image: docbase
         env:
         - name: ENABLE_PDF_EXPORT
-          value: "1"        
+          value: "1"    
+        - name: DUMPDB_HOST
+          value: dumpdb
         ports:
         - containerPort: 8089 
         resources:
